@@ -1,0 +1,22 @@
+{
+  "name": "@warewolf/domain",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Pure Werewolf rules: catalog, validation, assignment, resolution, victory. No I/O.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.build.json --noEmit && tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  }
+}
