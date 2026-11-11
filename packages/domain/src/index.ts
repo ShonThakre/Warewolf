@@ -29,3 +29,6 @@ export * from './night/chaos.js';
 export * from './night/killTarget.js';
 
 export { canonicalJson } from './util/canonical.js';
+
+export { simulate, type SimulationReport, type SimulateOptions } from './simulate/run.js';
+export { POLICY_IDS, type PolicyId } from './simulate/policies.js';

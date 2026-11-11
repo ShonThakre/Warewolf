@@ -71,6 +71,13 @@
       "when": 1794392000000,
       "tag": "0009_ultimate_20",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1794393600000,
+      "tag": "0010_game_events",
+      "breakpoints": true
     }
   ]
 }

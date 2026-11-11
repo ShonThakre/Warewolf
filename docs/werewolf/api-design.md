@@ -73,7 +73,7 @@ Request: `{ "roomCode": "K7QMPR", "displayName": "Rafi" }`
 
 Response 201: `{ "gameId", "playerId", "token", "isHost": false }`
 
-Errors: 404 unknown code, 409 room full or started, 409 name taken.
+Errors: 404 unknown code, 409 room full or started, 409 name taken, 429 `RATE_LIMITED`. One room accepts 40 join attempts per 10 seconds, which is above the 30-seat preset, and one client address accepts 1,000 in that same window. A refusal uses neither budget. The address is the socket address; `X-Forwarded-For` is not trusted.
 
 ### GET `/games/:gameId`
 
@@ -513,9 +513,9 @@ Namespace `/play`. Connection query or handshake auth carries the bearer token. 
 | `GAME_CANCELLED` | Public | Reason `HOST` or `SURRENDER` |
 | `STATE_SNAPSHOT` | The requesting socket | The same projection as GET state |
 
-The host copy and the player copy of a secret event are two `game_events` rows, or one row with audience `PLAYER` plus a separate host row. Do not emit one rich payload to a shared room.
+The host copy and the player copy of a secret event are two `game_events` rows. Do not emit one rich payload to a shared room. Night result rows are written after the night transaction commits, from the stored investigation, infection, conversion, elimination, and block rows (WW-804). A successful infection's player row is `{ roundNumber, actionId, roleId }` with no source. The host row adds `sourcePlayerId` and `targetPlayerId`. A failed infection is not an event. A public death includes `roleId` only when the elimination was revealed. A block is told to its target only when `informTarget` is set, and that copy is `{ roundNumber }`.
 
-Socket rate limits follow the HTTP limits. A client cannot emit a trusted `ROLE_ASSIGNED` or `INFECTION_OCCURRED`. The server ignores client-originated game events. Clients only emit `join-session` and may use HTTP for commands. Recommended: commands stay on HTTP so idempotency and validation live in one place. Sockets are server-to-client.
+`join-session` is how a connected socket enters `game:{gameId}:public`, its own `player` room, and `host` when that seat is the host (WW-1101). The payload's `playerId` is ignored. A token from another game is refused and joins nothing. The server ignores client-originated `ROLE_ASSIGNED`, `INFECTION_OCCURRED`, `ROLE_CONVERTED`, `INVESTIGATION_RESULT`, and `PLAYER_ELIMINATED`. Clients emit `join-session` and send commands over HTTP. Emitting the stored rows, including `afterSeq`, is WW-1102.
 
 ---
 

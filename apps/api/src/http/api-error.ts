@@ -48,6 +48,7 @@ export const errors = {
     new ApiError('KILL_TARGET_NOT_SUBMITTED', HttpStatus.UNPROCESSABLE_ENTITY, [{ path: 'targetPlayerId', message: 'No wolf chose that player tonight.' }]),
   /** A dead voter, a dead target, an abstention the rules forbid, or a revote target outside the tie. */
   voteIneligible: () => new ApiError('VOTE_INELIGIBLE', HttpStatus.CONFLICT),
+  rateLimited: () => new ApiError('RATE_LIMITED', HttpStatus.TOO_MANY_REQUESTS),
 };
 
 /** Parses a request body with a contract schema. Failures are 422 with field issues. */

@@ -78,4 +78,39 @@ test.describe('fixture shell', () => {
       await noHorizontalScroll(page);
     }
   });
+
+  test('reveal, day, voting, and results keep the primary button on screen', async ({ page }, info) => {
+    const spec = specFor(info.project.name);
+    const stages = [
+      { stage: 'reveal', button: 'Waiting for host' },
+      { stage: 'night-results', button: 'Continue to day' },
+      { stage: 'day', button: 'Open voting' },
+      { stage: 'voting', button: 'Confirm vote' },
+      { stage: 'results', button: 'Play again' },
+    ];
+    for (const { stage, button } of stages) {
+      await page.goto(`/dev/layout/${stage}`);
+      await expect(page.locator('.ww-game-layout')).toHaveAttribute('data-layout', spec.mode);
+      await expect(page.locator('.ww-game-layout')).toHaveAttribute('data-stage', stage);
+      await expect(page.getByRole('region', { name: 'Game status' })).toBeVisible();
+      await expect(page.getByRole('region', { name: 'Village' })).toBeVisible();
+      await expect(page.getByRole('region', { name: 'Actions' })).toBeVisible();
+      await buttonInView(page, button);
+      await noHorizontalScroll(page);
+      if (spec.mode === 'portrait' && stage === 'voting') {
+        await expect(page.getByRole('tab', { name: 'Players' })).toBeVisible();
+        await page.getByRole('tab', { name: 'Room' }).click();
+        await expect(page.getByText('No public events yet.')).toBeVisible();
+        await buttonInView(page, button);
+      }
+    }
+
+    if (spec.project === 'phone-land-sm') {
+      await page.setViewportSize({ width: NARROW_LANDSCAPE_CHECK.width, height: NARROW_LANDSCAPE_CHECK.height });
+      await page.goto('/dev/layout/voting');
+      await expect(page.locator('.ww-game-layout')).toHaveAttribute('data-layout', 'narrow-landscape');
+      await buttonInView(page, 'Confirm vote');
+      await noHorizontalScroll(page);
+    }
+  });
 });

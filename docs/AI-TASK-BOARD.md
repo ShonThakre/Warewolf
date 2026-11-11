@@ -13,7 +13,7 @@ Statuses: `BACKLOG` (dependencies open), `READY` (can start), `IN_PROGRESS`, `BL
 
 Ids starting with `WW-` match [werewolf/implementation-checklist.md](./werewolf/implementation-checklist.md). A checklist task split between agents gets a letter suffix. `WEB-` ids are client foundation tasks added by this board.
 
-Last updated: 11 November 2026. Phases 0 to 7, WEB-07, WW-604, WW-801, WW-802, WW-901, and WW-902 are complete. Claude's session stopped during WW-803a. Cursor has U20-ENG and U20-UI. OD-74 is in review for the product owner.
+Last updated: 11 November 2026. Phases 0 to 7, WEB-07, WEB-08, WW-604, WW-801, WW-802, WW-804, WW-901, WW-902, WW-1101, WW-1204, WW-1301, WW-1302, WW-1401, and WW-1403 are complete. Claude's session stopped during WW-803a. WW-1102 can start (WW-804 and WW-1101 are done). WW-1402 still waits on OD-02. OD-74 is in review. WW-903 is blocked on a public results projection.
 
 ---
 
@@ -38,11 +38,19 @@ Last updated: 11 November 2026. Phases 0 to 7, WEB-07, WW-604, WW-801, WW-802, W
 | WW-701 to WW-703 | Phase 7: `resolveNight` for Infection Edition and Classic, wolf anonymity checks, Infection Edition as the create default | Claude |
 | WW-801, WW-802 | Phase 8: the full night pipeline (blocks, traps, Bodyguard, Immortal, Cursed, copies, inheritance, Avenger, every information kind, delayed poison, Blacksmith item), golden fixtures, and night resolution committed in the phase close | Claude |
 | WW-901, WW-902 | Phase 9 engineering: ballots, revote, day close, victory records. A tie does not eliminate. Parity is a wolf win. A Jester win does not end the game | Cursor |
+| WEB-08 | Day ballot on the table: living seats, abstain, confirm, replace until close | Cursor |
+| WW-1204 | `GameLayout` viewport pass for reveal, night results, day, voting, and results | Cursor |
 | WEB-07 | Client action data layer: `useMyActions`, `useSubmitAction`, `actionPrompts`, action fixtures | Claude |
 | WEB-02 | `GameLayout` structure, `layoutMode`, stage modes, lobby and table fixtures, `/dev/layout` preview | Claude |
 | WW-401 to WW-403, WW-404a | Phase 4 engineering: assignment tables, CSPRNG deal and start route, `/me` and host roster, client start and role hooks | Claude |
 | WW-000 to WW-105 | Repository audit and Phase 1 skeleton: pnpm workspace, PostgreSQL in Compose, `games` migration with rollback, domain types, health and version routes, web shell with route placeholders | Claude |
 | WW-201 to WW-205, WW-1006 | Phase 2: 37-role catalog, Doctor, Assassin, and Blacksmith profiles, `validateConfiguration`, nine role packs, blocking-decision acknowledgements | Claude |
+| WW-804 | Private night-result events written after the night commit | Cursor |
+| WW-1101 | Socket authentication and seat rooms on `/play` | Cursor |
+| WW-1301 | Token hashing, generic errors, and join rate limits | Cursor |
+| WW-1302 | Boot recovery after a resolved night | Cursor |
+| WW-1401 | Seeded Infection simulator, 1,000 games | Cursor |
+| WW-1403 | Deal-count tests for the five presets | Cursor |
 
 ---
 
@@ -91,8 +99,17 @@ Last updated: 11 November 2026. Phases 0 to 7, WEB-07, WW-604, WW-801, WW-802, W
 | WW-803a | Host kill target: storage, API, close guard, the informed Doctor's target, client data layer | Claude | IN_PROGRESS | WW-802, WW-503 |
 | WW-803b | Host kill-target picker and the Doctor's target line on the table | Cursor | BACKLOG | WW-803a |
 | OD-74 | Confirm that night windows are fixed by the configuration | Product owner | REVIEW | — |
+| WEB-08 | Day ballot on the table: living seats, abstain, confirm, replace until close | Cursor | COMPLETED | WW-901, WW-604 |
+| WW-1204 | `GameLayout` viewport pass for reveal, night results, day, voting, and results | Cursor | COMPLETED | WW-1201, WW-604 |
+| WW-903 | Public tally and results screen | Cursor | BLOCKED | WW-901, WW-902 |
 | U20-ENG | Ultimate 20 mode: catalog, pack, lock, submission rules, day tally, victory evaluator, resolver steps, API submit, web data layer, art manifest, docs | Cursor | COMPLETED | WW-802 |
 | U20-UI | Ultimate 20 screens and copy: locked setup copy, hint field, exclusive-choice note, Mind Controller day prompt, portraits | Cursor | COMPLETED | U20-ENG |
+| WW-804 | Private result events after the night commit | Cursor | COMPLETED | WW-802 |
+| WW-1101 | Socket authentication and rooms | Cursor | COMPLETED | WW-403 |
+| WW-1301 | Token hashing, generic errors, rate limits | Cursor | COMPLETED | WW-302, WW-601 |
+| WW-1302 | Boot recovery after night resolution | Cursor | COMPLETED | WW-502, WW-802 |
+| WW-1403 | Deal tests for 10, 15, 20, 24, and 30 seats | Cursor | COMPLETED | WW-402 |
+| WW-1401 | Seeded simulator, 1,000 Infection games | Cursor | COMPLETED | WW-902 |
 
 ---
 
@@ -144,6 +161,34 @@ Last updated: 11 November 2026. Phases 0 to 7, WEB-07, WW-604, WW-801, WW-802, W
 - **Files:** `apps/web/src/routes/Setup.tsx` and the setup step components (`SetupMode`, `SetupRoles`, `SetupSettings`), `apps/web/src/routes/Table.tsx`, `NightActionPanel`, `apps/web/src/routes/Home.tsx` (`FALLBACK_MODES`), portraits after they exist.
 - **Handoff (11 November 2026):** Cursor took U20-ENG as well after Claude's session stopped. The locked setup copy, hint field, exclusive-choice note, Mind Controller prompt, Chaos wording, and `FALLBACK_MODES` are in the screens. Fourteen portraits are listed in the manifest and are not generated.
 - **Still unwired:** persist rewinds, the chaos draw and counter, used chaos kinds, revivals, silences, and hints; call `drawChaos` with a CSPRNG. Phase close already calls `tallyDay` and `evaluateVictory`, and that call does not yet receive `revivedBy`, `chaosSuccesses`, or `chaosAchieved`.
+
+### WEB-08 — Day ballot on the table
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** The voting and revote stages on `/game/:id`. A living player chooses one living seat or abstains, confirms, and can replace that choice until the phase closes. Dead players see the seats and cannot vote. The host's phase button stays.
+- **Files:** `apps/web/src/api/votes.ts`, `apps/web/src/game/state/votes.ts`, `apps/web/src/game/components/voteCopy.ts`, `apps/web/src/game/components/table-screen.css`, `apps/web/src/routes/Table.tsx`, `apps/web/test/screens/table.test.tsx`, `apps/web/test/screens/vote-copy.test.ts`, `apps/web/e2e/table.spec.ts`
+- **Depends on:** WW-901, WW-604
+- **Acceptance (met):** Confirm stays disabled until a choice is legal. A successful cast reads "Submitted", and another seat or abstain can be sent until the phase changes. A dead seat has no confirm button. The host can still end the day. A refused vote shows the server message and does not read "Submitted".
+- **Tests:** `pnpm --filter @warewolf/web test` (280). `pnpm --filter @warewolf/web exec playwright test e2e/table.spec.ts`: a living player picks, confirms, and switches to abstain at 1024×768, 844×390, and 390×844. Confirm stays inside the viewport. No horizontal page scroll. Portrait keeps the Players tab.
+- **Handoff to Claude:** `POST /votes` is the only ballot route. The client cannot restore a choice after reload, and a revote cannot list only the tied players, until the public state includes the caller's current target and the revote's eligible ids. Until then a revote shows every living seat, and a target outside the tie is refused with "That vote is not allowed."
+
+### WW-1204 — GameLayout viewport pass
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** The fixture shell already carries lobby and night (WEB-04, WEB-05). This pass checks reveal, night results, day, voting, and results at the seven viewports: same regions, the primary button on screen, no horizontal page scroll. The live reveal stays a private scene (ui-ux-plan section 7E). It is not moved onto the public rail.
+- **Files:** `apps/web/e2e/layout.spec.ts`, `docs/werewolf/implementation-checklist.md`
+- **Depends on:** WW-1201, WW-604
+- **Acceptance (met):** At all seven viewports, reveal, night results, day, voting, and results keep Game status, Village, and Actions on screen, with the primary button inside the viewport and no horizontal page scroll. Portrait voting uses the Players | Room switch. The 568×320 check keeps Confirm vote on screen. Safe-area padding was already on `.ww-game-layout` and the action row.
+- **Tests:** `pnpm --filter @warewolf/web exec playwright test e2e/layout.spec.ts` (21 passed, including the new stage pass at each viewport).
+
+### WW-903 — Public tally and results screen
+
+- **Agent:** Cursor
+- **Status:** BLOCKED
+- **Depends on:** WW-901, WW-902
+- **Handoff to Claude:** `GET /state` has no winner, no original or final roles, and no public tally. The results route must not invent one. Needs a finished-game projection: team, draw, individual winners, and each seat's original and final role. A cancelled game stays role-free. After that projection exists, Cursor binds `VictoryBanner` and the recap (WW-1203).
 
 ### WW-301 — Lobby tables
 
@@ -625,9 +670,66 @@ Last updated: 11 November 2026. Phases 0 to 7, WEB-07, WW-604, WW-801, WW-802, W
   - The Blacksmith item now stays on its holder until it blocks (OD-16). Before, it lasted one night.
 - **Handoff to Claude, for later phases:**
   - **WW-803** stores the host's confirmed target and passes it as `hostDecision` in `NightResolutionService.load`. Until then it is null, so a host-select night (Infection Edition) kills nobody. Check that the target is among the locked wolf submissions.
-  - **WW-804** writes `game_events` from the stored rows after commit: investigation results to the actor and the host, `ROLE_CONVERTED` to the converted player, and public deaths from `elimination_records.revealed_publicly`. `NightResult.blocks[].informTarget` says whether a blocked player is told. `resolution_runs.result` holds the whole result for the host.
+  - **WW-804** is done. See its section below. It writes `game_events` from the stored rows after commit.
   - **WW-901** must, in the day resolution: apply `scheduled_effects` of kind `POISON` with `due_phase = 'DAY'` and `due_round` equal to the round, and close them; run Immortal, Jester, and Avenger on a day elimination (queue revenge as a `REVENGE` effect due the next night, as step 16 does); hand a Doctor's save to a Healer Assistant when the Doctor is voted out; and set `games.infection_sealed` when the Alpha is voted out.
   - **WW-902** evaluates victory on the result. `NightResolution.gameOver` is always false until then.
   - Rows written per night: `resolution_runs`, `elimination_records`, `infection_records`, `investigation_records`, `role_conversion_records`, `scheduled_effects`, `role_assignments` through `changeAssignment`, `ability_instances` (patches and grants, with `source` COPY or INHERITED and `source_player_id`), `night_actions.status` and `rejected_reason`, `game_players.life_status` and `died_round`, and `games.infection_successes` and `infection_sealed`.
 - **Handoff to Cursor (WW-604):** no contract changed. One behavior to know: once a night resolves, its actions are `RESOLVED` or `REJECTED`, and `GET /me/actions` returns only `PENDING` and `LOCKED` choices, so from the day announcement on each row's `action` is null. Show the ability's availability, not "Submitted". A dead seat's abilities read `DEAD`.
+
+### WW-804 — Private result events after the night commit
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** After the night transaction commits, write audience-specific `game_events` from the stored rows. A second publish of the same night is a no-op. Socket emit is not this task.
+- **Files:** `apps/api/src/events/night-events.ts`, `apps/api/src/events/event.service.ts`, `apps/api/src/phase/phase.service.ts` (publish after commit; `recover` republishes first), `apps/api/src/db/schema.ts`, `apps/api/drizzle/0010_game_events.sql` with its down file and `meta/0010_snapshot.json`, `apps/api/src/app.module.ts`, `apps/api/test/night-events.test.ts`, `apps/api/test/events.integration.test.ts`.
+- **Acceptance (met):** A Classic night writes an investigation to the actor and the host, and the player payload has no `actorPlayerId` and no catalog role id. An Infection success writes `INFECTION_OCCURRED` to the converted player with `{ roundNumber, actionId, roleId }` and a host row that adds `sourcePlayerId` and `targetPlayerId`. A failure is not an event. `ROLE_CONVERTED` player rows omit the source. `PLAYER_ELIMINATED` is `PUBLIC`, and `roleId` is set only when `revealedPublicly`. `ACTION_BLOCKED` reaches the target only when `informTarget` is set, as `{ roundNumber }`. Calling `publishNight` again returns 0.
+- **Tests:** `pnpm --filter @warewolf/api test` and `pnpm test:integration` (151).
+- **Handoff to Claude (WW-1102):** Read `game_events` and emit each row to its room: `PUBLIC` to `game:{id}:public`, `PLAYER` to `game:{id}:player:{recipientPlayerId}`, `HOST` to `game:{id}:host`. `afterSeq` is the reconnect catch-up. Do not rebuild payloads from the night result. `investigation_records.published` stays false; that flag is the Seeker's public reveal. The `NIGHT_PUBLISHED` marker is a host row, not a player fact. Publish failures are logged and do not roll back the night.
+
+### WW-1101 — Socket authentication and rooms
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Namespace `/play`. The handshake token is the seat bearer token. `join-session` enters only that seat's rooms.
+- **Files:** `apps/api/src/realtime/play.gateway.ts`, `apps/api/src/app.module.ts`, `apps/api/test/socket.integration.test.ts`. Dependencies: `socket.io`, `socket.io-client`.
+- **Acceptance (met):** An unknown token gets `connect_error`. A token from another game acks `{ ok: false }` and joins no `game:` room. A `playerId` in the payload is ignored, so the host does not enter the guest's player room. A client `INFECTION_OCCURRED` is not relayed.
+- **Rooms:** `playRooms(gameId, playerId, isHost)` returns `game:{gameId}:public`, `game:{gameId}:player:{playerId}`, and `game:{gameId}:host` when `isHost`.
+- **Handoff to Claude (WW-1102):** `PlayGateway.io` is the Socket.IO server. Emit on `io.of('/play')` after the event rows exist. Join happens only on `join-session`, not on connect.
+
+### WW-1301 — Token hashing, generic errors, rate limits
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Seat tokens stay SHA-256 hashed. Error bodies stay generic. Join attempts are limited per room and per address.
+- **Files:** `apps/api/src/http/rate-limit.ts`, `apps/api/src/lobby/lobby.controller.ts`, `apps/api/src/http/api-error.ts`, `apps/api/src/http/error.filter.ts`, `packages/contracts/src/errors.ts` (`RATE_LIMITED`), `apps/api/test/security.integration.test.ts`, `apps/api/test/rate-limit.test.ts`.
+- **Acceptance (met):** The stored token is the hash and a quoted display name is stored as text. A cross-game roster read is 404, a guest roster read is 403, a stale phase close is 409 `PHASE_CONFLICT`, and a Seeker self-target is 422 `ACTION_TARGET_ILLEGAL`. None of those bodies contain a catalog role id. The 41st join to one room in 10 seconds is 429 `RATE_LIMITED`.
+- **Limits:** `JOIN_ROOM_LIMIT` 40 and `JOIN_IP_LIMIT` 1,000 per 10 seconds, on the controller instance. A refusal consumes neither budget. The address is `req.ip` or the socket address.
+
+### WW-1302 — Boot recovery after night resolution
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Restarting after a night has resolved must not resolve that night again. A day deadline that passed while the process was down still advances.
+- **Files:** `apps/api/src/phase/phase.service.ts` (`recover` republishes, then arms deadlines), `apps/api/test/recovery.integration.test.ts`.
+- **Acceptance (met):** A Classic game closed through the night into `DAY_DISCUSSION` has one night `resolution_run`. After the app stops, `phase_ends_at` is set in the past, and a new app boots, the phase becomes `VOTING` and the night run count stays 1.
+- **Handoff:** Host-paced phases still have no deadline and wait. Forcing the phase back to `NIGHT_SUBMIT` does not insert a second run; the existing unique key rejects it.
+
+### WW-1403 — Deal tests for 10, 15, 20, 24, and 30 seats
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Each preset deals exactly the counts in its role list.
+- **Files:** `apps/api/test/deal-counts.integration.test.ts`.
+- **Acceptance (met):** `classic-10`, `chaos-15`, `infection-core`, `expanded-24`, and `expanded-30` start with `acknowledgeWarnings: true`, and `role_assignments.original_role_id` counts equal `pack.config.roles`.
+
+### WW-1401 — Seeded simulator, 1,000 Infection games
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** A pure seeded runner finishes Infection games. Bots see a seat projection, not the roster.
+- **Files:** `packages/domain/src/simulate/{rng,view,policies,run}.ts`, `packages/domain/bin/simulate.ts`, `packages/domain/src/index.ts`, `packages/domain/test/simulate.test.ts`. Script: `pnpm --filter @warewolf/domain simulate -- --games 1000 --seed 1 --policy random-legal --out report.json`.
+- **Acceptance (met):** 1,000 `infection-core` games, seed 1, policy `random-legal`, all finish. The report names the seed, the policy, and the sample size, and the test writes it as JSON. The note says these are bot measurements, not a human win rate.
+- **Policies:** `random-legal` (uniform among legal sets, including skip and abstain), `infection-priority` (same night choices, votes do not abstain), `vote-random` (no night actions, random living vote).
+- **Report:** `finish` (`VILLAGE`, `WOLF_PACK`, `draw`, `other`), `individuals`, `rounds.mean` and `median`, `deaths.nightMean` and `dayMean`, `infectionSuccesses`, `survivalByStartingRole`, `abilityUseRate`, `doctorNegatedFraction`.
+- **Handoff to Claude (WW-1402):** Call `simulate({ presetId: 'infection-core', games: 10_000, seed, policyId })` once OD-02 picks the Doctor mode. Publish that JSON under docs. Do not treat the frequencies as a human win rate. The CLI stays outside `src/` so the domain package stays free of Node imports.
 

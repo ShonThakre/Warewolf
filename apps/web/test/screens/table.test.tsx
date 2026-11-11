@@ -136,6 +136,89 @@ describe('table', () => {
     expect(screen.getByRole('heading', { name: 'Revote' })).toBeTruthy();
   });
 
+  it('casts a ballot and replaces it until the phase closes', async () => {
+    const posts: { targetPlayerId: string | null }[] = [];
+    renderApp(`/game/${GAME}`, {
+      seat: guest,
+      fetchFn: (async (input: RequestInfo | URL, init?: RequestInit) => {
+        const request = new Request(input, init);
+        const path = new URL(request.url).pathname;
+        if (request.method === 'POST' && path.endsWith('/votes')) {
+          const body = (await request.json()) as { targetPlayerId: string | null };
+          posts.push(body);
+          return json(200, { ballot: 1, targetPlayerId: body.targetPlayerId, supersedes: null });
+        }
+        if (path.endsWith('/me')) return json(200, ROLE_FIXTURES.villager);
+        if (path.endsWith('/state')) return json(200, gameStateFixture({ phase: 'VOTING', you: 4 }));
+        return json(404, { error: { code: 'NOT_FOUND', message: 'Not found.' } });
+      }) as typeof fetch,
+    });
+
+    const actions = await screen.findByRole('region', { name: 'Actions' });
+    const confirm = within(actions).getByRole('button', { name: 'Confirm vote' });
+    expect((confirm as HTMLButtonElement).disabled).toBe(true);
+    expect(within(actions).queryByText('Waiting for host')).toBeNull();
+    expect(within(actions).queryByRole('button', { name: 'End the day' })).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: /Rafi/ }));
+    expect((confirm as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(confirm);
+    await waitFor(() => expect(posts).toEqual([{ targetPlayerId: fixturePlayerId(2) }]));
+    expect(within(actions).getByText('Submitted. Your vote is Rafi. You can change it until voting closes.')).toBeTruthy();
+    expect((confirm as HTMLButtonElement).disabled).toBe(true);
+
+    fireEvent.click(within(actions).getByRole('button', { name: 'Abstain' }));
+    expect((confirm as HTMLButtonElement).disabled).toBe(false);
+    fireEvent.click(confirm);
+    await waitFor(() => expect(posts[1]).toEqual({ targetPlayerId: null }));
+    expect(within(actions).getByText('Submitted. You abstained. You can change it until voting closes.')).toBeTruthy();
+    expect(document.body.textContent).not.toContain('alpha_wolf');
+  });
+
+  it('shows a refusal and keeps an eliminated player from voting', async () => {
+    renderApp(`/game/${GAME}`, {
+      seat: host,
+      fetchFn: (async (input: RequestInfo | URL, init?: RequestInit) => {
+        const request = new Request(input, init);
+        const path = new URL(request.url).pathname;
+        if (request.method === 'POST' && path.endsWith('/votes')) {
+          return json(409, { error: { code: 'VOTE_INELIGIBLE', message: 'That vote is not allowed.' } });
+        }
+        if (path.endsWith('/me')) return json(200, ROLE_FIXTURES.villager);
+        if (path.endsWith('/state')) return json(200, gameStateFixture({ phase: 'REVOTE', you: 1, dead: [1] }));
+        return json(404, { error: { code: 'NOT_FOUND', message: 'Not found.' } });
+      }) as typeof fetch,
+    });
+
+    expect(await screen.findByRole('heading', { name: 'Revote' })).toBeTruthy();
+    expect(screen.getByText('You cannot vote.')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Confirm vote' })).toBeNull();
+    expect(screen.getByRole('button', { name: 'End the day' })).toBeTruthy();
+    expect((screen.getByRole('button', { name: /Asha/ }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('shows the server refusal when a vote is not allowed', async () => {
+    renderApp(`/game/${GAME}`, {
+      seat: guest,
+      fetchFn: (async (input: RequestInfo | URL, init?: RequestInit) => {
+        const request = new Request(input, init);
+        const path = new URL(request.url).pathname;
+        if (request.method === 'POST' && path.endsWith('/votes')) {
+          return json(409, { error: { code: 'VOTE_INELIGIBLE', message: 'That vote is not allowed.' } });
+        }
+        if (path.endsWith('/me')) return json(200, ROLE_FIXTURES.villager);
+        if (path.endsWith('/state')) return json(200, gameStateFixture({ phase: 'REVOTE', you: 4 }));
+        return json(404, { error: { code: 'NOT_FOUND', message: 'Not found.' } });
+      }) as typeof fetch,
+    });
+
+    expect(await screen.findByText('Choose one of the tied players, or abstain.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: /Rafi/ }));
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm vote' }));
+    expect(await screen.findByText('That vote is not allowed.')).toBeTruthy();
+    expect(screen.queryByText(/Submitted/)).toBeNull();
+  });
+
   it('keeps a cancelled game on the table without roles', async () => {
     renderApp(`/game/${GAME}`, { seat: host, fetchFn: stateFetch(gameStateFixture({ phase: 'CANCELLED' })) });
     const status = await screen.findByRole('region', { name: 'Game status' });

@@ -50,8 +50,8 @@ function investigationFact(result: InvestigationResult): Record<string, unknown>
  * section 9). `PhaseService` calls `resolve` in its close transaction with
  * the game row already locked, after closing the last window locked its
  * actions. This loads the start-of-night state and the LOCKED actions, runs
- * the pure `resolveNight`, and writes every row the result names. Nothing is
- * emitted here; events after commit are WW-804.
+ * the pure `resolveNight`, and writes every row the result names. Private
+ * result events are written after this transaction commits (WW-804).
  *
  * One commit per night: the `resolution_runs` row is unique per game, round,
  * and kind. A second resolve of the same night is refused before it writes,

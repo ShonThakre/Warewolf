@@ -32,6 +32,8 @@ export const ERROR_CODES = [
   'KILL_TARGET_NOT_SUBMITTED',
   'IDEMPOTENCY_CONFLICT',
   'VALIDATION_FAILED',
+  /** Too many requests in the window (WW-1301). */
+  'RATE_LIMITED',
   'INTERNAL',
 ] as const;
 

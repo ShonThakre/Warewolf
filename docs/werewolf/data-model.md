@@ -254,9 +254,10 @@ Index `(game_id, round_number, ballot, voter_player_id, superseded)`.
 | audience | text | `PUBLIC`, `HOST`, `PLAYER` |
 | recipient_player_id | uuid null |
 | payload | jsonb |
+| dedupe_key | text | As built in WW-804. Unique with game_id |
 | created_at | timestamptz |
 
-Primary key `(game_id, seq)`. Index `(game_id, audience, recipient_player_id, seq)`.
+Primary key `(game_id, seq)`. Unique `(game_id, dedupe_key)`. Index `(game_id, audience, recipient_player_id, seq)`. A night publish also writes one `HOST` marker, type `NIGHT_PUBLISHED`, key `night:{round}:published`, so a second publish of that night is a no-op. `(audience = 'PLAYER')` is exactly when `recipient_player_id` is set.
 
 Clients reconnect with `afterSeq` and receive only rows their token may see.
 
@@ -354,7 +355,7 @@ On process start:
 1. Load games with status `ACTIVE`.
 2. For timed games with `phase_ends_at` in the past, enqueue the same transition the timer would have run. Implemented in WW-502: `PhaseService.recover` schedules every open deadline on boot, and past ones close straight away.
 3. For host-paced games, leave the phase and wait.
-4. Do not recompute a round that already has a `resolution_run`.
+4. Do not recompute a round that already has a `resolution_run`. Implemented in WW-1302: boot republishes any night whose rows exist and whose `NIGHT_PUBLISHED` marker does not, then arms deadlines. A passed day deadline still advances. The night run stays at one.
 5. Clients present the player token, receive the projection for their audience, and pass `afterSeq`.
 
 Connection status is advisory. Authority is the token and the rows.

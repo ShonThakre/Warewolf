@@ -183,3 +183,47 @@ test.describe('night action', () => {
     expect(await page.locator('body').innerText()).not.toContain(fixturePlayerId(2));
   });
 });
+
+test.describe('day ballot', () => {
+  test('a living player confirms a vote and can change it', async ({ page }, info) => {
+    test.skip(!['tablet-land', 'phone-land', 'phone-portrait'].includes(info.project.name), 'Three viewports cover the ballot.');
+    const spec = specFor(info.project.name);
+    const state = gameStateFixture({ phase: 'VOTING', you: 4, dead: [3] });
+    await page.clock.install({ time: new Date(SERVER_NOW) });
+    await page.addInitScript(
+      (seat) => sessionStorage.setItem('warewolf.seat', JSON.stringify(seat)),
+      { ...hostSeat, playerId: state.you.playerId, isHost: false },
+    );
+    await page.route('**/api/v1/**', (route) => {
+      const url = route.request().url();
+      if (route.request().method() === 'POST' && url.includes('/votes')) {
+        const body = route.request().postDataJSON() as { targetPlayerId: string | null };
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ ballot: 1, targetPlayerId: body.targetPlayerId, supersedes: null }),
+        });
+      }
+      if (url.includes('/me')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(ROLE_FIXTURES.villager) });
+      if (url.includes('/state')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(state) });
+      return route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: { code: 'NOT_FOUND', message: 'Not found.' } }) });
+    });
+    await page.goto(`/game/${GAME}`);
+
+    await expect(page.getByRole('heading', { name: 'Voting' })).toBeVisible();
+    await expect(page.locator('.ww-game-layout')).toHaveAttribute('data-layout', spec.mode);
+    await expect(page.locator('.ww-game-layout')).toHaveAttribute('data-stage', 'voting');
+    const confirm = page.getByRole('region', { name: 'Actions' }).getByRole('button', { name: 'Confirm vote' });
+    await expect(confirm).toBeDisabled();
+    await expect(page.getByRole('button', { name: /Mira/ })).toBeDisabled();
+    await page.getByRole('button', { name: /Rafi/ }).click();
+    await expect(confirm).toBeEnabled();
+    await confirm.click();
+    await expect(page.getByRole('region', { name: 'Actions' })).toContainText('Submitted. Your vote is Rafi.');
+    await page.getByRole('button', { name: 'Abstain' }).click();
+    await expect(confirm).toBeEnabled();
+    await inView(page, confirm);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+    if (spec.mode === 'portrait') await expect(page.getByRole('tab', { name: 'Players' })).toBeVisible();
+  });
+});

@@ -223,7 +223,7 @@ Under host select, only the confirmed player is attacked. Under majority with a 
 
 ## 9. Persistence boundary
 
-Implemented in WW-802 as `NightResolutionService` (`apps/api/src/night/`), bound to `PHASE_RESOLVERS` and run by the phase close. Until WW-803 stores the host's confirmed target, `hostDecision` is null, so a host-select night has no pack kill. Events after commit are WW-804.
+Implemented in WW-802 as `NightResolutionService` (`apps/api/src/night/`), bound to `PHASE_RESOLVERS` and run by the phase close. Until WW-803 stores the host's confirmed target, `hostDecision` is null, so a host-select night has no pack kill.
 
 The application service:
 
@@ -231,11 +231,11 @@ The application service:
 2. Locks the game row and checks `stateVersion` and phase.
 3. Loads the snapshot and locked actions.
 4. Calls `resolveNight`.
-5. Inserts elimination, infection, investigation, conversion, and event rows.
+5. Inserts elimination, infection, investigation, and conversion rows.
 6. Updates assignments, charges, victory rows, phase, and `stateVersion`.
 7. Inserts one `resolution_run` with a hash of the input.
 8. Commits.
-9. After commit, emits socket events from the stored audience fields.
+9. After that commit, WW-804 writes `game_events` from those stored rows. The night transaction does not emit them, so a rollback cannot publish a secret. A crash between the commit and the event write is repaired on boot by writing the same rows again. Socket delivery of those rows is WW-1102.
 
 A crash before commit leaves the night unopened. The host or the timer can retry. The input hash makes the retry observable. A second commit is rejected by the unique resolution row.
 

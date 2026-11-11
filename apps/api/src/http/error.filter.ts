@@ -33,6 +33,9 @@ const GENERIC_MESSAGE: Partial<Record<ErrorCode, string>> = {
   ACTION_DUPLICATE: 'That action is already locked in.',
   IDEMPOTENCY_CONFLICT: 'That request key was already used for a different request.',
   VOTE_INELIGIBLE: 'That vote is not allowed.',
+  KILL_TARGET_REQUIRED: 'Choose a target, or choose no kill, before closing this phase.',
+  KILL_TARGET_NOT_SUBMITTED: 'No wolf chose that player tonight.',
+  RATE_LIMITED: 'Too many requests. Wait a moment and try again.',
   INTERNAL: 'Something went wrong.',
 };
 

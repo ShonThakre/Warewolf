@@ -46,7 +46,7 @@ import {
 } from '@warewolf/domain';
 import { AVATAR_COUNT } from '@warewolf/contracts';
 import { sql } from 'drizzle-orm';
-import { boolean, check, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
+import { bigint, boolean, check, index, integer, jsonb, pgTable, primaryKey, text, timestamp, uniqueIndex, uuid } from 'drizzle-orm/pg-core';
 
 /** `'A', 'B', 'C'` for a CHECK constraint. Values come from domain constants, not user input. */
 const inList = (values: readonly string[]) => sql.raw(values.map((v) => `'${v}'`).join(', '));
@@ -643,3 +643,34 @@ export const victoryRecords = pgTable(
 );
 
 export type VictoryRecordRow = typeof victoryRecords.$inferSelect;
+
+/**
+ * One fact for one audience (WW-804). A secret is two rows, never one rich
+ * payload: `PLAYER` for the seat, `HOST` for the host. `dedupe_key` makes a
+ * retry after commit insert nothing a second time.
+ */
+export const gameEvents = pgTable(
+  'game_events',
+  {
+    gameId: uuid('game_id')
+      .notNull()
+      .references(() => games.id, { onDelete: 'cascade' }),
+    seq: bigint('seq', { mode: 'number' }).notNull(),
+    type: text('type').notNull(),
+    audience: text('audience').notNull(),
+    recipientPlayerId: uuid('recipient_player_id').references(() => gamePlayers.id, { onDelete: 'cascade' }),
+    payload: jsonb('payload').$type<Record<string, unknown>>().notNull(),
+    dedupeKey: text('dedupe_key').notNull(),
+    createdAt: timestamptz('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.gameId, t.seq] }),
+    uniqueIndex('game_events_dedupe_uq').on(t.gameId, t.dedupeKey),
+    index('game_events_audience_idx').on(t.gameId, t.audience, t.recipientPlayerId, t.seq),
+    check('game_events_audience_ck', sql`audience in ('PUBLIC', 'HOST', 'PLAYER')`),
+    check('game_events_recipient_ck', sql`(audience = 'PLAYER') = (recipient_player_id is not null)`),
+    check('game_events_seq_ck', sql`seq >= 1`),
+  ],
+);
+
+export type GameEventRow = typeof gameEvents.$inferSelect;

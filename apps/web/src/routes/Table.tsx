@@ -13,11 +13,13 @@ import { useActionDraft } from '../game/components/actionDraft';
 import { actionRowText, choiceNames, choiceReady, editablePrompt, matchesChoice, shownPrompt } from '../game/components/actionCopy';
 import { choicePayload } from '../game/state/actions';
 import { guestActionCopy, lifeLabel, phaseActionNote } from '../game/components/phaseCopy';
+import { canCastBallot, voteMatches, voteRowText, VOTE_TARGET_RULE, type VoteChoice } from '../game/components/voteCopy';
 import { GameLayout, STAGE_SPECS, stageModeFor, type StageMode } from '../game/layout';
 import { actionPrompts, useMyActions, useSubmitAction } from '../game/state/actions';
 import { useSeat } from '../game/state/lobby';
 import { useClosePhase, useGameState, useSecondsLeft } from '../game/state/phase';
 import { useMyRole } from '../game/state/role';
+import { useCastVote } from '../game/state/votes';
 import '../game/components/lobby-screen.css';
 import '../game/components/table-screen.css';
 
@@ -46,10 +48,14 @@ function TableScreen() {
   const roleView = useMyRole();
   const actionsView = useMyActions(view.state?.stateVersion);
   const submission = useSubmitAction();
+  const ballot = useCastVote();
   const prompts = actionPrompts(roleView.role, actionsView.actions);
   const draft = useActionDraft(prompts);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [acked, setAcked] = useState<string | null>(null);
+  const [voteChoice, setVoteChoice] = useState<VoteChoice | null>(null);
+  const [storedVote, setStoredVote] = useState<string | null | undefined>(undefined);
+  const [ballotKey, setBallotKey] = useState('');
   const navigate = useNavigate();
   const { state, isLoading, error, refetch } = view;
 
@@ -81,6 +87,17 @@ function TableScreen() {
   }
 
   const stage = stageModeFor(state.phase);
+  const voting = stage === 'voting';
+  const voteKey = `${state.roundNumber}:${state.phase}`;
+  if (voteKey !== ballotKey) {
+    setBallotKey(voteKey);
+    setVoteChoice(null);
+    setStoredVote(undefined);
+  }
+  const voteOpen = voting && canCastBallot(state.you, state.phase);
+  const voteName = voteChoice?.kind === 'player' ? (state.players.find((player) => player.playerId === voteChoice.playerId)?.displayName ?? null) : null;
+  const voteStored = voteMatches(voteChoice, storedVote);
+  const voteLine = voting ? voteRowText({ phase: state.phase, canVote: voteOpen, choice: voteChoice, name: voteName, stored: voteStored }) : null;
   const note = phaseActionNote(control.error);
   const night = stage === 'night';
   const actionsReady = !roleView.isLoading && !actionsView.isLoading;
@@ -111,6 +128,13 @@ function TableScreen() {
       payload: choicePayload(active, { hint, question }),
     });
     if (result) setAcked(choiceSignature);
+  }
+
+  async function onCast() {
+    if (!voteChoice || voteStored) return;
+    const targetPlayerId = voteChoice.kind === 'abstain' ? null : voteChoice.playerId;
+    const result = await ballot.cast(targetPlayerId);
+    if (result) setStoredVote(result.targetPlayerId);
   }
 
   return (
@@ -151,9 +175,14 @@ function TableScreen() {
               />
             ) : null
           }
-          gridRule={gridRule}
-          gridSelected={gridSelected}
+          gridRule={voting ? (voteOpen ? VOTE_TARGET_RULE : null) : gridRule}
+          gridSelected={voting ? (voteChoice?.kind === 'player' ? [voteChoice.playerId] : []) : gridSelected}
           onToggle={(playerId) => {
+            if (voting) {
+              if (!voteOpen) return;
+              setVoteChoice((current) => (current?.kind === 'player' && current.playerId === playerId ? null : { kind: 'player', playerId }));
+              return;
+            }
             if (!active || active.ability.target.kind !== 'PLAYERS') return;
             draft.toggle(active.abilityInstanceId, playerId, active.ability.target.count);
           }}
@@ -163,12 +192,33 @@ function TableScreen() {
       action={
         <div className="ww-action">
           {note ? <p className="ww-action-copy">{note}</p> : null}
-          {line ? (
+          {ballot.error ? <p className="ww-action-copy">{ballot.error.message}</p> : null}
+          {voteLine ? (
+            <p className="ww-action-copy" aria-live="polite">
+              {voteLine}
+            </p>
+          ) : null}
+          {!voting && line ? (
             <p className="ww-action-copy" aria-live="polite">
               {line}
             </p>
           ) : null}
-          {active ? (
+          {voteOpen ? (
+            <Button
+              className="ww-abstain"
+              variant="outlined"
+              aria-pressed={voteChoice?.kind === 'abstain'}
+              onClick={() => setVoteChoice((current) => (current?.kind === 'abstain' ? null : { kind: 'abstain' }))}
+            >
+              Abstain
+            </Button>
+          ) : null}
+          {voteOpen ? (
+            <Button variant="contained" color="secondary" disabled={!voteChoice || voteStored || ballot.isCasting} onClick={() => void onCast()}>
+              Confirm vote
+            </Button>
+          ) : null}
+          {!voting && active ? (
             <Button variant="contained" color="secondary" disabled={!ready || submission.isSubmitting || stored} onClick={() => void onSubmit()}>
               Submit
             </Button>
@@ -180,7 +230,7 @@ function TableScreen() {
           ) : (
             <PhaseCloseButton control={control} />
           )}
-          {!line && !control.canClose && state.status !== 'CANCELLED' ? <p className="ww-action-copy">{guestActionCopy(state)}</p> : null}
+          {!voteLine && !line && !control.canClose && state.status !== 'CANCELLED' ? <p className="ww-action-copy">{guestActionCopy(state)}</p> : null}
         </div>
       }
     />
@@ -192,7 +242,7 @@ function sceneFor(stage: StageMode): SceneId {
   return scene === 'BY_OUTCOME' ? 'square_dusk' : scene;
 }
 
-/** Public seats. Night uses the shared target grid. The morning report's facts arrive later. */
+/** Public seats. Night and voting use the shared target grid. The morning report's facts arrive later. */
 function StageForeground({
   state,
   stage,
@@ -228,7 +278,7 @@ function StageForeground({
     );
   }
 
-  if (stage === 'night') {
+  if (stage === 'night' || stage === 'voting') {
     return (
       <>
         {panel}

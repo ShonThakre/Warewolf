@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpCode, Inject, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Inject, Param, Post, Put, Req, UseGuards } from '@nestjs/common';
 import {
   changeAvatarRequestSchema,
   createGameRequestSchema,
@@ -9,14 +9,18 @@ import {
   type LobbyProjection,
   type SeatCredentials,
 } from '@warewolf/contracts';
+import type { Request } from 'express';
 import type { z } from 'zod';
 import { CurrentSeat, SeatGuard } from '../auth/seat.js';
 import type { GamePlayerRow } from '../db/schema.js';
-import { UuidParam, ZodBody } from '../http/api-error.js';
+import { errors, UuidParam, ZodBody } from '../http/api-error.js';
+import { clientAddress, JoinRateLimiter } from '../http/rate-limit.js';
 import { LobbyService } from './lobby.service.js';
 
 @Controller('games')
 export class LobbyController {
+  private readonly joins = new JoinRateLimiter();
+
   constructor(@Inject(LobbyService) private readonly lobby: LobbyService) {}
 
   @Post()
@@ -25,7 +29,8 @@ export class LobbyController {
   }
 
   @Post('join')
-  join(@Body(new ZodBody(joinGameRequestSchema)) body: z.infer<typeof joinGameRequestSchema>): Promise<SeatCredentials> {
+  join(@Req() req: Request, @Body(new ZodBody(joinGameRequestSchema)) body: z.infer<typeof joinGameRequestSchema>): Promise<SeatCredentials> {
+    if (!this.joins.allow(clientAddress(req), body.roomCode)) throw errors.rateLimited();
     return this.lobby.join(body.roomCode, body.displayName, body.avatarId);
   }
 

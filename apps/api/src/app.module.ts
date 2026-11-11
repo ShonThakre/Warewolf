@@ -11,6 +11,7 @@ import { APP_CONFIG, type AppConfig } from './config.js';
 import { ConfigurationController, ConfigurationService } from './configuration/configuration.js';
 import { DatabaseModule } from './db/database.js';
 import { DayResolutionService } from './day/day-resolution.service.js';
+import { EventService } from './events/event.service.js';
 import { VoteController } from './day/vote.controller.js';
 import { VoteService } from './day/vote.service.js';
 import { LobbyController } from './lobby/lobby.controller.js';
@@ -21,6 +22,7 @@ import { PhaseController } from './phase/phase.controller.js';
 import { PhaseService } from './phase/phase.service.js';
 import { PHASE_RESOLVERS, phaseResolvers, type PhaseResolvers } from './phase/resolution.js';
 import { PHASE_CLOCK, PHASE_SCHEDULER, TimeoutScheduler, systemClock, type Clock, type PhaseScheduler } from './phase/timing.js';
+import { PlayGateway } from './realtime/play.gateway.js';
 import { SystemController } from './system/system.controller.js';
 
 /**
@@ -67,6 +69,8 @@ export class AppModule {
         overrides.scheduler ? { provide: PHASE_SCHEDULER, useValue: overrides.scheduler } : { provide: PHASE_SCHEDULER, useClass: TimeoutScheduler },
         NightResolutionService,
         DayResolutionService,
+        EventService,
+        PlayGateway,
         VoteService,
         KillTargetService,
         {
