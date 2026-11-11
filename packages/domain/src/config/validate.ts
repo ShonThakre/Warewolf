@@ -3,8 +3,8 @@ import type { AbilityDefinition } from '../catalog/types.js';
 import { FACTIONS, type Faction } from '../factions.js';
 import { BLOCKING_DECISIONS } from './decisions.js';
 import { INFECTION_EDITION_LIMITS, MODE_BOUNDS, WOLF_CAP_OVERRIDE_ACK } from './modes.js';
-import { INFECTION_CORE_ROLES, PACK_STATUS } from './packs.js';
-import { applyOverride, type ResolvedEntry } from './resolve.js';
+import { INFECTION_CORE_ROLES, PACK_STATUS, ULTIMATE_20_ROLES } from './packs.js';
+import { applyOverride, victoryForSeat, type ResolvedEntry } from './resolve.js';
 import type { GameConfiguration } from './types.js';
 
 /**
@@ -49,6 +49,7 @@ export const VALIDATION_WARNING_CODES = [
   'INFO_ROLE_DENSITY',
   'PROTECTION_DENSITY',
   'NEUTRAL_DENSITY',
+  'VOTE_WEIGHT_HIGH',
   'UNCONFIRMED_PRESET',
 ] as const;
 
@@ -162,8 +163,11 @@ export function validateConfiguration(config: GameConfiguration, catalog: RoleCa
     if (!role.allowedFactions.includes(faction)) {
       add('FACTION_NOT_ALLOWED', `${role.displayName} cannot be ${faction}. Allowed: ${role.allowedFactions.join(', ')}.`, { roleId: role.id });
     }
-    if ((faction === 'NEUTRAL' || faction === 'INDEPENDENT') && profile.victory.type !== 'INDIVIDUAL' && status !== 'UNRESOLVED') {
-      add('NEUTRAL_VICTORY_MISSING', `${role.displayName} as ${faction} has no way to win. A ${faction} role needs an individual victory. See OD-73.`, { roleId: role.id, decisionIds: ['OD-73'] });
+    // OD-73: a team victory seated as Neutral or Independent becomes a survive win.
+    // A seat that still has no victory, other than an unresolved role, cannot start.
+    const seatedVictory = victoryForSeat(profile.victory, faction);
+    if ((faction === 'NEUTRAL' || faction === 'INDEPENDENT') && seatedVictory.type !== 'INDIVIDUAL' && status !== 'UNRESOLVED') {
+      add('NEUTRAL_VICTORY_MISSING', `${role.displayName} as ${faction} has no victory defined.`, { roleId: role.id, decisionIds: ['OD-73'] });
     }
 
     // Overrides
@@ -206,7 +210,7 @@ export function validateConfiguration(config: GameConfiguration, catalog: RoleCa
       }
     }
 
-    seated.push({ resolved: { entry, role, profile, faction, abilities }, count: entry.count, status });
+    seated.push({ resolved: { entry, role, profile, faction, victory: seatedVictory, abilities }, count: entry.count, status });
   }
 
   if (selected !== n) {
@@ -267,6 +271,8 @@ export function validateConfiguration(config: GameConfiguration, catalog: RoleCa
       const weight = a.config['weight'];
       if (a.capability === 'VOTE_MODIFIER' && typeof weight === 'number' && weight >= n / 2) {
         add('VOTE_WEIGHT_DOMINANT', `${s.resolved.role.displayName} vote weight ${weight} is at least half of ${n} players.`, { roleId: s.resolved.role.id, abilityId: a.id });
+      } else if (a.capability === 'VOTE_MODIFIER' && typeof weight === 'number' && weight >= 3) {
+        add('VOTE_WEIGHT_HIGH', `${s.resolved.role.displayName} vote weight ${weight} is 3 or more (OD-69).`, { roleId: s.resolved.role.id, abilityId: a.id, decisionIds: ['OD-69'] });
       }
     }
   }
@@ -294,6 +300,27 @@ export function validateConfiguration(config: GameConfiguration, catalog: RoleCa
     if (!config.wolves.friendlyFire) lock('friendly fire is on.');
     if (config.wolves.knowsTeammates) lock('wolves do not know each other.');
     if (config.night.profile !== 'infection-v1') lock('the night profile is infection-v1.');
+  }
+
+  // Ultimate 20 is locked to its own roster. Infection Edition's block above is unchanged.
+  if (config.mode === 'ULTIMATE_20') {
+    const lock = (what: string) => add('MODE_RULE_LOCKED', `Ultimate 20: ${what}`);
+    const key = (e: { roleId: string; count: number; abilityProfile?: string; faction?: string }) =>
+      `${e.roleId}:${e.count}:${e.abilityProfile ?? ''}:${e.faction ?? ''}`;
+    const actual = config.roles.filter((e) => e.count > 0).map(key).sort();
+    const expected = ULTIMATE_20_ROLES.map(key).sort();
+    if (actual.join() !== expected.join()) lock('the role list, profiles, and factions are fixed.');
+    if (config.roles.some((e) => e.overrides && Object.keys(e.overrides).length > 0)) lock('ability limits cannot be overridden.');
+    if (!infection.enabled) lock('infection must be on.');
+    if (infection.maxSuccesses !== 4 || config.teams.wolfCap !== 5) lock('infection allows 4 successes and the wolf cap is 5.');
+    if (infection.eligibility !== 'VILLAGE_ONLY') lock('infection targets Village players only.');
+    if (!infection.requiresSurvival) lock('infection requires survival.');
+    if (infection.announcement !== 'SILENT') lock('infection is silent.');
+    if (config.wolves.killAggregation !== 'ALPHA_PRIORITY') lock("the Alpha Wolf's target is the kill.");
+    if (config.wolves.friendlyFire) lock('friendly fire is off.');
+    if (config.wolves.knowsTeammates) lock('wolves do not know each other.');
+    if (config.night.profile !== 'ultimate-v1') lock('the night profile is ultimate-v1.');
+    if (config.night.toggles.protectionBlocksPoison) lock('protection does not stop poison.');
   }
 
   // Blocking decisions

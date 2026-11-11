@@ -1,0 +1,107 @@
+.ww-home {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  overflow: auto;
+  padding: var(--space);
+  padding-bottom: max(var(--space), env(safe-area-inset-bottom));
+}
+
+.ww-home-wash {
+  position: absolute;
+  inset: 0;
+  background: var(--bg-night);
+}
+
+.ww-home-card {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 28rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space);
+  text-align: center;
+}
+
+.ww-home-title {
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: 0.035em;
+  text-shadow: 0 2px 0 rgb(16 8 30 / 0.7), 0 0 1.2em rgb(245 185 66 / 0.22);
+}
+
+.ww-home-edition {
+  margin: 0;
+  color: var(--accent);
+  font-size: var(--text-body);
+  font-weight: 700;
+}
+
+.ww-home-tag,
+.ww-home-note,
+.ww-dialog-copy {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-body);
+}
+
+.ww-home-actions {
+  display: grid;
+  gap: var(--space);
+  width: min(100%, 20rem);
+}
+
+.ww-home-links {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: calc(var(--space) / 2);
+}
+
+.ww-mode-list {
+  display: grid;
+  gap: var(--space);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ww-mode-name {
+  margin: 0;
+  font-weight: 800;
+}
+
+/* Height under 500px: the night plate stays on the left and the actions stay on screen. */
+@media (max-height: 499px) {
+  .ww-home {
+    grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 24rem);
+    place-items: stretch;
+    align-items: stretch;
+    overflow: hidden;
+    padding: 0;
+  }
+
+  .ww-home-wash {
+    position: relative;
+  }
+
+  .ww-home-card {
+    width: auto;
+    justify-content: center;
+    overflow: auto;
+    background: var(--surface);
+    padding: var(--space);
+    padding-bottom: max(var(--space), env(safe-area-inset-bottom));
+    text-align: left;
+    align-items: stretch;
+  }
+
+  .ww-home-links {
+    justify-content: flex-start;
+  }
+}

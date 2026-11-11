@@ -1,0 +1,137 @@
+/* Private reveal. Landscape keeps the picture and the card together. Portrait stacks them. */
+
+.ww-reveal {
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(16rem, 28rem);
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.ww-reveal-art {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--space);
+  background: var(--bg-night);
+}
+
+.ww-reveal-art img {
+  width: min(100%, 36rem);
+  height: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.ww-reveal-art-fallback {
+  width: min(100%, 16rem);
+  aspect-ratio: 1;
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+}
+
+.ww-reveal-panel {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+}
+
+.ww-reveal-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space);
+}
+
+.ww-reveal-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space);
+  padding: var(--space);
+  padding-bottom: max(var(--space), env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+}
+
+.ww-role-card {
+  display: grid;
+  gap: var(--space);
+  animation: ww-reveal-in 280ms ease;
+}
+
+.ww-role-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: calc(var(--space) / 2) var(--space);
+}
+
+.ww-role-badge {
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: 800;
+}
+
+.ww-role-ability {
+  margin: 0;
+  font-weight: 800;
+}
+
+.ww-role-copy,
+.ww-role-tonight,
+.ww-role-covered,
+.ww-reveal-status {
+  margin: 0;
+}
+
+.ww-role-tonight {
+  font-weight: 700;
+}
+
+.ww-role-abilities {
+  display: grid;
+  gap: var(--space);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ww-role-covered {
+  font-size: var(--text-title);
+  font-weight: 800;
+}
+
+@keyframes ww-reveal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (orientation: portrait) and (max-width: 767px) {
+  .ww-reveal {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(5rem, 34dvh) minmax(0, 1fr);
+  }
+
+  .ww-reveal-panel {
+    border-left: 0;
+    border-top: 1px solid var(--border);
+  }
+}
+
+@media (max-height: 499px) and (orientation: landscape) {
+  .ww-reveal {
+    grid-template-columns: minmax(0, 0.8fr) minmax(14rem, 1fr);
+  }
+}

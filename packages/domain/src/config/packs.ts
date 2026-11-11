@@ -1,4 +1,5 @@
 import { deepFreeze } from '../util/canonical.js';
+import type { GameMode } from '../game.js';
 import type { GameConfiguration, RoleEntry } from './types.js';
 
 /**
@@ -89,6 +90,29 @@ export const INFECTION_CORE_ROLES: readonly RoleEntry[] = [
   r('doctor', 1, { abilityProfile: 'doctor_infection' }),
   r('witch', 1),
   r('normal_villager', 14),
+];
+
+/**
+ * Ultimate 20's fixed roster. Profiles and factions are part of the lock.
+ * Engineering defaults are documented in docs/werewolf/ultimate-20-rules.md.
+ */
+export const ULTIMATE_20_ROLES: readonly RoleEntry[] = [
+  r('alpha_wolf', 1, { abilityProfile: 'alpha_ultimate' }),
+  r('shadow_wolf', 1),
+  r('vampire', 1),
+  r('joker', 1),
+  r('time_wizard', 1),
+  r('oracle', 1, { abilityProfile: 'oracle_alignment' }),
+  r('guardian', 1),
+  r('alchemist', 1),
+  r('fox', 1),
+  r('mimic', 1),
+  r('ghost', 1),
+  r('mind_controller', 1),
+  r('necromancer', 1),
+  r('double_agent', 1),
+  r('chaos_demon', 1),
+  r('normal_villager', 5),
 ];
 
 const packs: RolePack[] = [
@@ -204,9 +228,9 @@ const packs: RolePack[] = [
   {
     id: 'chaos-15',
     name: 'Chaos',
-    status: 'BLOCKED',
-    description: 'Several independent ways to win. Blocked until a Neutral Shapeshifter has a victory condition.',
-    blockedBy: ['OD-73'],
+    status: 'RECOMMENDED',
+    description: 'Several ways to win. A Neutral role without its own victory wins by surviving to the end.',
+    blockedBy: [],
     config: base({
       mode: 'EXPANDED',
       rolePackId: 'chaos-15',
@@ -278,6 +302,23 @@ const packs: RolePack[] = [
     }),
   },
   {
+    id: 'ultimate-20',
+    name: 'Ultimate 20',
+    status: 'RECOMMENDED',
+    description: 'Twenty seats: fifteen special roles and five Villagers. Infection stays on. The host acknowledges the unconfirmed preset before start.',
+    blockedBy: [],
+    config: base({
+      mode: 'ULTIMATE_20',
+      rolePackId: 'ultimate-20',
+      roles: ULTIMATE_20_ROLES,
+      rulesetAcknowledgments: { 'OD-03': 'SURVIVAL_REQUIRED' },
+      teams: { wolfCap: 5, allowMultipleWinners: true },
+      wolves: { knowsTeammates: false, friendlyFire: false, killAggregation: 'ALPHA_PRIORITY' },
+      infection: INFECTION_ON,
+      night: { profile: 'ultimate-v1', toggles: NO_TOGGLES },
+    }),
+  },
+  {
     id: 'custom',
     name: 'Custom',
     status: 'TEMPLATE',
@@ -297,3 +338,12 @@ export function getPack(id: string): RolePack | undefined {
 
 /** The pack a new game starts with when the host does not choose one. */
 export const DEFAULT_PACK_ID = 'infection-core';
+
+/** The pack a new room of each mode starts from. The host can switch packs in the lobby. */
+export const DEFAULT_PACK_BY_MODE: Readonly<Record<GameMode, string>> = {
+  INFECTION: 'infection-core',
+  CLASSIC: 'classic-10',
+  EXPANDED: 'expanded-infection-20',
+  CUSTOM: 'custom',
+  ULTIMATE_20: 'ultimate-20',
+};

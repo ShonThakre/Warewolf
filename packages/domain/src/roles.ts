@@ -25,6 +25,19 @@ export const CAPABILITIES = [
   'COMMUNICATE_WITH_DEAD',
   'MODIFY_VOTING',
   'TEAM_SUPPORT',
+  // Ultimate 20 (docs/werewolf/ultimate-20-rules.md).
+  /** Vampire: mark a player who converts to a Servant two nights later. */
+  'CONVERT',
+  /** Time Wizard: undo every action one player took tonight. */
+  'REWIND',
+  /** Alchemist: the target may not speak in the next day's discussion. */
+  'SILENCE',
+  /** Necromancer: a dead player returns for one day and one night, without a vote or abilities. */
+  'REVIVE',
+  /** Ghost: one indirect text hint the night after death. */
+  'HINT',
+  /** Chaos Demon: one random event, drawn by the server. */
+  'CHAOS',
 ] as const;
 export type Capability = (typeof CAPABILITIES)[number];
 

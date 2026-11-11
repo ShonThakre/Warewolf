@@ -3,7 +3,7 @@
  * docs/werewolf/role-configuration.md.
  */
 
-export const GAME_MODES = ['INFECTION', 'CLASSIC', 'EXPANDED', 'CUSTOM'] as const;
+export const GAME_MODES = ['INFECTION', 'CLASSIC', 'EXPANDED', 'CUSTOM', 'ULTIMATE_20'] as const;
 export type GameMode = (typeof GAME_MODES)[number];
 
 export const GAME_STATUSES = ['LOBBY', 'ACTIVE', 'FINISHED', 'CANCELLED'] as const;

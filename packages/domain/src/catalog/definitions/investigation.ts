@@ -1,4 +1,4 @@
-import { ability, players, role } from '../builders.js';
+import { ability, players, profile, role } from '../builders.js';
 import type { RoleDefinition } from '../types.js';
 
 /**
@@ -35,12 +35,48 @@ export const detective = investigator({
   ability: { id: 'detective_investigate', capability: 'INVESTIGATE', usesPerGame: 2, target: players(), result: 'ALIGNMENT_WOLF_OR_NOT' },
 });
 
-export const oracle = investigator({
+export const oracle = role({
   id: 'oracle',
   displayName: 'Oracle',
   description: "Every other night, learns a player's role category: Wolf, village power, plain villager, Neutral, or Independent.",
-  decisionId: 'OD-21',
-  ability: { id: 'oracle_investigate', capability: 'INVESTIGATE', cooldownNights: 1, target: players(), result: 'ROLE_CATEGORY' },
+  category: 'INVESTIGATION',
+  defaultFaction: 'VILLAGE',
+  implementationStatus: 'RECOMMENDED',
+  decisionIds: ['OD-21', 'OD-38'],
+  defaultProfileId: 'oracle',
+  profiles: [
+    profile({
+      id: 'oracle',
+      status: 'RECOMMENDED',
+      description: "Every other night, learns a player's role category: Wolf, village power, plain villager, Neutral, or Independent.",
+      decisionIds: ['OD-21', 'OD-38'],
+      abilities: [
+        ability({
+          id: 'oracle_investigate',
+          capability: 'INVESTIGATE',
+          cooldownNights: 1,
+          target: players(),
+          result: 'ROLE_CATEGORY',
+          resultAudience: ['SELF', 'HOST'],
+          decisionIds: ['OD-21', 'OD-38'],
+        }),
+      ],
+    }),
+    profile({
+      id: 'oracle_alignment',
+      status: 'RECOMMENDED',
+      description: 'Ultimate 20. Each night, learns whether one living player is a Wolf or a Non-Wolf.',
+      abilities: [
+        ability({
+          id: 'oracle_alignment',
+          capability: 'INVESTIGATE',
+          target: players(),
+          result: 'ALIGNMENT_WOLF_OR_NOT',
+          resultAudience: ['SELF', 'HOST'],
+        }),
+      ],
+    }),
+  ],
 });
 
 export const tracker = investigator({
@@ -90,6 +126,8 @@ export const prophet = investigator({
     cooldownNights: 2,
     target: { kind: 'QUESTION', questions: ['WOLF_PACK_SIZE_AT_LEAST'] },
     result: 'YES_NO',
+    // OD-26: "a configured integer". 3 is an engineering default; a game can override it.
+    config: { packSizeAtLeast: 3 },
   },
 });
 

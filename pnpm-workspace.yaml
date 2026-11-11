@@ -1,7 +1,9 @@
 packages:
   - apps/*
   - packages/*
+  - tools/*
 
 onlyBuiltDependencies:
   - '@swc/core'
   - esbuild
+  - sharp

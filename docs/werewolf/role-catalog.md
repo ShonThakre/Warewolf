@@ -111,6 +111,8 @@ Adding a role that only composes existing capabilities does not change those han
 
 Lone Wolf is `INDEPENDENT` and `wolfAligned: true`. Jester and Assassin are `NEUTRAL` and not wolf-aligned. This wolf-aligned flag is the recommended reading in OD-10.
 
+A role whose catalog victory is the team victory, seated as Neutral or Independent, wins by being alive when the game ends (OD-73). That win is recorded beside the winning team and does not end the game. The catalog profile stays a team victory. `victoryForSeat` applies the survive victory for that seat, and WW-902 reads the result. Jester, Assassin, and Lone Wolf keep their own individual victories. An unresolved role still cannot be seated.
+
 ### Infection behavior values
 
 | Value | Meaning |
@@ -393,7 +395,7 @@ Poisoner and Disruptor must declare a faction in the configuration. Validation f
 | Status | RECOMMENDED (OD-31) |
 | Capability | ROLE_COPY |
 
-Copies for a later night, uses a fresh charge pool, cannot copy infection or another Shapeshifter, and does not change faction. Permanent steal defaults off.
+Copies for a later night, uses a fresh charge pool, cannot copy infection or another Shapeshifter, and does not change faction. Permanent steal defaults off. Seated as Neutral, which is the preset, it wins by surviving to the end of the game.
 
 ### 29. Confuser
 
@@ -478,3 +480,9 @@ config:
 ```
 
 After that player is infected, this row becomes `REVOKED` with reason `INFECTION`, and a new `infected_kill` row is created with `availableFromRound` set to the next night.
+
+## H. Ultimate 20 roles
+
+The catalog has 51 roles. Fourteen of them exist for Ultimate 20 and are not seated in Infection Edition: Shadow Wolf, Vampire, Vampire Servant (created by a mark, never dealt), Joker, Time Wizard, Guardian, Alchemist, Fox, Mimic, Ghost, Mind Controller, Necromancer, Double Agent, and Chaos Demon. Alpha Wolf and Oracle gain a second profile, `alpha_ultimate` and `oracle_alignment`. The default profiles are unchanged.
+
+New capabilities: `CONVERT`, `REWIND`, `SILENCE`, `REVIVE`, `HINT`, `CHAOS`. A Ghost hint uses a `TEXT` target. Fox investigations use the result kind `FACTION`. Individual triggers that must not be rewritten to "alive at the end" are stored as `INDIVIDUAL`. The roster, the lock, and the open questions are in [ultimate-20-rules.md](./ultimate-20-rules.md).

@@ -1,0 +1,1116 @@
+{
+  "description": "Every illustration the game uses. Generated in ChatGPT from docs/ART-PROMPTS.md and saved in art/<category>/. The web build converts each PNG to WebP at webWidth. Check files with `pnpm art:check`.",
+  "version": 2,
+  "assets": [
+    {
+      "id": "alpha_wolf",
+      "category": "roles",
+      "file": "art/roles/alpha_wolf.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "infected_wolf",
+      "category": "roles",
+      "file": "art/roles/infected_wolf.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "pack_wolf",
+      "category": "roles",
+      "file": "art/roles/pack_wolf.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "seeker",
+      "category": "roles",
+      "file": "art/roles/seeker.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "guard",
+      "category": "roles",
+      "file": "art/roles/guard.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "doctor",
+      "category": "roles",
+      "file": "art/roles/doctor.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "witch",
+      "category": "roles",
+      "file": "art/roles/witch.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "normal_villager",
+      "category": "roles",
+      "file": "art/roles/normal_villager.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "jester",
+      "category": "roles",
+      "file": "art/roles/jester.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "assassin",
+      "category": "roles",
+      "file": "art/roles/assassin.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "cursed_villager",
+      "category": "roles",
+      "file": "art/roles/cursed_villager.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "lone_wolf",
+      "category": "roles",
+      "file": "art/roles/lone_wolf.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "immortal",
+      "category": "roles",
+      "file": "art/roles/immortal.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "avenger",
+      "category": "roles",
+      "file": "art/roles/avenger.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "hermit",
+      "category": "roles",
+      "file": "art/roles/hermit.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "detective",
+      "category": "roles",
+      "file": "art/roles/detective.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "oracle",
+      "category": "roles",
+      "file": "art/roles/oracle.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "tracker",
+      "category": "roles",
+      "file": "art/roles/tracker.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "psychic",
+      "category": "roles",
+      "file": "art/roles/psychic.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "medium",
+      "category": "roles",
+      "file": "art/roles/medium.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "prophet",
+      "category": "roles",
+      "file": "art/roles/prophet.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "seer",
+      "category": "roles",
+      "file": "art/roles/seer.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "bodyguard",
+      "category": "roles",
+      "file": "art/roles/bodyguard.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "shieldbearer",
+      "category": "roles",
+      "file": "art/roles/shieldbearer.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "trapper",
+      "category": "roles",
+      "file": "art/roles/trapper.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "sniper",
+      "category": "roles",
+      "file": "art/roles/sniper.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "poisoner",
+      "category": "roles",
+      "file": "art/roles/poisoner.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "disruptor",
+      "category": "roles",
+      "file": "art/roles/disruptor.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "shapeshifter",
+      "category": "roles",
+      "file": "art/roles/shapeshifter.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "confuser",
+      "category": "roles",
+      "file": "art/roles/confuser.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "spy",
+      "category": "roles",
+      "file": "art/roles/spy.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "blacksmith",
+      "category": "roles",
+      "file": "art/roles/blacksmith.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "priest",
+      "category": "roles",
+      "file": "art/roles/priest.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "elder",
+      "category": "roles",
+      "file": "art/roles/elder.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "mayor",
+      "category": "roles",
+      "file": "art/roles/mayor.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "bard",
+      "category": "roles",
+      "file": "art/roles/bard.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "healer_assistant",
+      "category": "roles",
+      "file": "art/roles/healer_assistant.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "shadow_wolf",
+      "category": "roles",
+      "file": "art/roles/shadow_wolf.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "vampire",
+      "category": "roles",
+      "file": "art/roles/vampire.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "vampire_servant",
+      "category": "roles",
+      "file": "art/roles/vampire_servant.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "joker",
+      "category": "roles",
+      "file": "art/roles/joker.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "time_wizard",
+      "category": "roles",
+      "file": "art/roles/time_wizard.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "guardian",
+      "category": "roles",
+      "file": "art/roles/guardian.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "alchemist",
+      "category": "roles",
+      "file": "art/roles/alchemist.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "fox",
+      "category": "roles",
+      "file": "art/roles/fox.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "mimic",
+      "category": "roles",
+      "file": "art/roles/mimic.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "ghost",
+      "category": "roles",
+      "file": "art/roles/ghost.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "mind_controller",
+      "category": "roles",
+      "file": "art/roles/mind_controller.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "necromancer",
+      "category": "roles",
+      "file": "art/roles/necromancer.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "double_agent",
+      "category": "roles",
+      "file": "art/roles/double_agent.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "chaos_demon",
+      "category": "roles",
+      "file": "art/roles/chaos_demon.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 512
+    },
+    {
+      "id": "avatar_01",
+      "category": "avatars",
+      "file": "art/avatars/avatar_01.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_02",
+      "category": "avatars",
+      "file": "art/avatars/avatar_02.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_03",
+      "category": "avatars",
+      "file": "art/avatars/avatar_03.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_04",
+      "category": "avatars",
+      "file": "art/avatars/avatar_04.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_05",
+      "category": "avatars",
+      "file": "art/avatars/avatar_05.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_06",
+      "category": "avatars",
+      "file": "art/avatars/avatar_06.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_07",
+      "category": "avatars",
+      "file": "art/avatars/avatar_07.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_08",
+      "category": "avatars",
+      "file": "art/avatars/avatar_08.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_09",
+      "category": "avatars",
+      "file": "art/avatars/avatar_09.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_10",
+      "category": "avatars",
+      "file": "art/avatars/avatar_10.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_11",
+      "category": "avatars",
+      "file": "art/avatars/avatar_11.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_12",
+      "category": "avatars",
+      "file": "art/avatars/avatar_12.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_13",
+      "category": "avatars",
+      "file": "art/avatars/avatar_13.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_14",
+      "category": "avatars",
+      "file": "art/avatars/avatar_14.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_15",
+      "category": "avatars",
+      "file": "art/avatars/avatar_15.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_16",
+      "category": "avatars",
+      "file": "art/avatars/avatar_16.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_17",
+      "category": "avatars",
+      "file": "art/avatars/avatar_17.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_18",
+      "category": "avatars",
+      "file": "art/avatars/avatar_18.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_19",
+      "category": "avatars",
+      "file": "art/avatars/avatar_19.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_20",
+      "category": "avatars",
+      "file": "art/avatars/avatar_20.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_21",
+      "category": "avatars",
+      "file": "art/avatars/avatar_21.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_22",
+      "category": "avatars",
+      "file": "art/avatars/avatar_22.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_23",
+      "category": "avatars",
+      "file": "art/avatars/avatar_23.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_24",
+      "category": "avatars",
+      "file": "art/avatars/avatar_24.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_25",
+      "category": "avatars",
+      "file": "art/avatars/avatar_25.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_26",
+      "category": "avatars",
+      "file": "art/avatars/avatar_26.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_27",
+      "category": "avatars",
+      "file": "art/avatars/avatar_27.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_28",
+      "category": "avatars",
+      "file": "art/avatars/avatar_28.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_29",
+      "category": "avatars",
+      "file": "art/avatars/avatar_29.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_30",
+      "category": "avatars",
+      "file": "art/avatars/avatar_30.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_31",
+      "category": "avatars",
+      "file": "art/avatars/avatar_31.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_32",
+      "category": "avatars",
+      "file": "art/avatars/avatar_32.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_33",
+      "category": "avatars",
+      "file": "art/avatars/avatar_33.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_34",
+      "category": "avatars",
+      "file": "art/avatars/avatar_34.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_35",
+      "category": "avatars",
+      "file": "art/avatars/avatar_35.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "avatar_36",
+      "category": "avatars",
+      "file": "art/avatars/avatar_36.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 256
+    },
+    {
+      "id": "home_night_village",
+      "category": "scenes",
+      "file": "art/scenes/home_night_village.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": false,
+      "optional": false,
+      "webWidth": 1536
+    },
+    {
+      "id": "lobby_campfire",
+      "category": "scenes",
+      "file": "art/scenes/lobby_campfire.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": false,
+      "optional": false,
+      "webWidth": 1536
+    },
+    {
+      "id": "square_day",
+      "category": "scenes",
+      "file": "art/scenes/square_day.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": false,
+      "optional": false,
+      "webWidth": 1536
+    },
+    {
+      "id": "square_dusk",
+      "category": "scenes",
+      "file": "art/scenes/square_dusk.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": false,
+      "optional": false,
+      "webWidth": 1536
+    },
+    {
+      "id": "square_night",
+      "category": "scenes",
+      "file": "art/scenes/square_night.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": false,
+      "optional": false,
+      "webWidth": 1536
+    },
+    {
+      "id": "reveal_wolf",
+      "category": "scenes",
+      "file": "art/scenes/reveal_wolf.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": false,
+      "optional": false,
+      "webWidth": 1536
+    },
+    {
+      "id": "reveal_village",
+      "category": "scenes",
+      "file": "art/scenes/reveal_village.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": false,
+      "optional": false,
+      "webWidth": 1536
+    },
+    {
+      "id": "reveal_neutral",
+      "category": "scenes",
+      "file": "art/scenes/reveal_neutral.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": false,
+      "optional": false,
+      "webWidth": 1536
+    },
+    {
+      "id": "reveal_independent",
+      "category": "scenes",
+      "file": "art/scenes/reveal_independent.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": false,
+      "optional": false,
+      "webWidth": 1536
+    },
+    {
+      "id": "victory_village",
+      "category": "scenes",
+      "file": "art/scenes/victory_village.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": false,
+      "optional": false,
+      "webWidth": 1536
+    },
+    {
+      "id": "victory_wolves",
+      "category": "scenes",
+      "file": "art/scenes/victory_wolves.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": false,
+      "optional": false,
+      "webWidth": 1536
+    },
+    {
+      "id": "victory_lone_wolf",
+      "category": "scenes",
+      "file": "art/scenes/victory_lone_wolf.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": false,
+      "optional": false,
+      "webWidth": 1536
+    },
+    {
+      "id": "victory_neutral",
+      "category": "scenes",
+      "file": "art/scenes/victory_neutral.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": false,
+      "optional": false,
+      "webWidth": 1536
+    },
+    {
+      "id": "result_draw",
+      "category": "scenes",
+      "file": "art/scenes/result_draw.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": false,
+      "optional": false,
+      "webWidth": 1536
+    },
+    {
+      "id": "emblem",
+      "category": "ui",
+      "file": "art/ui/emblem.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 768
+    },
+    {
+      "id": "app_icon",
+      "category": "ui",
+      "file": "art/ui/app_icon.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": false,
+      "optional": false,
+      "webWidth": 768
+    },
+    {
+      "id": "card_back",
+      "category": "ui",
+      "file": "art/ui/card_back.png",
+      "aspect": "2:3",
+      "minShortSide": 900,
+      "transparent": false,
+      "optional": false,
+      "webWidth": 768
+    },
+    {
+      "id": "parchment",
+      "category": "ui",
+      "file": "art/ui/parchment.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 768
+    },
+    {
+      "id": "mystery_avatar",
+      "category": "ui",
+      "file": "art/ui/mystery_avatar.png",
+      "aspect": "1:1",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": false,
+      "webWidth": 768
+    },
+    {
+      "id": "ribbon_village",
+      "category": "ui",
+      "file": "art/ui/ribbon_village.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": true,
+      "webWidth": 768
+    },
+    {
+      "id": "ribbon_wolves",
+      "category": "ui",
+      "file": "art/ui/ribbon_wolves.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": true,
+      "webWidth": 768
+    },
+    {
+      "id": "ribbon_lone_wolf",
+      "category": "ui",
+      "file": "art/ui/ribbon_lone_wolf.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": true,
+      "webWidth": 768
+    },
+    {
+      "id": "ribbon_neutral",
+      "category": "ui",
+      "file": "art/ui/ribbon_neutral.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": true,
+      "webWidth": 768
+    },
+    {
+      "id": "ribbon_draw",
+      "category": "ui",
+      "file": "art/ui/ribbon_draw.png",
+      "aspect": "3:2",
+      "minShortSide": 900,
+      "transparent": true,
+      "optional": true,
+      "webWidth": 768
+    }
+  ]
+}

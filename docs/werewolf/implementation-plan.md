@@ -296,8 +296,8 @@ stateDiagram-v2
   RoleReveal --> NightSubmit: host or timer
   NightSubmit --> HostConfirm: infection profile
   NightSubmit --> ResolveNight: classic profile
-  HostConfirm --> DoctorReaction: informed doctor alive
-  HostConfirm --> ResolveNight: no reaction needed
+  HostConfirm --> DoctorReaction: informed doctor seated (OD-74)
+  HostConfirm --> ResolveNight: no reaction window configured
   DoctorReaction --> ResolveNight
   ResolveNight --> Finished: terminal
   ResolveNight --> DayAnnounce: continue
@@ -313,6 +313,8 @@ stateDiagram-v2
   DayDiscussion --> Cancelled: host cancel
   Voting --> Cancelled: host cancel
 ```
+
+Implemented in WW-501 to WW-503 as `planClose`, `positionAfter`, and `PHASE_TRANSITIONS` in `packages/domain/src/phase/machine.ts`. Two details the diagram leaves out: the host may cancel from any active phase, and with voting turned off, closing day discussion runs the day resolution directly.
 
 ### Assignment
 

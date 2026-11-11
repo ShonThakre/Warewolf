@@ -1,0 +1,236 @@
+/* Setup shell. The grid is keyed by data-steps and data-summary, which follow layoutMode. */
+
+.ww-setup {
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: clamp(14rem, 22vw, 18rem) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'strip strip'
+    'rail canvas'
+    'action action';
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.ww-setup[data-steps='one'] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'strip'
+    'rail'
+    'canvas'
+    'action';
+}
+
+.ww-setup-strip {
+  grid-area: strip;
+  min-width: 0;
+  display: grid;
+  gap: calc(var(--space) / 2);
+  padding: calc(var(--space) / 2) var(--space);
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--border);
+}
+
+.ww-setup-title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 800;
+}
+
+.ww-setup-counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--space) / 2) var(--space);
+  margin: 0;
+  font-size: var(--text-label);
+  font-weight: 800;
+}
+
+.ww-setup-detail {
+  max-height: calc(var(--space) * 8);
+  overflow: auto;
+  display: grid;
+  gap: calc(var(--space) / 4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ww-setup-issue {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--text-label);
+  font-weight: 400;
+}
+
+.ww-setup-issue-error {
+  color: var(--danger);
+}
+
+.ww-setup-rail {
+  grid-area: rail;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) / 2);
+  padding: var(--space);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+
+.ww-setup[data-steps='one'] .ww-setup-rail {
+  flex-direction: row;
+  border-right: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.ww-setup-step.MuiButton-root {
+  min-height: var(--hit);
+  justify-content: flex-start;
+  gap: calc(var(--space) / 2);
+  white-space: nowrap;
+}
+
+.ww-setup-step svg {
+  width: 1.5rem;
+  height: 1.5rem;
+  flex: none;
+}
+
+.ww-setup-canvas {
+  grid-area: canvas;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  align-content: start;
+  gap: var(--space);
+  padding: var(--space);
+  padding-bottom: max(var(--space), env(safe-area-inset-bottom));
+}
+
+.ww-setup-heading {
+  margin: 0;
+  font-size: var(--text-title);
+  font-weight: 800;
+}
+
+.ww-setup-copy {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-body);
+}
+
+.ww-setup-tools,
+.ww-setup-actions,
+.ww-setup-role-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space);
+}
+
+.ww-setup-number {
+  max-width: calc(var(--space) * 10);
+}
+
+.ww-setup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(7rem, 18vw, 11rem), 1fr));
+  gap: var(--space);
+}
+
+.ww-setup-role {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: calc(var(--space) / 2);
+  padding: calc(var(--space) / 2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.ww-setup-role-open.MuiButton-root {
+  min-height: var(--hit);
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  white-space: normal;
+  gap: calc(var(--space) / 4);
+}
+
+.ww-setup-fields {
+  display: grid;
+  gap: var(--space);
+  align-content: start;
+  min-width: 0;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+fieldset.ww-setup-fields {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space);
+}
+
+.ww-setup-field {
+  min-height: var(--hit);
+  display: flex;
+  align-items: center;
+}
+
+.ww-setup-action {
+  grid-area: action;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space);
+  padding: var(--space);
+  padding-bottom: max(var(--space), env(safe-area-inset-bottom));
+  padding-left: max(var(--space), env(safe-area-inset-left));
+  padding-right: max(var(--space), env(safe-area-inset-right));
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 599px) {
+  .ww-setup:not([data-steps='one']) {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .ww-setup-step-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+@media (max-height: 499px) {
+  .ww-setup-grid {
+    display: flex;
+    overflow: auto;
+  }
+
+  .ww-setup-role {
+    flex: 0 0 clamp(7rem, 18vw, 11rem);
+  }
+}

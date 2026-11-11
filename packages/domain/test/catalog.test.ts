@@ -44,8 +44,8 @@ describe('sha256Hex', () => {
 });
 
 describe('role catalog', () => {
-  it('has 37 definitions: the 36 brief roles plus pack_wolf', () => {
-    expect(roles).toHaveLength(37);
+  it('has 51 definitions: the 36 brief roles, pack_wolf, and 14 Ultimate 20 roles', () => {
+    expect(roles).toHaveLength(51);
     expect(roles.map((r) => r.id)).toContain('pack_wolf');
   });
 
@@ -108,7 +108,7 @@ describe('role catalog', () => {
   });
 
   it('never seats an Infected Wolf at start', () => {
-    expect(roles.filter((r) => !r.seatable).map((r) => r.id)).toEqual(['infected_wolf']);
+    expect(roles.filter((r) => !r.seatable).map((r) => r.id).sort()).toEqual(['infected_wolf', 'vampire_servant']);
   });
 
   it('reads Wolf / Non-Wolf from the faction, and from the role for the Lone Wolf', () => {

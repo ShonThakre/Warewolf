@@ -1,0 +1,92 @@
+/* Table contents. The grid lives on GameLayout. Status and action rows reuse the lobby classes. */
+
+.ww-countdown {
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.ww-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ww-seat-life {
+  font-size: var(--text-label);
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.ww-seat-life[data-life='DEAD'] {
+  color: var(--text);
+}
+
+.ww-morning {
+  margin: var(--space);
+  padding: var(--space);
+  max-width: 28rem;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.ww-night-panel {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--space) / 2);
+  padding: var(--space) var(--space) 0;
+}
+
+.ww-night-role {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--space) / 2);
+  width: 100%;
+}
+
+.ww-prompts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--space) / 2);
+  width: 100%;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ww-action-alert {
+  width: 100%;
+  margin: 0;
+  font-weight: 700;
+}
+
+.ww-seat .ww-target.MuiButton-root {
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  padding: calc(var(--space) / 4);
+  flex-direction: column;
+  text-transform: none;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+.ww-target[aria-pressed='true'] {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ww-morning h2 {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 800;
+}

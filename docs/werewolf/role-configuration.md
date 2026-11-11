@@ -113,7 +113,7 @@ Severity:
 | `MULTIPLE_ALPHAS` | Alpha count above 1 |
 | `WOLF_CAP` | Starting pack size is above `wolfCap`, or cap is below starting pack size |
 | `WOLF_CAP_ABOVE_MODE` | Infection Edition cap is not 5, or successes are not 4, unless custom acknowledgement exists. Infection Edition itself rejects the acknowledgement |
-| `NEUTRAL_VICTORY_MISSING` | Neutral or independent role has no victory object |
+| `NEUTRAL_VICTORY_MISSING` | Neutral or Independent seat whose victory is still undefined after the OD-73 survive rule |
 | `FACTION_NOT_ALLOWED` | Chosen faction is outside `allowedFactions` |
 | `DOCTOR_PROFILE_MIX` | Unlimited and limited flags on one Doctor ability |
 | `DUPLICATE_ACTIVE_HEAL` | Two active Doctor profiles at start |
@@ -301,7 +301,7 @@ A shippable subset. Confuser, Hermit, and Priest are listed in the brief's chaos
 | Avenger | 1 | Village |
 | Normal Villager | 6 | Village |
 
-Infection off. Friendly fire off for the pack. Lone Wolf may target anyone. Spy learns submission counts only. Several individual win flags can be true in one game.
+Infection off. Friendly fire off for the pack. Lone Wolf may target anyone. Spy learns submission counts only. Several individual win flags can be true in one game. The Neutral Shapeshifter wins by surviving to the end.
 
 Expected warning: neutral and independent density.
 
@@ -332,3 +332,9 @@ The 24-player line sums to 24. The 30-player line sums to 30. Both are proposals
 ### How balance will be judged
 
 The host UI shows ratios and warnings. It does not show a fake 50 percent win probability. After the simulation harness exists, preset pages can show measured village, wolf, and neutral finish rates from a named seed and a named bot policy. Until those runs exist, the UI says the preset is unmeasured.
+
+## 10. Pack ultimate-20
+
+`ULTIMATE_20` has one pack, `ultimate-20`, and it is the default for that mode. Twenty seats: the fifteen special roles in [ultimate-20-rules.md](./ultimate-20-rules.md) and five Villagers. Alpha uses `alpha_ultimate`. Oracle uses `oracle_alignment`. Infection is on, silent, four successes, village only, survival required. The wolf cap is 5. Wolves do not know each other. Friendly fire is off. The kill is `ALPHA_PRIORITY`. The night profile is `ultimate-v1`. There are no night toggles. The pack acknowledges OD-03 as survival required.
+
+The validator rejects any edit to that roster or those rules with `MODE_RULE_LOCKED` and the prefix `Ultimate 20:`. Saving a draft still returns the validation object, the same way an invalid custom draft does. Start stays closed until the draft is valid and warnings are acknowledged. The pack warns `NEUTRAL_DENSITY` and `UNCONFIRMED_PRESET`.

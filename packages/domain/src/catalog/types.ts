@@ -27,7 +27,7 @@ export const ABILITY_TIMINGS = ['NIGHT', 'NIGHT_REACTION', 'DAY', 'PASSIVE'] as 
 export type AbilityTiming = (typeof ABILITY_TIMINGS)[number];
 
 /** Named lethal sources. Protection lists which ones it cancels. */
-export const ATTACK_TYPES = ['WOLF_KILL', 'SNIPER', 'POISON', 'REVENGE'] as const;
+export const ATTACK_TYPES = ['WOLF_KILL', 'SNIPER', 'POISON', 'REVENGE', 'DAY_VOTE'] as const;
 export type AttackType = (typeof ATTACK_TYPES)[number];
 
 /** Facts an information ability can return. */
@@ -41,6 +41,8 @@ export const RESULT_KINDS = [
   'YES_NO',
   'WOLF_KILL_SUBMISSION_COUNT',
   'ATTACKER_IDS',
+  /** Fox (Ultimate 20): the target's current team, read from the start-of-night state. */
+  'FACTION',
 ] as const;
 export type ResultKind = (typeof RESULT_KINDS)[number];
 
@@ -78,7 +80,12 @@ export type TargetRule =
   /** Seeker public reveal: publishes the actor's own stored result. */
   | { readonly kind: 'OWN_RESULT' }
   /** Prophet: one whitelisted question. Free text is never accepted. */
-  | { readonly kind: 'QUESTION'; readonly questions: readonly ProphetQuestion[] };
+  | { readonly kind: 'QUESTION'; readonly questions: readonly ProphetQuestion[] }
+  /**
+   * Ghost (Ultimate 20): one short text in the payload as \`hint\`. It may not
+   * name a player or a seat. No player targets.
+   */
+  | { readonly kind: 'TEXT'; readonly maxLength: number };
 
 export interface AbilityDefinition {
   readonly id: AbilityId;
@@ -109,7 +116,24 @@ export interface AbilityDefinition {
   readonly config: Readonly<Record<string, string | number | boolean>>;
 }
 
-export type IndividualTrigger = 'ELIMINATED_BY_DAY_VOTE' | 'MARKED_TARGET_ELIMINATED' | 'SOLE_SURVIVOR';
+export const INDIVIDUAL_TRIGGERS = [
+  'ELIMINATED_BY_DAY_VOTE',
+  'MARKED_TARGET_ELIMINATED',
+  'SOLE_SURVIVOR',
+  'ALIVE_AT_GAME_END',
+  // Ultimate 20 (docs/werewolf/ultimate-20-rules.md).
+  /** Vampire: alive when the game ends, and at least one Servant was ever made. */
+  'ALIVE_WITH_SERVANT',
+  /** Vampire Servant: wins when a Vampire's own win is recorded. */
+  'WITH_VAMPIRE',
+  /** Fox: alive at the moment no wolf-aligned player is left. */
+  'ALL_WOLVES_ELIMINATED_WHILE_ALIVE',
+  /** Necromancer: revived at least one player, and alive when the game ends. */
+  'ALIVE_AFTER_REVIVE',
+  /** Chaos Demon: three Chaos events changed the game, and alive when five or fewer players remain. */
+  'CHAOS_THREE_AND_FINAL_FIVE',
+] as const;
+export type IndividualTrigger = (typeof INDIVIDUAL_TRIGGERS)[number];
 
 export type VictoryDefinition =
   | { readonly type: 'TEAM' }

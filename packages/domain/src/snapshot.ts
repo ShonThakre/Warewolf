@@ -19,6 +19,9 @@ export interface RoleAssignmentSnapshot {
   readonly playerId: PlayerId;
   readonly originalRoleId: RoleId;
   readonly currentRoleId: RoleId;
+  /** Which ability profile of the role was dealt, such as `doctor_infection`. */
+  readonly originalProfileId: string;
+  readonly currentProfileId: string;
   readonly originalFaction: Faction;
   readonly currentFaction: Faction;
   readonly wolfAligned: boolean;
@@ -33,7 +36,8 @@ export interface AbilityInstanceSnapshot {
   readonly playerId: PlayerId;
   readonly assignmentId: AssignmentId;
   readonly abilityId: AbilityId;
-  readonly capability: Capability;
+  /** Null when the handler carries the whole mechanic, such as the Assassin's mark. */
+  readonly capability: Capability | null;
   readonly handlerKey: string | null;
   readonly status: AbilityStatus;
   readonly chargesRemaining: number | null;

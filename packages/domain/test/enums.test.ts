@@ -41,7 +41,7 @@ describe('domain enumerations', () => {
   });
 
   it('has the modes from the role configuration document', () => {
-    expect(GAME_MODES).toEqual(['INFECTION', 'CLASSIC', 'EXPANDED', 'CUSTOM']);
+    expect(GAME_MODES).toEqual(['INFECTION', 'CLASSIC', 'EXPANDED', 'CUSTOM', 'ULTIMATE_20']);
   });
 
   it('has the phases from the data model, starting in the lobby', () => {
@@ -52,7 +52,7 @@ describe('domain enumerations', () => {
   });
 
   it('has the 17 capabilities from the role catalog', () => {
-    expect(CAPABILITIES).toHaveLength(17);
+    expect(CAPABILITIES).toHaveLength(23);
   });
 });
 

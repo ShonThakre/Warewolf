@@ -25,18 +25,44 @@ export const alphaWolf: RoleDefinition = role({
   infectionTarget: 'INELIGIBLE',
   infectionSource: 'SEAL_INFECTION_ON_DEATH',
   decisionIds: ['OD-01', 'OD-03', 'OD-04', 'OD-05'],
-  abilities: [
-    ability({
-      id: 'alpha_infect',
-      capability: 'INFECT',
-      handlerKey: 'infection.convert',
-      // One attempt per night. Successful conversions are capped by the configuration.
-      target: players(),
-      resultAudience: ['HOST'],
-      lostOnInfection: false,
-      decisionIds: ['OD-03', 'OD-04', 'OD-05', 'OD-47'],
+  defaultProfileId: 'alpha_wolf',
+  profiles: [
+    profile({
+      id: 'alpha_wolf',
+      status: 'CONFIRMED',
+      description: 'Infection Edition and Expanded. One infection attempt and one wolf kill each night.',
+      decisionIds: ['OD-01', 'OD-03', 'OD-04', 'OD-05'],
+      abilities: [
+        ability({
+          id: 'alpha_infect',
+          capability: 'INFECT',
+          handlerKey: 'infection.convert',
+          // One attempt per night. Successful conversions are capped by the configuration.
+          target: players(),
+          resultAudience: ['HOST'],
+          lostOnInfection: false,
+          decisionIds: ['OD-03', 'OD-04', 'OD-05', 'OD-47'],
+        }),
+        wolfKill('alpha_kill', { decisionIds: ['OD-01'] }),
+      ],
     }),
-    wolfKill('alpha_kill', { decisionIds: ['OD-01'] }),
+    profile({
+      id: 'alpha_ultimate',
+      status: 'RECOMMENDED',
+      description: 'Ultimate 20. Each night, either kill one player or infect one player.',
+      abilities: [
+        ability({
+          id: 'alpha_u20_infect',
+          capability: 'INFECT',
+          handlerKey: 'infection.convert',
+          target: players(),
+          resultAudience: ['HOST'],
+          lostOnInfection: false,
+          config: { exclusiveGroup: 'alpha_choice' },
+        }),
+        wolfKill('alpha_u20_kill', { lostOnInfection: false, config: { exclusiveGroup: 'alpha_choice' } }),
+      ],
+    }),
   ],
 });
 

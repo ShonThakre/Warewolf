@@ -8,6 +8,69 @@
       "when": 1794213965905,
       "tag": "0000_games",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1794216935228,
+      "tag": "0001_lobby",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1794221644641,
+      "tag": "0002_avatars",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1794222457497,
+      "tag": "0003_assignments",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1794383132829,
+      "tag": "0004_phase_machine",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1794384832387,
+      "tag": "0005_night_actions",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1794387043163,
+      "tag": "0006_night_resolution",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1794387729296,
+      "tag": "0007_kill_decisions",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1794388945443,
+      "tag": "0008_votes",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1794392000000,
+      "tag": "0009_ultimate_20",
+      "breakpoints": true
     }
   ]
 }

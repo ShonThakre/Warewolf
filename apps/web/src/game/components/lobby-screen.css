@@ -1,0 +1,240 @@
+/* Lobby contents. The grid lives on GameLayout. */
+
+.ww-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--space) / 2) var(--space);
+  min-width: 0;
+  padding: calc(var(--space) / 2) var(--space);
+  background: var(--surface);
+}
+
+.ww-lobby-message {
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: var(--space);
+  padding: var(--space);
+  text-align: center;
+}
+
+.ww-status-title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 800;
+}
+
+.ww-status-copy,
+.ww-scene-count,
+.ww-pack-mode,
+.ww-pack-meta,
+.ww-log-empty,
+.ww-info-copy {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-body);
+}
+
+.ww-code {
+  margin: 0;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.ww-status-pack {
+  display: none;
+  flex-basis: 100%;
+}
+
+.ww-pack-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--space) / 2) var(--space);
+  margin: 0;
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+
+.ww-scene {
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space);
+  padding: var(--space);
+}
+
+.ww-scene-count {
+  width: 100%;
+  text-align: center;
+}
+
+.ww-seats {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: center;
+  gap: var(--space);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ww-seat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: calc(var(--space) / 4);
+  width: calc(var(--avatar) + var(--space));
+  min-width: 0;
+  text-align: center;
+}
+
+.ww-seat-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+
+.ww-seat-tag {
+  font-size: var(--text-label);
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.ww-action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space);
+  min-width: 0;
+  padding: var(--space);
+  background: var(--surface);
+}
+
+.ww-action-copy {
+  flex: 1 1 12rem;
+  min-width: 0;
+  margin: 0;
+}
+
+.ww-pack {
+  display: grid;
+  gap: calc(var(--space) / 4);
+  margin: var(--space);
+  padding: var(--space);
+  background: var(--surface-raised);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.ww-pack-name {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 800;
+}
+
+.ww-factions,
+.ww-player-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--space) / 2) var(--space);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.ww-factions {
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+
+.ww-room-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space);
+  display: grid;
+  align-content: start;
+  gap: var(--space);
+}
+
+.ww-player-list {
+  flex-direction: column;
+  flex-wrap: nowrap;
+  gap: calc(var(--space) / 2);
+}
+
+.ww-player {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space);
+  padding: calc(var(--space) / 2);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+}
+
+.ww-player-copy {
+  min-width: 0;
+  flex: 1 1 8rem;
+}
+
+.ww-player-name,
+.ww-player-meta {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.ww-player-name {
+  font-weight: 700;
+}
+
+.ww-player-meta {
+  color: var(--text-muted);
+  font-size: var(--text-label);
+}
+
+.ww-player-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--space) / 2);
+}
+
+.ww-avatar {
+  width: var(--avatar);
+  height: var(--avatar);
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: var(--text-label);
+  font-weight: 800;
+}
+
+.ww-seat .ww-avatar {
+  background: var(--bg);
+}
+
+.ww-avatar.is-nav {
+  width: var(--avatar-nav);
+  height: var(--avatar-nav);
+}
+
+.ww-log-empty,
+.ww-info-copy {
+  max-width: 40rem;
+}

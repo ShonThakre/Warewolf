@@ -14,6 +14,8 @@ Claude Code and Cursor Agent work on this repository together. Read [docs/AI-WOR
 | `packages/contracts` | Zod schemas shared by the API and the web client |
 | `apps/api` | NestJS HTTP adapter, Drizzle schema, and migrations for PostgreSQL |
 | `apps/web` | React and Vite client |
+| `art` | Generated illustrations (PNG). The web build serves them as WebP. See [art/README.md](art/README.md) |
+| `tools/art` | The `art:check` script |
 
 ## Requirements
 
@@ -45,6 +47,7 @@ Compose maps PostgreSQL to port 5433 so it does not clash with a local server on
 | `pnpm test:integration` | Migration tests against the PostgreSQL in `DATABASE_URL`. Each run creates and drops its own database |
 | `pnpm db:migrate` / `pnpm db:rollback` | Applies all pending migrations, or reverts the latest one |
 | `pnpm --filter @warewolf/api db:generate` | Generates a migration from `apps/api/src/db/schema.ts` |
+| `pnpm art:check` | Checks the images in `art/` against `art/manifest.json` and shows what is still missing |
 
 Drizzle has no down migrations. Each `apps/api/drizzle/<tag>.sql` needs a hand-written `apps/api/drizzle/down/<tag>.sql`, and a unit test fails without one.
 

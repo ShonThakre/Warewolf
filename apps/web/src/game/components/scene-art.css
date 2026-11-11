@@ -1,0 +1,154 @@
+/* Scene plates, catalog cards, the avatar grid, and the victory banner. Sizes and colors are tokens. */
+
+.ww-village,
+.ww-victory-scene {
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+}
+
+.ww-village img,
+.ww-victory-scene img,
+.ww-home-wash img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ww-role-portrait {
+  width: calc(var(--avatar) * 1.6);
+  max-width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: var(--radius);
+  border: var(--avatar-ring) solid currentColor;
+  background: var(--surface-raised);
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+
+.ww-role-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ww-role-back {
+  width: min(100%, 14rem);
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  border-radius: var(--radius);
+  display: block;
+}
+
+.ww-catalog {
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  align-content: start;
+  gap: var(--space);
+  padding: var(--space);
+  padding-bottom: max(var(--space), env(safe-area-inset-bottom));
+}
+
+.ww-catalog-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space);
+}
+
+.ww-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(7rem, 18vw, 11rem), 1fr));
+  gap: var(--space);
+}
+
+.ww-catalog-card.MuiButton-root {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: calc(var(--space) / 2);
+  white-space: normal;
+}
+
+.ww-catalog-name {
+  font-weight: 800;
+  font-size: var(--text-body);
+}
+
+.ww-catalog-power {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-label);
+  font-weight: 400;
+}
+
+.ww-avatar-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--avatar), 1fr));
+  gap: calc(var(--space) / 2);
+}
+
+.ww-avatar-grid .MuiButton-root[aria-pressed='true'] {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.ww-victory {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--space);
+  padding: var(--space);
+  text-align: center;
+  overflow: auto;
+}
+
+.ww-victory-scene {
+  position: absolute;
+  inset: 0;
+}
+
+.ww-victory-ribbon {
+  position: relative;
+  z-index: 1;
+  width: min(100%, 18rem);
+  height: auto;
+}
+
+.ww-victory-title,
+.ww-victory-reason {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+}
+
+.ww-victory-title {
+  font-size: var(--text-title);
+  font-weight: 800;
+}
+
+.ww-victory-reason {
+  max-width: 36rem;
+  color: var(--text);
+}
+
+@media (max-height: 499px) {
+  .ww-catalog-grid {
+    display: flex;
+    overflow: auto;
+  }
+
+  .ww-catalog-card.MuiButton-root {
+    flex: 0 0 clamp(7rem, 18vw, 11rem);
+  }
+}

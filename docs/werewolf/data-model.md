@@ -64,6 +64,13 @@ Indexes:
 
 - Unique `room_code` where status in (`LOBBY`, `ACTIVE`).
 - Index `(status, phase)` for recovery scans.
+- Index `phase_ends_at` where status is `ACTIVE` and a deadline is set, for the phase timer and boot recovery (migration `0004_phase_machine`).
+
+Checks added in `0004_phase_machine` (WW-501):
+
+- Status and phase agree. `LOBBY`, `FINISHED`, and `CANCELLED` each pair with the phase of the same name. Every other phase is `ACTIVE`.
+- `round_number` is 0 in the lobby and at least 1 while active.
+- Only an active game has `phase_ends_at`.
 
 Phases: `LOBBY`, `ROLE_REVEAL`, `NIGHT_SUBMIT`, `NIGHT_HOST_CONFIRM`, `NIGHT_REACTION`, `DAY_ANNOUNCE`, `DAY_DISCUSSION`, `VOTING`, `REVOTE`, `FINISHED`, `CANCELLED`.
 
@@ -77,6 +84,7 @@ Resolution itself is a transaction inside the closing of `NIGHT_REACTION` or `NI
 | game_id | uuid fk | |
 | display_name | text | Unique per game |
 | seat_number | int | Unique per game |
+| avatar_id | int | 1 to 36, unique per game. Chosen in the lobby or assigned as the lowest free one (WW-305) |
 | is_host | boolean | |
 | life_status | text | `ALIVE`, `DEAD` |
 | connection_status | text | `CONNECTED`, `DISCONNECTED` |
@@ -86,13 +94,17 @@ Resolution itself is a transaction inside the closing of `NIGHT_REACTION` or `NI
 
 ### role_assignments
 
+Written in the start transaction (WW-402, migration `0003_assignments`). The `original_*` columns, `game_id`, and `player_id` never change. Two things enforce that: the repository (`apps/api/src/assignment/assignment.repository.ts`) has no update that names them, and the trigger `role_assignments_keep_original_trg` rejects such an UPDATE with SQLSTATE `23001`.
+
 | Column | Type | Notes |
 |---|---|---|
 | id | uuid pk | |
 | game_id | uuid | |
 | player_id | uuid unique | One assignment per player |
 | original_role_id | text | Immutable |
+| original_profile_id | text | Immutable. The dealt ability profile, such as `doctor_infection`. Single-profile roles use the role id |
 | current_role_id | text | |
+| current_profile_id | text | Changes with the current role |
 | original_faction | text | Immutable |
 | current_faction | text | |
 | wolf_aligned | boolean | |
@@ -109,7 +121,7 @@ Resolution itself is a transaction inside the closing of `NIGHT_REACTION` or `NI
 | player_id | uuid | |
 | assignment_id | uuid | |
 | ability_id | text | |
-| capability | text | |
+| capability | text null | Null when a handler carries the whole mechanic, such as the Assassin's mark |
 | handler_key | text null | |
 | status | text | `ACTIVE`, `REVOKED`, `EXHAUSTED`, `SCHEDULED` |
 | charges_remaining | int null | Null means unlimited |
@@ -120,10 +132,10 @@ Resolution itself is a transaction inside the closing of `NIGHT_REACTION` or `NI
 | expires_round | int null | Shapeshifter copies |
 | source | text | `NATIVE`, `COPY`, `INHERITED` |
 | source_player_id | uuid null | |
-| config | jsonb | Frozen ability profile |
+| config | jsonb | The ability definition with this game's overrides applied, frozen at grant time |
 | revoked_reason | text null | |
 
-Unique `(assignment_id, ability_id, source)` for native rows.
+Unique `(assignment_id, ability_id)` where `source = 'NATIVE'`. Copies and inherited abilities may repeat an ability id.
 
 ### night_actions
 
@@ -262,6 +274,27 @@ Clients reconnect with `afterSeq` and receive only rows their token may see.
 
 Unique `(game_id, round_number, phase_kind)`.
 
+### scheduled_effects
+
+Added in `0006_night_resolution` (WW-801, WW-802). Something one resolution leaves for a later one.
+
+| Column | Type | Notes |
+|---|---|---|
+| id | uuid pk | |
+| game_id | uuid | |
+| kind | text | `SHIELD` (a Blacksmith item on its holder), `POISON` (a Poisoner's delayed poison), `REVENGE` (an Avenger's queued revenge) |
+| source_player_id | uuid | |
+| source_ability_instance_id | uuid | |
+| target_player_id | uuid | The holder, the victim, or the revenge target |
+| created_round | int | |
+| due_round | int null | Null for a shield |
+| due_phase | text null | `NIGHT` or `DAY`. Null exactly when `due_round` is |
+| attack_types | text[] | The attack a POISON or REVENGE adds, or what a SHIELD cancels |
+| status | text | `ACTIVE`, `SPENT` (landed or blocked), `EXPIRED` (holder or target died first) |
+| closed_round | int null | Set exactly when the status leaves `ACTIVE` |
+
+Partial index on `game_id` where status is `ACTIVE`. The night resolver reads the open rows; the day resolution (WW-901) applies a `POISON` due in the day.
+
 ### idempotency_keys
 
 | Column | Type |
@@ -273,6 +306,18 @@ Unique `(game_id, round_number, phase_kind)`.
 | created_at | timestamptz |
 
 Unique `(game_id, key)`. The same key with a different request hash returns 409.
+
+As built in `0005_night_actions` (WW-601): the key is unique per `(game_id, player_id, key)`, so one seat can never replay or block another seat's request. `night_actions` also has `phase` (`NIGHT_SUBMIT`, `NIGHT_REACTION`, or `DAY_DISCUSSION`) and `updated_at`. The open-action index is unique on `(game_id, round_number, ability_instance_id)` where status is `PENDING` or `LOCKED`. A replaced choice is set to `CANCELLED` and a new row inserted, so every choice stays on record. Closing a window sets its `PENDING` rows to `LOCKED` in the same transaction.
+
+As built in `0006_night_resolution` (WW-802):
+
+- `games` has `infection_successes` (successful Alpha infections, C-04) and `infection_sealed` (the Alpha has died, C-09). Night resolution reads and writes both.
+- `night_actions` has `rejected_reason`, set only with status `REJECTED`: `ABILITY_UNAVAILABLE`, `WRONG_PHASE`, `TARGET_ILLEGAL`, `BLOCKED`, or `NOT_IMPLEMENTED`.
+- `elimination_records` is unique on `(game_id, player_id)`, because a player dies once. `causes` holds `{ type, via, actorIds }` objects in step order, with every contributor (OD-13). `via` is `PACK`, `ABILITY`, `EFFECT`, or `REDIRECT`.
+- `infection_records` has `action_id`. `failure_reason` is null exactly when the outcome is `SUCCESS`.
+- `investigation_records` has `action_id` (unique, one fact per action), `ability_instance_id`, and `kind` (the ability's result kind). `result` holds the fact without those columns, such as `{ "value": "WOLF" }`.
+- `role_conversion_records` holds only role changes: `INFECTION` and `CURSED`. A copy or an inheritance hands over abilities, not a role; its record is the `ability_instances` row (`source` COPY or INHERITED, `source_player_id`). `INHERIT`, `COPY_GRANT`, and `COPY_EXPIRE` stay allowed for a later permanent-theft rule.
+- `resolution_runs.result` is the resolver's whole result, for the host dashboard and audit.
 
 ---
 
@@ -307,7 +352,7 @@ erDiagram
 On process start:
 
 1. Load games with status `ACTIVE`.
-2. For timed games with `phase_ends_at` in the past, enqueue the same transition the timer would have run.
+2. For timed games with `phase_ends_at` in the past, enqueue the same transition the timer would have run. Implemented in WW-502: `PhaseService.recover` schedules every open deadline on boot, and past ones close straight away.
 3. For host-paced games, leave the phase and wait.
 4. Do not recompute a round that already has a `resolution_run`.
 5. Clients present the player token, receive the projection for their audience, and pass `afterSeq`.
@@ -329,3 +374,11 @@ Connection status is advisory. Authority is the token and the rows.
 ## 7. Assignment algorithm persistence
 
 The dealer shuffles a multiset of role ids with a CSPRNG and writes assignments inside the start transaction. The seed is not stored. The assignment rows are the record. Tests inject a shuffle function. Production does not accept a client-supplied seed.
+
+Implemented in WW-402. `dealRoles` and `fisherYates` in `packages/domain/src/assignment/` take a `RandomInt` source and stay pure. The API binds `crypto.randomInt` under the `DEAL_RANDOM` token; `createApp` accepts a replacement only from code, for tests. The start request schema is strict, so a body with `seed` is a 422.
+
+## 8. Ultimate 20 checks
+
+Migration `0009_ultimate_20` widens six checks to the domain lists: `games.mode` includes `ULTIMATE_20`; ability capabilities include `CONVERT`, `REWIND`, `SILENCE`, `REVIVE`, `HINT`, and `CHAOS`; investigation kinds include `FACTION`; rejected reasons include `SUPERSEDED` and `REWOUND`; conversion reasons include `VAMPIRE`; scheduled effect kinds include `VAMPIRE_MARK`, `RETURNED`, and `CHAOS_DAY`.
+
+The night service does not yet write rewinds, the chaos draw, silences, revivals, or hints. Those fields exist on the domain `NightResult` only. `drawChaos` is not called from the API. Phase close does call `tallyDay` and `evaluateVictory`. That call does not yet receive revival or chaos-success inputs.

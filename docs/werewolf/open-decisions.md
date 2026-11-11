@@ -551,15 +551,19 @@ Covered by OD-32. Both cannot hold an active heal in the same resolution.
 
 **Decided 9 November 2026: real server-side chat in version 1.** This replaces the recommendation below, which is kept for history. The composer becomes a live control, backed by a message contract in the API.
 
-Rules that now need an owner before the chat tasks (WW-1104, WW-1206) can start. No default is invented here:
+**Chat rules decided 11 November 2026.** These unblock WW-1104 and WW-1206.
 
-- Whether chat is open during night phases, or only during day discussion.
-- Whether dead players can post, read only, or have a separate dead channel.
-- Whether wolves get a private channel. Infection Edition hides pack mates, so a wolf channel would break wolf anonymity.
-- Host moderation: delete a message, mute a seat, or both.
-- Message length, rate limit, and retention after the game ends.
-- Whether chat lines go into `game_events` or a separate table, and whether the recap shows them.
-- OD-20 still stands: Bard gains no side channel through chat.
+| Rule | Decision |
+|---|---|
+| When chat is open | Living players post during day discussion and voting only. Chat is closed at night and on the reveal screen. |
+| Dead players | Read only. They see the public chat and cannot post. There is no dead channel. |
+| Wolf channel | None, in any mode, in version 1. Infection Edition hides pack mates, and a channel would break that. |
+| Host moderation | The host can delete a message and mute a seat. A muted seat cannot post. |
+| Limits | 280 characters per message (422 when longer). 5 messages per 10 seconds per seat (429 when exceeded). |
+| Retention | Messages are deleted when the game finishes or is cancelled. |
+| Storage | A separate chat table, not `game_events`. |
+| Recap | The results recap does not show chat. |
+| Bard | OD-20 still stands: Bard gains no side channel through chat. |
 
 **Question.** Should the discussion rail send free-text messages?
 
@@ -583,9 +587,68 @@ Rules that now need an owner before the chat tasks (WW-1104, WW-1206) can start.
 2. Allow these roles only in Village or Wolf Pack factions, and change the Chaos pack's Shapeshifter to one of those.
 3. Let a Neutral role without a victory be seated as a role that cannot win, with an explicit host acknowledgement.
 
-**Current behavior (9 November 2026, WW-203).** No victory is invented. The validator rejects these seats, and the `chaos-15` pack is marked BLOCKED on this decision.
+**Decided 11 November 2026: option 1.** A role seated as Neutral or Independent that has no individual victory of its own wins if it is alive when the game ends. It wins alongside the winning team and does not end the game itself. This applies to Shapeshifter, Poisoner, Disruptor, Immortal, and Avenger when they are configured as Neutral or Independent.
 
-**Why it is blocking.** The Chaos pack cannot start until this is answered.
+**Implemented (11 November 2026, OD-73-impl).** `victoryForSeat` turns a team victory into a survive win for a Neutral or Independent seat. The validator no longer rejects those seats. `chaos-15` is a recommended pack. Unresolved roles stay unseatable. WW-902 records the win when the victory checker is built.
+
+---
+
+### OD-74 Whether the night windows depend on who is alive
+
+**Question.** The host-confirm and Doctor-reaction windows exist only when the configuration needs them (OD-01, OD-02). Once a game is running, should a window still open when nobody can use it, for example after the informed Doctor has died or been infected?
+
+**Options.**
+
+1. Fixed by the configuration. The reaction window opens every night when a seated role has a `NIGHT_REACTION` ability, whether or not that player can still act. A Doctor who cannot act counts as a decline, and the host closes the window. Host confirm follows `killAggregation` the same way.
+2. Live. The reaction window opens only while an informed Doctor is alive and able to act, as the earlier lifecycle diagrams drew it.
+
+**Why it matters.** Every seat sees the phase. Under option 2 the table sees the reaction window disappear the night the Doctor is infected. Infection is silent (OD-44), so option 2 would make it public. With `revealOnNightDeath: HIDDEN` it would also reveal which dead player was the Doctor. Option 1 is how a narrator at a real table handles it: they still call the dead Doctor.
+
+**Cost of option 1.** One extra host click each night after the Doctor is gone. Timed games are not slowed, because the reaction window has no timer in any game.
+
+**Recommendation.** Option 1. Adopted as the engineering default in WW-503 on 11 November 2026, pending product-owner confirmation. Switching to option 2 changes only `nightWindows` in `packages/domain/src/phase/machine.ts`.
+
+---
+
+### OD-75 Joker's win ending the game
+
+Ultimate 20 records a Joker win on a day elimination and does not end the game while both teams remain. Whether that win should end the game is open. See ultimate-20-rules.md.
+
+### OD-76 Mind Controller's win
+
+The image names the Chaos team and gives no win card. The engine stores alive at game end.
+
+### OD-77 Chaos event pool
+
+The transcript lists five events. The reference image lists six: disable an ability, protections off, no kills, no vote, swap votes, and double vote. The engine draws those six uniformly without replacement and resets the pool after all six.
+
+### OD-78 Infection and the original power
+
+Ultimate infection follows each role's `lostOnInfection` flag. Double Agent becomes an infected wolf. Whether every converted role should keep its power is open.
+
+### OD-79 Vampire servant abilities
+
+A successful mark converts the target to `vampire_servant`, revokes abilities lost on infection and copied abilities, and grants no kill. Whether the original ability should survive is open.
+
+### OD-80 Necromancer limits
+
+The engine allows the same player to be returned twice and leaves a returned player attackable. They cannot vote or use abilities. The image does not say.
+
+### OD-81 Time Wizard's target
+
+The engine removes every action one player submitted tonight, before blocks resolve. The transcript said one action from the previous night, after the result. The decided behavior is the blind rewind.
+
+### OD-82 Guardian and poison
+
+The engine stops a wolf kill only. Poison is not stopped.
+
+### OD-83 Chaos Demon's final five
+
+The engine checks on every victory evaluation. Once three successful events have happened with the demon alive among five or fewer players, the flag stays achieved.
+
+### OD-84 Team wins and individual records
+
+A village or wolf win ends the game and keeps individual records that were already achieved.
 
 ---
 
@@ -603,7 +666,8 @@ The product owner can unblock Infection Edition by accepting or replacing the it
 | OD-44 | Silent infection. **Accepted** |
 | OD-60 | TypeScript modular monolith. **Accepted** (WW-101) |
 | OD-71 | Capacitor APK wrapping the shared web client, orientation unlocked. **Accepted** |
-| OD-73 | Open. Chaos pack is blocked until a Neutral Shapeshifter can win, or is moved to another faction |
-| OD-72 | ~~Discussion rail shows the public event feed. The composer stays disabled~~ Replaced: real server-side chat in version 1. Chat rules still open, see OD-72 |
+| OD-73 | A Neutral or Independent role with no individual victory wins if alive at game end, alongside the winning team. **Accepted and implemented** (11 November 2026) |
+| OD-72 | ~~Discussion rail shows the public event feed. The composer stays disabled~~ Replaced: real server-side chat in version 1. Chat rules **Accepted** (11 November 2026), see OD-72 |
+| OD-74 | Night windows are fixed by the configuration, not by who is alive, so silent infection stays silent. **Recommended**, adopted as the engineering default in WW-503 (11 November 2026). Awaiting product-owner confirmation |
 
 Expanded, Chaos, Investigation, and Protection presets additionally need the recommended role defaults in OD-06 through OD-34 accepted or replaced. Hermit, Confuser, Priest, and Bard stay out of those presets until their UNRESOLVED entries gain a real mechanic.

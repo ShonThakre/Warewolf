@@ -109,6 +109,8 @@ Layout mode is a function of the viewport, not of a device name:
 
 A 1024×768 tablet is the compact three-area layout because it is short, even though the width is in the desktop band. A 915×412 phone is the landscape-phone layout because the height is the constraint. A 390×844 phone is portrait.
 
+As built (WEB-02): `layoutMode(width, height)` in `apps/web/src/game/layout/layoutMode.ts` is the only copy of these breakpoints. `GameLayout` writes the mode to `data-layout`, and the stylesheet keys off that attribute rather than repeating the numbers in media queries. Landscape means wider than tall, so a square viewport is portrait. The table leaves two gaps, and both get the tablet mode: portrait from 768 to 1023 wide, and near-square landscape windows 600 to 767 wide and at least 700 tall.
+
 Landscape keeps these on screen without a second navigation model:
 
 1. Phase and round.
@@ -225,6 +227,11 @@ PlayerInteraction     (sticky, above the safe area)
 ```
 
 `PlayerInteraction` is the `action` row in every mode. Night targeting, voting, and "Continue to day" are that row. They are not a separate bottom sheet component and not a desktop-only sidebar.
+
+As built (WEB-02), with two decisions:
+
+- `TopNavigation` stays in `AppShell`, above every route, as the lobby already does. `GameLayout` owns the status, stage, rail, and action regions. "Nav and status share one bar" on short screens is a styling rule on `data-status-row="false"`, not a second navigation component.
+- In portrait, only a target grid moves under the "Players | rail" switch. Avatars, the night result card, and the victory banner stay over the scene, and the middle shows the rail, whose own Players tab lists the seats. Each stage's placement is `portraitForeground` in `STAGE_SPECS`. The table route also has a `reveal` stage for `ROLE_REVEAL`: the night village with avatars while players read their cards.
 
 ### Stage modes
 
@@ -470,9 +477,18 @@ Refreshing the page, or reopening the APK, calls `GET /state` and `GET /me`. It 
 
 ## 9. Discussion rail
 
-The mockups draw a message composer. Version 1 does not send chat.
+The mockups draw a message composer. Version 1 now ships real server-side chat (OD-72, rules accepted 11 November 2026). Until WW-1104 and WW-1206 land, the composer stays disabled as described at the end of this section.
 
-OD-20 leaves Bard without a power and says the engine must not grow a side channel in order to invent one. The API has no message resource. Day discussion is spoken at the table. Dead players do not receive a text channel either.
+The chat rules the composer follows:
+
+- Living players can post during day discussion and voting only. At night and on the reveal screen the composer is disabled.
+- Dead players can read and cannot post. There is no dead channel.
+- There is no wolf channel in any mode.
+- A muted seat sees the composer disabled. The host can delete a message and mute a seat.
+- 280 characters per message, 5 messages per 10 seconds per seat.
+- The results recap does not show chat, and messages are deleted when the game ends.
+
+OD-20 still leaves Bard without a power, and chat is not a side channel for one. Day discussion can still be spoken at the table.
 
 `DiscussionPanel` still ships, because the layout needs the rail:
 
@@ -482,7 +498,7 @@ OD-20 leaves Bard without a power and says the engine must not grow a side chann
 | Info | Room code, mode, player count, token warning |
 | Players | Seat list with life, when the stage is showing the scene rather than the grid |
 
-The composer is rendered disabled, with the hint "Talk at the table. This log shows public events." It does not post, and it does not store drafts as if they were game actions. A later decision can connect it. The layout reserves the row so that decision does not reshape `GameLayout`. That decision is OD-72. Until it is accepted, the client does not invent an endpoint.
+The composer is rendered disabled, with the hint "Talk at the table. This log shows public events." It does not post, and it does not store drafts as if they were game actions. The layout reserves the row so live chat does not reshape `GameLayout`. WW-1206 connects it once the WW-1104 message contract exists. Until then, the client does not invent an endpoint.
 
 ---
 

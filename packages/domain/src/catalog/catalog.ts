@@ -9,6 +9,7 @@ import { OFFENSE_ROLES } from './definitions/offense.js';
 import { PROTECTION_ROLES } from './definitions/protection.js';
 import { SPECIAL_ROLES } from './definitions/special.js';
 import { SUPPORT_ROLES } from './definitions/support.js';
+import { ULTIMATE_ROLES } from './definitions/ultimate.js';
 import type { AbilityProfile, RoleDefinition } from './types.js';
 
 export interface RoleCatalog {
@@ -86,7 +87,7 @@ export function catalogProblems(definitions: readonly RoleDefinition[]): string[
   return problems;
 }
 
-/** The 37 definitions: the brief's 36 roles plus `pack_wolf`. */
+/** The 51 definitions: the brief's 36 roles, `pack_wolf`, and 14 Ultimate 20 roles. */
 export const DEFAULT_CATALOG: RoleCatalog = createCatalog([
   ...CORE_ROLES,
   ...SPECIAL_ROLES,
@@ -95,6 +96,7 @@ export const DEFAULT_CATALOG: RoleCatalog = createCatalog([
   ...OFFENSE_ROLES,
   ...DECEPTION_ROLES,
   ...SUPPORT_ROLES,
+  ...ULTIMATE_ROLES,
 ]);
 
 export function getProfile(role: RoleDefinition, profileId?: string): AbilityProfile | undefined {

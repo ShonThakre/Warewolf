@@ -1,7 +1,25 @@
 import type { RoleCatalog } from '../catalog/catalog.js';
-import type { AbilityDefinition, AbilityProfile, RoleDefinition } from '../catalog/types.js';
+import type { AbilityDefinition, AbilityProfile, RoleDefinition, VictoryDefinition } from '../catalog/types.js';
 import type { Faction } from '../factions.js';
 import type { AbilityOverride, RoleEntry } from './types.js';
+
+/**
+ * OD-73. A team-victory role seated as Neutral or Independent wins by being
+ * alive when the game ends, beside the winning team, and does not end the game.
+ * WW-902 reads `ResolvedEntry.victory`, which already has this applied.
+ */
+export const SURVIVE_VICTORY: VictoryDefinition = {
+  type: 'INDIVIDUAL',
+  trigger: 'ALIVE_AT_GAME_END',
+  endGameOnWin: false,
+  revealOnWin: false,
+};
+
+/** The victory this seat actually plays. Catalog profiles stay as written. */
+export function victoryForSeat(victory: VictoryDefinition, faction: Faction): VictoryDefinition {
+  if ((faction === 'NEUTRAL' || faction === 'INDEPENDENT') && victory.type === 'TEAM') return SURVIVE_VICTORY;
+  return victory;
+}
 
 /** One configuration entry joined with its catalog definition and overrides applied. */
 export interface ResolvedEntry {
@@ -9,6 +27,8 @@ export interface ResolvedEntry {
   readonly role: RoleDefinition;
   readonly profile: AbilityProfile;
   readonly faction: Faction;
+  /** Catalog victory, rewritten for a Neutral or Independent team-victory seat (OD-73). */
+  readonly victory: VictoryDefinition;
   /** The profile's abilities with this entry's overrides applied. */
   readonly abilities: readonly AbilityDefinition[];
 }
@@ -53,5 +73,6 @@ export function resolveEntry(entry: RoleEntry, catalog: RoleCatalog): ResolvedEn
     if (Array.isArray(applied)) return null;
     abilities.push(applied);
   }
-  return { entry, role, profile, faction: entry.faction ?? role.defaultFaction, abilities };
+  const faction = entry.faction ?? role.defaultFaction;
+  return { entry, role, profile, faction, victory: victoryForSeat(profile.victory, faction), abilities };
 }

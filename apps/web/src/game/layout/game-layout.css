@@ -1,0 +1,219 @@
+/*
+ * Grid for GameLayout, keyed by data-layout from layoutMode().
+ * A region with the hidden attribute stays hidden. Display rules use :not([hidden]).
+ */
+
+.ww-game-layout {
+  --rail: clamp(18rem, 22vw, 24rem);
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  display: grid;
+  overflow: hidden;
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  grid-template-columns: minmax(0, 1fr) var(--rail);
+  grid-template-rows: auto minmax(4.5rem, 1fr) auto;
+  grid-template-areas:
+    'status status'
+    'stage rail'
+    'action rail';
+}
+
+.ww-game-layout[data-layout='compact'] {
+  --rail: clamp(16rem, 24vw, 20rem);
+  --space: clamp(0.4rem, 0.6vw, 0.85rem);
+}
+
+.ww-game-layout[data-layout='tablet'] {
+  --rail: clamp(14rem, 30vw, 18rem);
+}
+
+.ww-game-layout[data-layout='phone-landscape'] {
+  --rail: clamp(11rem, 32vw, 16rem);
+}
+
+.ww-game-layout [hidden] {
+  display: none !important;
+}
+
+.ww-game-status {
+  grid-area: status;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--space) / 2);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.ww-game-status > :first-child {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.ww-game-rail-toggle {
+  flex: none;
+  margin-right: var(--space);
+}
+
+.ww-game-stage {
+  grid-area: stage;
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  position: relative;
+}
+
+.ww-game-scene,
+.ww-game-foreground {
+  grid-area: 1 / 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.ww-game-scene {
+  min-height: 4.5rem;
+  max-height: 100%;
+}
+
+.ww-game-layout[data-layout='full'] .ww-game-scene,
+.ww-game-layout[data-layout='compact'] .ww-game-scene {
+  aspect-ratio: 16 / 9;
+  justify-self: stretch;
+  align-self: center;
+}
+
+.ww-game-layout[data-wash='night'] .ww-game-scene {
+  background: var(--bg-night);
+}
+
+.ww-game-layout[data-wash='day'] .ww-game-scene {
+  background: var(--bg-day);
+}
+
+.ww-game-foreground {
+  z-index: 1;
+  overflow: auto;
+}
+
+.ww-game-action {
+  grid-area: action;
+  min-width: 0;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  padding-bottom: max(var(--space), env(safe-area-inset-bottom));
+}
+
+.ww-game-rail:not([hidden]) {
+  grid-area: rail;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+}
+
+.ww-game-switch {
+  grid-area: switch;
+  min-width: 0;
+}
+
+.ww-game-players:not([hidden]) {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* Short screens: the nav and this status line read as one bar. The shell drops its own edge. */
+.ww-app:has(.ww-game-layout[data-status-row='false']) .ww-app-nav {
+  border-bottom: 0;
+}
+
+.ww-app:has(.ww-game-layout) .ww-app-main {
+  overflow: hidden;
+}
+
+.ww-game-layout[data-status-row='false'] .ww-status,
+.ww-game-layout[data-status-row='false'] .ww-action {
+  flex-wrap: nowrap;
+}
+
+.ww-game-layout[data-status-row='false'] .ww-status {
+  padding-block: calc(var(--space) / 4);
+  overflow: hidden;
+}
+
+.ww-game-layout[data-status-row='false'] .ww-status > * {
+  white-space: nowrap;
+  flex: 0 0 auto;
+}
+
+.ww-game-layout[data-status-row='false'] .ww-status-copy {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.ww-game-layout[data-status-row='false'] .ww-action-copy {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Portrait. Lobby keeps the seats on the scene and the room underneath. A target grid uses the switch. */
+.ww-game-layout[data-layout='portrait'] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(5rem, 38dvh) minmax(0, 1fr) auto;
+  grid-template-areas:
+    'status'
+    'stage'
+    'rail'
+    'action';
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-game-rail:not([hidden]) {
+  border-left: 0;
+  border-top: 1px solid var(--border);
+}
+
+.ww-game-layout[data-layout='portrait'][data-panel] {
+  grid-template-rows: auto minmax(5rem, 38dvh) auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'status'
+    'stage'
+    'switch'
+    'middle'
+    'action';
+}
+
+.ww-game-layout[data-layout='portrait'][data-panel] .ww-game-players:not([hidden]),
+.ww-game-layout[data-layout='portrait'][data-panel] .ww-game-rail:not([hidden]) {
+  grid-area: middle;
+}
+
+/* Narrow landscape: the rail is a button until opened, then it covers the stage. The action row stays put. */
+.ww-game-layout[data-layout='narrow-landscape'] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(4.5rem, 1fr) auto;
+  grid-template-areas:
+    'status'
+    'stage'
+    'action';
+}
+
+.ww-game-layout[data-layout='narrow-landscape'][data-rail-open='true'] .ww-game-rail:not([hidden]) {
+  grid-area: stage;
+  z-index: 2;
+  border-left: 0;
+}
+
+.ww-game-layout[data-layout='narrow-landscape']:not([data-rail-open='true']) .ww-status-pack {
+  display: flex;
+  flex-basis: auto;
+  min-width: 0;
+  overflow: hidden;
+}

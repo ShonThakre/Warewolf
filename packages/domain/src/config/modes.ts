@@ -6,6 +6,7 @@ export const MODE_BOUNDS: Readonly<Record<GameMode, { readonly min: number; read
   CLASSIC: { min: 6, max: 20 },
   EXPANDED: { min: 10, max: 30 },
   CUSTOM: { min: 6, max: 30 },
+  ULTIMATE_20: { min: 20, max: 20 },
 };
 
 /** Infection Edition's confirmed limits: 4 successful infections, pack of at most 5 including the Alpha. */

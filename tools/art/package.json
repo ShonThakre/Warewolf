@@ -1,0 +1,18 @@
+{
+  "name": "@warewolf/art-tools",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Checks the generated art in art/ against art/manifest.json.",
+  "type": "module",
+  "scripts": {
+    "check": "node src/cli.mjs",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "sharp": "^0.35.5"
+  },
+  "devDependencies": {
+    "@warewolf/domain": "workspace:^"
+  }
+}

@@ -1,0 +1,4 @@
+CREATE INDEX "games_phase_deadline_idx" ON "games" USING btree (phase_ends_at) WHERE status = 'ACTIVE' and phase_ends_at is not null;--> statement-breakpoint
+ALTER TABLE "games" ADD CONSTRAINT "games_phase_status_ck" CHECK ((status = 'LOBBY' and phase = 'LOBBY') or (status = 'FINISHED' and phase = 'FINISHED') or (status = 'CANCELLED' and phase = 'CANCELLED') or (status = 'ACTIVE' and phase not in ('LOBBY', 'FINISHED', 'CANCELLED')));--> statement-breakpoint
+ALTER TABLE "games" ADD CONSTRAINT "games_round_status_ck" CHECK ((status = 'LOBBY' and round_number = 0) or (status = 'ACTIVE' and round_number >= 1) or status in ('FINISHED', 'CANCELLED'));--> statement-breakpoint
+ALTER TABLE "games" ADD CONSTRAINT "games_deadline_ck" CHECK (phase_ends_at is null or status = 'ACTIVE');

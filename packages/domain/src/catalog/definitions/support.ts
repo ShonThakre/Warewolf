@@ -25,6 +25,8 @@ export const blacksmith: RoleDefinition = role({
           usesPerGame: 1,
           target: players(),
           resultAudience: ['HOST'],
+          // OD-16 item: the shield stays on its holder until it blocks a wolf kill or the holder dies.
+          config: { holdUntilBlocked: true },
           decisionIds: ['OD-16'],
         }),
       ],

@@ -10,7 +10,7 @@ import type { AbilityId, RoleId } from '../snapshot.js';
 export const KILL_AGGREGATIONS = ['HOST_SELECT_AMONG_SUBMISSIONS', 'MAJORITY', 'ALPHA_PRIORITY'] as const;
 export type KillAggregation = (typeof KILL_AGGREGATIONS)[number];
 
-export const NIGHT_PROFILES = ['infection-v1', 'classic-v1', 'custom-v1'] as const;
+export const NIGHT_PROFILES = ['infection-v1', 'classic-v1', 'custom-v1', 'ultimate-v1'] as const;
 export type NightProfile = (typeof NIGHT_PROFILES)[number];
 
 export type InfectionEligibility = 'VILLAGE_ONLY' | 'ANY_NON_PACK_WOLF';

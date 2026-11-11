@@ -21,13 +21,15 @@ stateDiagram-v2
   [*] --> NightSubmit
   NightSubmit --> HostConfirm: host closes submissions
   HostConfirm --> DoctorReaction: final target chosen
-  HostConfirm --> Resolve: no living Doctor action
+  HostConfirm --> Resolve: no informed Doctor seated (OD-74)
   DoctorReaction --> Resolve: save or decline received, or host closes the window
   Resolve --> DayAnnounce: game continues
   Resolve --> GameOver: terminal victory
 ```
 
 Classic `classic-v1` goes from Night Submit to Resolve. Majority aggregation happens inside the function. Blind Doctor and Guard actions are ordinary submissions.
+
+Which windows open is fixed by the frozen configuration, not by who is alive (OD-74). The reaction window opens every night that an informed Doctor is seated, including after that Doctor has died or been infected, so the phase sequence never reveals a silent infection. The phase machine is `packages/domain/src/phase/machine.ts` (WW-501 to WW-503).
 
 A player who disconnects does not reopen a window. A missing Doctor decision is a decline. A missing wolf submission is no target from that wolf.
 
@@ -61,6 +63,26 @@ Steps run in this order for every profile. A toggle can change what a step does.
 | 18 | Consume charges | Successful uses, failed illegal uses, and nightly actions that were accepted |
 | 19 | Victory | Run the victory evaluator on the resulting living set |
 | 20 | Return result | No I/O |
+
+Implemented (WW-701, WW-801): every step from 1 to 18 in `packages/domain/src/night/resolve.ts`, with the information kinds in `night/information.ts`. An action reaches its step through `nightStep` on its capability registry entry; nothing switches on a role id. Step 19 is WW-902. The phase close runs it and writes the result (WW-802, section 9).
+
+What still comes back `REJECTED` with reason `NOT_IMPLEMENTED`, spending nothing: Shapeshifter `permanentSteal: true` (OD-31 gives no rules for it), Seer `accuracyPercent` below 100 (no lie table), a poison `delay` other than the two below, and infection attempts beyond `attemptsPerNight`. Day abilities (Sniper, Seeker reveal) come back `WRONG_PHASE`; they belong to the day resolution.
+
+Engineering defaults chosen where the decisions were silent. Each is a resolver behavior, tested in `packages/domain/test/night-expanded.test.ts`:
+
+- **Alpha priority.** When the Alpha sent no kill, the other wolves' submissions are counted by majority. With `grantKillNextNight: false`, a converted player gets no kill.
+- **Blocks (step 2)** land together. A blocked Disruptor's own block still stands, so the result never depends on which of two Disruptors sorts first. Blocked actions are `REJECTED` with reason `BLOCKED`, make no visits, and spend nothing. A blocked Alpha's infection is recorded as failed with `BLOCKED`.
+- **Traps (step 6)** trigger when any pack wolf named the trapped player, even if that player is not the final target, and report every such wolf. The Lone Wolf does not trigger a trap; the catalog has no setting that turns it on. A trap that does not trigger spends no charge.
+- **Bodyguard (step 8).** OD-14 says a Bodyguard does not die for an attack that Guard or Doctor already cancelled, but heals are step 9. The resolver keeps the step order and does not redirect an attack that a heal on the protectee is about to cancel. Protections, heals, and Immortal on the Bodyguard then apply to the redirected attack. A redirected attack is never redirected again.
+- **Cursed (step 14)** converts after any wolf attack that happened and did not kill, the Lone Wolf's included. It checks only the wolf cap, after the Alpha's conversion, and does not count toward the 4 infection successes. A full pack is reported as `cursedFailures` with `CAP_SIZE`, and the charge stays.
+- **Shapeshifter (step 15)** copies the target's `ACTIVE`, native abilities that a player submits: never a passive ability, infection, another copy ability, or the informed Doctor's veto unless `copyInformedDoctor` is set. A target that holds a copy ability or a copy yields nothing. Copies get fresh charges, open the next round, and expire after `durationNights`. Infection revokes every copy (OD-58). Copies and inheritance hand over abilities, not roles, so their record is the ability row (`source` COPY or INHERITED with `source_player_id`), not a conversion record.
+- **Healer Assistant (step 15)** inherits from a player whose current role is the configured `inheritsRoleId` and who died or converted tonight, with that player's charges as they stand after tonight. One Assistant takes over one Doctor. A Doctor eliminated by day vote is WW-901's to hand over, with the same rule.
+- **Avenger (step 16).** Revenge is queued only when every lethal attack names one and the same living player. A pack attack, or a Bodyguard's redirect of one, names nobody. Either way the charge is spent. Queued revenge is a `REVENGE` effect that lands the next night as a `REVENGE` attack: only protection that lists `REVENGE` stops it, and Immortal does.
+- **Delayed poison.** The Poisoner's `END_OF_NEXT_DAY_RESOLUTION` becomes a `POISON` effect due in the day of the same round, which the day resolution applies (WW-901). `NEXT_DAWN` is due the next night and lands in step 5. Only an ability whose `cancels` lists `POISON` cures it, on the night it is given or the night it lands.
+- **Blacksmith item** (`holdUntilBlocked: true` on `blacksmith_shield`) blocks on the night it is given if its holder is attacked. Otherwise it becomes a `SHIELD` effect on the holder that blocks the next wolf kill and is then spent, or expires when the holder dies (OD-16).
+- **Information.** The Oracle's category reads the current faction: a Lone Wolf is `INDEPENDENT`, and a Village role with no ability at all is `VILLAGE_BASIC`. The Spy counts every wolf-kill submission that survived the blocks, the Lone Wolf's included. The Prophet's threshold is `packSizeAtLeast` on the ability, default 3, and counts the living pack at the start of the night. The informed Doctor's save is a visit to the final target for a Tracker.
+
+Effects that outlive a night (`SHIELD`, `POISON`, `REVENGE`) are inputs and outputs of the function: the resolver receives the open ones and returns `newEffects` and `closedEffects`. The API keeps them in `scheduled_effects`.
 
 Determinism inside a step: sort by action id. Equal inputs produce equal outputs. There is no `Math.random` in the resolver. Role assignment randomness happens earlier and is stored as the assignment itself.
 
@@ -201,6 +223,8 @@ Under host select, only the confirmed player is attacked. Under majority with a 
 
 ## 9. Persistence boundary
 
+Implemented in WW-802 as `NightResolutionService` (`apps/api/src/night/`), bound to `PHASE_RESOLVERS` and run by the phase close. Until WW-803 stores the host's confirmed target, `hostDecision` is null, so a host-select night has no pack kill. Events after commit are WW-804.
+
 The application service:
 
 1. Opens a transaction.
@@ -232,3 +256,15 @@ Day abilities and votes are separate from the night function.
 9. Open the next night or end.
 
 Elder and Mayor weights are read from modifier rows. Expired modifiers are ignored and then deleted.
+
+## 11. Ultimate 20 steps
+
+`resolveNight` runs these extra steps when the seated abilities submit them. An Infection or Classic night with none of them is unchanged.
+
+1. An exclusive group keeps the latest action and marks the earlier one `SUPERSEDED`.
+2. Time Wizard rewind removes the target's actions tonight (`REWOUND`) before blocks. A block cancels the rewind only when the blocker is someone else.
+3. Chaos, if a draw was passed in, applies ability disable, protections off, or no kills. Day events are recorded with `success: null` and a `CHAOS_DAY` effect. The API does not draw or pass that event yet.
+4. Protections off skips shield application, including a bodyguard redirect and a delayed-poison cure.
+5. No kills cancels remaining live attacks before deaths.
+6. A Vampire mark is due two rounds later and converts only when both players are still alive, the target was not converted tonight, and the target is not in the wolf pack.
+7. Silence, revival, and a Ghost hint are recorded. A returned player is listed on `publicFacts.returned`. Persistence of rewinds, chaos, silences, revivals, and hints is not in the night service yet.

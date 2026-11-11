@@ -168,11 +168,15 @@ Expanded games may enable infection or leave it off. They may seat neutral roles
 
 Pack 2A is the validated 20-player reconstruction. It is not a transcription of the missing image. The image's reported 5 / 12–13 / 3 split is arithmetically inconsistent if 13 is used, and it conflicts with a 5-wolf infection cap if those 5 wolves are starting seats plus 4 later infections. See OD-61.
 
-Individual wins follow OD-08 and OD-50. A Jester win does not by itself finish the game.
+## 5. Ultimate 20
+
+Ultimate 20 is a selectable, engine-complete mode: 20 seats, 15 special roles, and 5 Villagers. The rules, the lock, and the open questions are in [ultimate-20-rules.md](./ultimate-20-rules.md). Creating a room and dealing the roster work. Night resolution of the new steps is in the domain. Phase close already tallies the day and evaluates victory. It does not yet draw a chaos event, and it does not yet pass revival or chaos success into that evaluation. The new night fields (rewinds, silences, revivals, hints) are not stored. Infection Edition does not change.
+
+Individual wins follow OD-08 and OD-50. A Jester win does not by itself finish the game. A Neutral or Independent seat whose catalog victory is the team victory wins by being alive at the end, beside the winning team, and that win does not end the game (OD-73).
 
 ---
 
-## 5. Custom mode
+## 6. Custom mode
 
 The host sets counts, factions, ability limits, infection, voting, protection interactions, and victory flags. The validator must accept the configuration before start. Custom mode uses the same engine and the same role objects as the presets.
 
@@ -192,7 +196,7 @@ The full constraint list is in [role-configuration.md](./role-configuration.md).
 
 ---
 
-## 6. Phase rules
+## 7. Phase rules
 
 ### Lobby
 
@@ -237,7 +241,7 @@ The results screen shows original roles, final roles, infections, eliminations, 
 
 ---
 
-## 7. Voting detail
+## 8. Voting detail
 
 | Rule | Default |
 |---|---|
@@ -253,7 +257,7 @@ Elder death penalty and Mayor publicity are recommended rules in OD-33 and OD-34
 
 ---
 
-## 8. Victory detail
+## 9. Victory detail
 
 ### Village
 
@@ -364,6 +368,7 @@ Expected behavior for the cases the brief requires. "Decision" means a product-o
 | Assassin mark dies on a team-win night | Record both if multiple winners are allowed | Victory service | OD-50 |
 | Lone Wolf sole survivor | Lone Wolf win. Village does not win | Victory service | OD-10 |
 | Several individual wins | Keep all of them | Victory service | OD-50 |
+| Neutral or Independent seat with a team victory | Record a win if that player is alive when the game ends. Do not end the game for it | Victory service | OD-73 |
 | Individual rule conflicts with team rule | Team terminal condition ends the game and keeps non-revoked individual records | Victory service | OD-50 |
 
 ### Voting

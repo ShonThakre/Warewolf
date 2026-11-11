@@ -1,33 +1,28 @@
-import { cleanup, render, screen } from '@testing-library/react';
-import { createMemoryRouter } from 'react-router';
+import { cleanup, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
-import { App } from '../src/App';
-import { routes } from '../src/routes';
 import { tokens, tokensToCss } from '../src/theme/tokens';
+import { renderApp } from './render';
 
 function renderAt(path: string) {
-  render(<App router={createMemoryRouter(routes, { initialEntries: [path] })} />);
+  renderApp(path);
 }
 
 afterEach(cleanup);
 
 describe('router placeholders', () => {
   it.each([
-    ['/', 'Home'],
+    ['/', 'Werewolf'],
     ['/roles', 'Role catalog'],
     ['/how-to-play', 'How to play'],
-    ['/lobby/g1', 'Lobby'],
-    ['/game/g1/reveal', 'Role reveal'],
-    ['/game/g1', 'Game table'],
     ['/game/g1/host', 'Host dashboard'],
     ['/game/g1/results', 'Results'],
-  ])('%s renders %s', (path, title) => {
+  ])('%s renders %s', async (path, title) => {
     renderAt(path);
-    expect(screen.getByRole('heading', { level: 1, name: title })).toBeTruthy();
+    expect(await screen.findByRole('heading', { level: 1, name: title })).toBeTruthy();
   });
 
-  it('shows the game id on game routes', () => {
-    renderAt('/game/abc123');
+  it('shows the game id on the host placeholder', () => {
+    renderAt('/game/abc123/host');
     expect(screen.getByText('Game abc123')).toBeTruthy();
   });
 

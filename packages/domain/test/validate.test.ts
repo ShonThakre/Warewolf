@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import {
   BLOCKING_DECISIONS,
+  DEFAULT_PACK_BY_MODE,
   DEFAULT_PACK_ID,
   ROLE_PACKS,
   VALIDATION_ERROR_CODES,
@@ -12,6 +13,7 @@ import {
   getPack,
   requiredAcknowledgments,
   resolveEntry,
+  SURVIVE_VICTORY,
   validateConfiguration,
   DEFAULT_CATALOG,
   type GameConfiguration,
@@ -67,6 +69,10 @@ describe('Infection Edition default', () => {
     expect(DEFAULT_PACK_ID).toBe('infection-core');
   });
 
+  it('gives every mode a default pack of that mode', () => {
+    for (const [mode, id] of Object.entries(DEFAULT_PACK_BY_MODE)) expect(getPack(id)?.config.mode).toBe(mode);
+  });
+
   it('validates with no errors or warnings, and surfaces the informed Doctor', () => {
     const v = validateConfiguration(infection);
     expect(v.errors).toEqual([]);
@@ -117,7 +123,7 @@ describe('errors', () => {
   });
 
   it('UNKNOWN_ROLE and UNKNOWN_PROFILE', () => {
-    expect(errorCodes(custom(classicTable([{ roleId: 'vampire', count: 1 }])))).toContain('UNKNOWN_ROLE');
+    expect(errorCodes(custom(classicTable([{ roleId: 'not_a_role', count: 1 }])))).toContain('UNKNOWN_ROLE');
     expect(errorCodes(custom(classicTable([{ roleId: 'doctor', count: 1, abilityProfile: 'doctor_hybrid' }])))).toContain('UNKNOWN_PROFILE');
   });
 
@@ -171,11 +177,21 @@ describe('errors', () => {
     expect(errorCodes(acked)).not.toContain('WOLF_CAP_ABOVE_MODE');
   });
 
-  it('NEUTRAL_VICTORY_MISSING: a Neutral role needs an individual victory', () => {
-    const config = custom(classicTable([{ roleId: 'avenger', count: 1, faction: 'NEUTRAL' }]));
-    expect(issue(config, 'NEUTRAL_VICTORY_MISSING')?.decisionIds).toEqual(['OD-73']);
-    expect(errorCodes(custom(classicTable([{ roleId: 'avenger', count: 1, faction: 'VILLAGE' }])))).not.toContain('NEUTRAL_VICTORY_MISSING');
+  it('OD-73: a team-victory role seated as Neutral wins by surviving, and does not end the game', () => {
+    const shapeshifter = custom([{ roleId: 'shapeshifter', count: 1 }, { roleId: 'pack_wolf', count: 2 }, { roleId: 'normal_villager', count: 6 }]);
+    expect(errorCodes(shapeshifter)).not.toContain('NEUTRAL_VICTORY_MISSING');
+    expect(validateConfiguration(shapeshifter).valid).toBe(true);
+    expect(resolveEntry({ roleId: 'shapeshifter', count: 1 }, DEFAULT_CATALOG)?.victory).toEqual(SURVIVE_VICTORY);
+    expect(SURVIVE_VICTORY).toEqual({ type: 'INDIVIDUAL', trigger: 'ALIVE_AT_GAME_END', endGameOnWin: false, revealOnWin: false });
+
+    const avengerNeutral = resolveEntry({ roleId: 'avenger', count: 1, faction: 'NEUTRAL' }, DEFAULT_CATALOG);
+    expect(avengerNeutral?.victory).toEqual(SURVIVE_VICTORY);
+    expect(resolveEntry({ roleId: 'avenger', count: 1, faction: 'VILLAGE' }, DEFAULT_CATALOG)?.victory).toEqual({ type: 'TEAM' });
     expect(errorCodes(custom(classicTable([{ roleId: 'jester', count: 1 }])))).not.toContain('NEUTRAL_VICTORY_MISSING');
+  });
+
+  it('an unresolved Neutral role is still rejected', () => {
+    expect(errorCodes(custom([{ roleId: 'confuser', count: 1 }, { roleId: 'pack_wolf', count: 2 }, { roleId: 'normal_villager', count: 6 }]))).toContain('ROLE_UNRESOLVED');
   });
 
   it('FACTION_NOT_ALLOWED and FACTION_REQUIRED', () => {
@@ -342,6 +358,12 @@ describe('warnings and start rules', () => {
     expect(codes(small)).toContain('INFECTION_CAN_REACH_PARITY');
   });
 
+  it('VOTE_WEIGHT_HIGH at weight 3 or more, below the dominant threshold', () => {
+    const config = custom(classicTable([{ roleId: 'mayor', count: 1, overrides: { mayor_vote: { config: { weight: 3 } } } }], 10));
+    expect(issue(config, 'VOTE_WEIGHT_HIGH')?.decisionIds).toEqual(['OD-69']);
+    expect(codes(config)).not.toContain('VOTE_WEIGHT_DOMINANT');
+  });
+
   it('NEUTRAL_DENSITY', () => {
     const config = custom(classicTable([{ roleId: 'jester', count: 1 }, { roleId: 'assassin', count: 1 }], 4));
     expect(codes(config)).toContain('NEUTRAL_DENSITY');
@@ -380,7 +402,7 @@ describe('resolveEntry', () => {
   });
 
   it('returns null for an entry the validator would reject', () => {
-    expect(resolveEntry({ roleId: 'vampire', count: 1 }, DEFAULT_CATALOG)).toBeNull();
+    expect(resolveEntry({ roleId: 'not_a_role', count: 1 }, DEFAULT_CATALOG)).toBeNull();
     expect(resolveEntry({ roleId: 'mayor', count: 1, overrides: { mayor_vote: { config: { veto: true } } } }, DEFAULT_CATALOG)).toBeNull();
   });
 });
@@ -392,9 +414,10 @@ describe('packs (WW-204)', () => {
     'expanded-infection-20': { status: 'RECONSTRUCTION', players: 20, errors: [], warnings: ['UNCONFIRMED_PRESET'] },
     'investigation-15': { status: 'RECOMMENDED', players: 15, errors: [], warnings: ['INFO_ROLE_DENSITY', 'UNCONFIRMED_PRESET'] },
     'protection-15': { status: 'RECOMMENDED', players: 15, errors: [], warnings: ['PROTECTION_DENSITY', 'UNCONFIRMED_PRESET'] },
-    'chaos-15': { status: 'BLOCKED', players: 15, errors: ['NEUTRAL_VICTORY_MISSING'], warnings: ['NEUTRAL_DENSITY', 'UNCONFIRMED_PRESET'] },
+    'chaos-15': { status: 'RECOMMENDED', players: 15, errors: [], warnings: ['NEUTRAL_DENSITY', 'UNCONFIRMED_PRESET'] },
     'expanded-24': { status: 'RECOMMENDED', players: 24, errors: [], warnings: ['UNCONFIRMED_PRESET'] },
     'expanded-30': { status: 'RECOMMENDED', players: 30, errors: [], warnings: ['INFO_ROLE_DENSITY', 'UNCONFIRMED_PRESET'] },
+    'ultimate-20': { status: 'RECOMMENDED', players: 20, errors: [], warnings: ['NEUTRAL_DENSITY', 'UNCONFIRMED_PRESET'] },
     custom: { status: 'TEMPLATE', players: 10, errors: ['ROLE_COUNT_MISMATCH'], warnings: ['WOLF_RATIO_LOW'] },
   };
 
@@ -424,10 +447,14 @@ describe('packs (WW-204)', () => {
     }
   });
 
-  it('blocked packs name the decision that blocks them', () => {
+  it('chaos-15 is seatable and its Neutral Shapeshifter survives to win', () => {
     const chaos = getPack('chaos-15')!;
-    expect(chaos.blockedBy).toEqual(['OD-73']);
-    expect(issue(chaos.config, 'NEUTRAL_VICTORY_MISSING')?.roleId).toBe('shapeshifter');
+    expect(chaos.blockedBy).toEqual([]);
+    expect(chaos.config.roles.reduce((n, entry) => n + entry.count, 0)).toBe(15);
+    const result = validateConfiguration(chaos.config);
+    expect(result.errors).toEqual([]);
+    expect(result.valid).toBe(true);
+    expect(resolveEntry(chaos.config.roles.find((entry) => entry.roleId === 'shapeshifter')!, DEFAULT_CATALOG)?.victory).toEqual(SURVIVE_VICTORY);
   });
 
   it('pack data is frozen', () => {
