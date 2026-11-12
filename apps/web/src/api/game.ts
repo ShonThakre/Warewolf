@@ -64,6 +64,8 @@ export const gameApi = api.injectEndpoints({
         { type: 'HostRoster', id: gameId },
         // A new phase opens or closes abilities, and locks submitted actions.
         { type: 'MyActions', id: gameId },
+        // Host confirm opens and closes the kill-target choice.
+        { type: 'KillTarget', id: gameId },
       ],
     }),
 

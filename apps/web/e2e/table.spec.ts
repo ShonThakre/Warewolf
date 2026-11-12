@@ -1,5 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { myActionsFixture } from '../src/game/fixtures/actions';
+import { chatMessageFixture, chatViewFixture } from '../src/game/fixtures/chat';
+import { killTargetFixture } from '../src/game/fixtures/killTarget';
 import { gameStateFixture } from '../src/game/fixtures/phase';
 import { ROLE_FIXTURES, fixturePlayerId } from '../src/game/fixtures/role';
 import { PRIORITY_VIEWPORTS } from '../src/game/layout/viewports';
@@ -225,5 +227,146 @@ test.describe('day ballot', () => {
     await inView(page, confirm);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
     if (spec.mode === 'portrait') await expect(page.getByRole('tab', { name: 'Players' })).toBeVisible();
+  });
+});
+
+test.describe('host kill target', () => {
+  test('the host confirms a named player and can switch to no kill', async ({ page }, info) => {
+    test.skip(!['tablet-land', 'phone-land', 'phone-portrait'].includes(info.project.name), 'Three viewports cover the kill row.');
+    const state = gameStateFixture({ phase: 'NIGHT_HOST_CONFIRM' });
+    let decision: { kind: 'TARGET'; playerId: string } | { kind: 'NO_KILL' } | null = null;
+    await page.clock.install({ time: new Date(SERVER_NOW) });
+    await page.addInitScript((seat) => sessionStorage.setItem('warewolf.seat', JSON.stringify(seat)), hostSeat);
+    await page.route('**/api/v1/**', (route) => {
+      const url = route.request().url();
+      if (route.request().method() === 'POST' && url.includes('/host/kill-target')) {
+        const body = route.request().postDataJSON() as { targetPlayerId?: string; noKill?: true };
+        decision = body.noKill ? { kind: 'NO_KILL' } : { kind: 'TARGET', playerId: body.targetPlayerId! };
+        return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(killTargetFixture({ decision, editable: true })) });
+      }
+      if (url.includes('/host/kill-target')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(killTargetFixture({ decision, editable: true })) });
+      if (url.includes('/chat')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(chatViewFixture({ you: { canPost: false, refusal: 'CLOSED' } })) });
+      if (url.includes('/me')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(ROLE_FIXTURES.villager) });
+      if (url.includes('/state')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(state) });
+      return route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: { code: 'NOT_FOUND', message: 'Not found.' } }) });
+    });
+    await page.goto(`/game/${GAME}`);
+
+    const confirm = page.getByRole('region', { name: 'Actions' }).getByRole('button', { name: 'Confirm target' });
+    await expect(confirm).toBeDisabled();
+    await page.getByRole('button', { name: 'Target Diego' }).click();
+    await expect(confirm).toBeEnabled();
+    await confirm.click();
+    await expect(page.getByRole('region', { name: 'Actions' })).toContainText('Submitted. The attack is on Diego.');
+    await page.getByRole('button', { name: 'No kill' }).click();
+    await expect(confirm).toBeEnabled();
+    await inView(page, confirm);
+    await expect(page.locator('.ww-game-rail')).not.toContainText('Named by');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+    expect(await page.locator('body').innerText()).not.toContain('alpha_wolf');
+  });
+});
+
+test.describe('discussion composer', () => {
+  test('stays reachable and sends when the day is open', async ({ page }, info) => {
+    const spec = specFor(info.project.name);
+    const state = gameStateFixture({ phase: 'DAY_DISCUSSION', you: 4 });
+    const seat = { ...hostSeat, playerId: state.you.playerId, isHost: false };
+    await page.clock.install({ time: new Date(SERVER_NOW) });
+    await page.addInitScript((stored) => sessionStorage.setItem('warewolf.seat', JSON.stringify(stored)), seat);
+    await page.route('**/api/v1/**', (route) => {
+      const url = route.request().url();
+      if (route.request().method() === 'POST' && url.includes('/chat/messages')) {
+        const body = route.request().postDataJSON() as { body: string };
+        return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(chatMessageFixture(6, { body: body.body, playerId: seat.playerId })) });
+      }
+      if (url.includes('/chat')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(chatViewFixture({ count: 1 })) });
+      if (url.includes('/me')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(ROLE_FIXTURES.villager) });
+      if (url.includes('/state')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(state) });
+      return route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: { code: 'NOT_FOUND', message: 'Not found.' } }) });
+    });
+    await page.goto(`/game/${GAME}`);
+
+    await expect(page.getByRole('heading', { name: 'Day' })).toBeVisible();
+    await expect(page.locator('.ww-game-layout')).toHaveAttribute('data-layout', spec.mode);
+    const send = page.getByRole('button', { name: 'Send' });
+    await expect(send).toBeDisabled();
+    await page.getByRole('textbox', { name: 'Message' }).fill('Hello table');
+    await expect(send).toBeEnabled();
+    await send.click();
+    await expect(page.getByRole('list', { name: 'Messages' })).toContainText('Hello table');
+    await inView(page, send);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+    expect(await page.locator('.ww-game-rail').innerText()).not.toContain('Villager');
+
+    if (info.project.name === 'phone-land-sm') {
+      await page.setViewportSize({ width: 568, height: 320 });
+      await page.getByRole('button', { name: 'Discussion' }).click();
+      await inView(page, page.getByRole('button', { name: 'Send' }));
+      expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
+    }
+  });
+});
+
+test.describe('public tally', () => {
+  test('the morning shows the closed vote and voting does not', async ({ page }, info) => {
+    test.skip(info.project.name !== 'phone-portrait', 'One portrait check covers the card.');
+    const named = seat(7);
+    const other = seat(9);
+    const tally = {
+      roundNumber: 1,
+      ballot: 1,
+      counts: [
+        { targetPlayerId: named.playerId, total: 4 },
+        { targetPlayerId: other.playerId, total: 2 },
+      ],
+      abstentions: 1,
+      votedOutPlayerId: named.playerId,
+      tiedPlayerIds: [] as string[],
+    };
+    await page.addInitScript((stored) => sessionStorage.setItem('warewolf.seat', JSON.stringify(stored)), hostSeat);
+    await page.route('**/api/v1/**', (route) => {
+      const url = route.request().url();
+      if (url.includes('/tallies')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ tallies: [tally] }) });
+      if (url.includes('/state')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(morningState()) });
+      if (url.includes('/me')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(ROLE_FIXTURES.villager) });
+      return route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: { code: 'NOT_FOUND', message: 'Not found.' } }) });
+    });
+    await page.goto(`/game/${GAME}`);
+    const card = page.getByRole('region', { name: 'Vote' });
+    await expect(card).toContainText('Seat 7 was named.');
+    await expect(card).toContainText('1 abstention');
+    await inView(page, card);
+    expect(await page.locator('body').innerText()).not.toContain(named.playerId);
+  });
+
+  test('the morning shows the seat’s own result', async ({ page }, info) => {
+    test.skip(info.project.name !== 'phone-portrait', 'One portrait check covers the report.');
+    const target = seat(2);
+    await page.addInitScript((stored) => sessionStorage.setItem('warewolf.seat', JSON.stringify(stored)), hostSeat);
+    await page.route('**/api/v1/**', (route) => {
+      const url = route.request().url();
+      if (url.includes('/events')) {
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({
+            events: [
+              { seq: 1, type: 'INVESTIGATION_RESULT', audience: 'PLAYER', payload: { kind: 'ALIGNMENT_WOLF_OR_NOT', targetPlayerIds: [target.playerId], result: { value: 'NOT_WOLF' } } },
+              { seq: 2, type: 'INFECTION_OCCURRED', audience: 'HOST', payload: { sourcePlayerId: seat(4).playerId, targetPlayerId: target.playerId, roleId: 'infected_wolf' } },
+            ],
+          }),
+        });
+      }
+      if (url.includes('/state')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(morningState()) });
+      if (url.includes('/me')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(ROLE_FIXTURES.villager) });
+      return route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: { code: 'NOT_FOUND', message: 'Not found.' } }) });
+    });
+    await page.goto(`/game/${GAME}`);
+    const report = page.getByRole('list', { name: 'Your report' });
+    await expect(report).toContainText('Seat 2 is not a Wolf.');
+    await expect(report).not.toContainText('Infected Wolf');
+    await inView(page, report);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
   });
 });

@@ -15,6 +15,11 @@ export interface MyActionsFixtureOptions {
   readonly availability?: Readonly<Record<string, Availability>>;
   /** A choice per ability id: its targets, and whether the window has locked it. */
   readonly chosen?: Readonly<Record<string, { readonly targetPlayerIds: readonly string[]; readonly status?: MyAction['status'] }>>;
+  /**
+   * The informed Doctor's target during the reaction window. Set only on an
+   * ability whose rule is `FINAL_WOLF_TARGET`. Null means the host chose no kill.
+   */
+  readonly finalWolfTarget?: string | null;
 }
 
 export function myActionsFixture(role: MyRole, options: MyActionsFixtureOptions = {}): MyActions {
@@ -41,6 +46,7 @@ export function myActionsFixture(role: MyRole, options: MyActionsFixtureOptions 
               payload: {},
             }
           : null,
+        ...(options.finalWolfTarget !== undefined && ability.target.kind === 'FINAL_WOLF_TARGET' ? { finalWolfTarget: options.finalWolfTarget } : {}),
       };
     }),
   };

@@ -2,7 +2,7 @@ import type { TargetRuleDto } from '@warewolf/contracts';
 import { Button, TextField } from '@mui/material';
 import { useState } from 'react';
 import type { ActionPrompt } from '../state/actions';
-import { availabilitySentence, promptLabel, questionLabel, shownPrompt } from './actionCopy';
+import { availabilitySentence, exclusiveNote, promptLabel, questionLabel, shownPrompt } from './actionCopy';
 
 /**
  * The signed-in player's abilities. The role name lives here, not in the
@@ -15,6 +15,7 @@ export function NightActionPanel({
   question,
   hint,
   error,
+  attackLine,
   onActivate,
   onQuestion,
   onHint,
@@ -25,6 +26,8 @@ export function NightActionPanel({
   readonly question: string | null;
   readonly hint: string;
   readonly error: string | null;
+  /** The informed Doctor's attack line. Null for every other seat. */
+  readonly attackLine?: string | null;
   readonly onActivate: (abilityInstanceId: string) => void;
   readonly onQuestion: (question: string) => void;
   readonly onHint: (hint: string) => void;
@@ -79,7 +82,7 @@ export function NightActionPanel({
           slotProps={{ htmlInput: { maxLength: textRule.maxLength, 'aria-label': 'Hint' } }}
         />
       ) : null}
-      {active?.ability.exclusiveGroup ? <p className="ww-action-copy">This replaces your other choice.</p> : null}
+      {exclusiveNote(active?.ability.exclusiveGroup) ? <p className="ww-action-copy">{exclusiveNote(active?.ability.exclusiveGroup)}</p> : null}
       {questions.length > 0 ? (
         <div className="ww-prompts">
           {questions.map((item) => (
@@ -89,6 +92,7 @@ export function NightActionPanel({
           ))}
         </div>
       ) : null}
+      {attackLine ? <p className="ww-action-copy">{attackLine}</p> : null}
       {repeatNote(active?.ability.target ?? null)}
       {error ? (
         <p className="ww-action-alert" role="alert">

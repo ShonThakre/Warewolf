@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Debug builds only (WW-1602). Gradle merges this over src/main, so a debug APK
+  may call a LAN API over plain HTTP. Release builds never get this file, and
+  release uses HTTPS. No permission is declared here: INTERNET stays the only one.
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application android:usesCleartextTraffic="true" />
+</manifest>

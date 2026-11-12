@@ -11,7 +11,10 @@ export default defineConfig({
   resolve: { conditions: ['source', ...defaultClientConditions] },
   server: {
     port: 5173,
-    proxy: { '/api': 'http://localhost:3000' },
+    proxy: {
+      '/api': 'http://localhost:3000',
+      '/socket.io': { target: 'http://localhost:3000', ws: true },
+    },
   },
   test: {
     environment: 'happy-dom',

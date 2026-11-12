@@ -1,6 +1,7 @@
 import { skipToken } from '@reduxjs/toolkit/query/react';
 import type { GameState } from '@warewolf/contracts';
 import { useCallback, useEffect, useState } from 'react';
+import { usePlaySession } from './realtime';
 import { apiErrorOf, type ApiErrorInfo } from '../../api/api';
 import { gameApi, useClosePhaseMutation, useGetGameStateQuery } from '../../api/game';
 import { useAppSelector } from '../../app/hooks';
@@ -8,8 +9,9 @@ import { useSeat } from './lobby';
 
 /**
  * Hooks for the phase machine (Phase 5): the phase banner, the countdown, and
- * the host's close button. Polling stands in for realtime events until
- * Phase 11. Screens never fetch the state themselves.
+ * the host's close button. A `PHASE_CHANGED` socket event refetches at once
+ * (WW-1103). The poll remains the fallback when the socket is down. Screens
+ * never fetch the state themselves.
  */
 
 /** How often a seat asks for the state while a game runs. */
@@ -45,6 +47,9 @@ export function useGameState(): GameStateView {
     skipPollingIfUnfocused: true,
     refetchOnFocus: true,
   });
+  const { refetch } = query;
+  const onPhase = useCallback(() => void refetch(), [refetch]);
+  usePlaySession(ended ? null : onPhase);
 
   const state = seat ? (query.data ?? null) : null;
   return {

@@ -1,6 +1,7 @@
 import type { RouteObject } from 'react-router';
 import { LayoutPreview } from './game/layout/LayoutPreview';
 import { Home } from './routes/Home';
+import { Host } from './routes/Host';
 import { Lobby } from './routes/Lobby';
 import { Results } from './routes/Results';
 import { Reveal } from './routes/Reveal';
@@ -25,7 +26,7 @@ export const routes: RouteObject[] = [
       { path: 'game/:gameId', element: <Table /> },
       {
         path: 'game/:gameId/host',
-        element: <Placeholder title="Host dashboard" audience="Host. Others see a not-available state" task="WW-1202" />,
+        element: <Host />,
       },
       { path: 'game/:gameId/results', element: <Results /> },
       // WEB-02: fixture previews of GameLayout for styling and viewport checks. Never in a production build.

@@ -1,0 +1,104 @@
+/* Results stage. The banner lives in the scene. The recap scrolls in the rail. */
+
+.ww-results-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space);
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  padding: var(--space);
+}
+
+.ww-results-stage .ww-victory {
+  height: auto;
+  width: 100%;
+}
+
+.ww-results-stats {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ww-results-stat {
+  display: grid;
+  justify-items: center;
+  gap: calc(var(--space) / 4);
+  margin: 0;
+}
+
+.ww-results-stat strong {
+  font-size: var(--text-body);
+  font-weight: 800;
+}
+
+.ww-results-stat span {
+  color: var(--text-muted);
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+
+.ww-recap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space);
+  min-height: 0;
+  min-width: 0;
+  overflow: auto;
+  padding: var(--space);
+}
+
+.ww-recap-title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 800;
+}
+
+.ww-recap-list,
+.ww-recap-notes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ww-recap-notes {
+  gap: calc(var(--space) / 2);
+  color: var(--text);
+  font-size: var(--text-body);
+}
+
+.ww-recap-seat {
+  display: flex;
+  gap: calc(var(--space) / 2);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.ww-recap-main {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.ww-recap-roles,
+.ww-recap-detail {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--text-body);
+}
+
+.ww-recap-detail {
+  color: var(--text-muted);
+  font-size: var(--text-label);
+}

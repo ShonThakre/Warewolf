@@ -7,7 +7,7 @@ export function lockedModeCopy(mode: GameMode): string | null {
     return 'Infection Edition is locked at 20 players: 1 Alpha Wolf, 2 Seekers, 1 Guard, 1 Doctor, 1 Witch, and 14 Villagers. Infection stays silent, wolves do not know each other, and friendly fire is on. Choose another mode to edit the setup.';
   }
   if (mode === 'ULTIMATE_20') {
-    return 'Ultimate 20 is locked at 20 players: 15 special roles and 5 Villagers. Infection stays silent, wolves do not know each other, friendly fire is off, the Alpha’s target is the kill, and protection does not stop poison. Choose another mode to edit the setup.';
+    return 'Ultimate 20 is locked at 20 players: 15 special roles and 5 Villagers. Infection stays silent, wolves do not know each other, friendly fire is off, the Alpha’s target is the kill, and protection does not stop poison. The Vampire team chooses either a kill or a mark each night. Choose another mode to edit the setup.';
   }
   return null;
 }
