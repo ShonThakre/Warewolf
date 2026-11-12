@@ -91,6 +91,7 @@ describe('stage modes', () => {
     expect(stageModeFor('CANCELLED')).toBe('results');
 
     expect(STAGE_SPECS.night).toMatchObject({ wash: 'night', foreground: 'player-grid', action: 'submit-ability' });
+    expect(STAGE_SPECS['night-results']).toMatchObject({ scene: 'square_day', wash: 'day', foreground: 'result-card', action: 'continue-to-day' });
     expect(STAGE_SPECS.voting).toMatchObject({ wash: 'day', foreground: 'player-grid', action: 'confirm-vote' });
     expect(STAGE_SPECS.lobby).toMatchObject({ foreground: 'avatars', action: 'start' });
   });

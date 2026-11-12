@@ -20,6 +20,20 @@
     'action rail';
 }
 
+/* Day discussion: wider chat rail to match 08-day-discussion.png (~459px at 1586). */
+.ww-game-layout[data-stage='day'] {
+  --rail: clamp(18rem, 29vw, 28.7rem);
+}
+
+/* Voting: rail ~399px at 1586 to match 09-voting.png. Revote uses ~404px (10-revote.png). */
+.ww-game-layout[data-stage='voting'] {
+  --rail: clamp(16rem, 25.2vw, 24.94rem);
+}
+
+.ww-game-layout[data-stage='voting']:has([data-phase='REVOTE']) {
+  --rail: clamp(16rem, 25.5vw, 25.25rem);
+}
+
 .ww-game-layout[data-layout='compact'] {
   --rail: clamp(16rem, 24vw, 20rem);
   --space: clamp(0.4rem, 0.6vw, 0.85rem);
@@ -375,10 +389,13 @@
   overflow: hidden;
 }
 
-/* Night at 1586×992: the rail runs the full height. Status, seats, and the action bar share the left column. */
+/* Night and voting at 1586×992: the rail runs the full height. Status, seats, and the action bar share the left column. */
 .ww-game-layout[data-stage='night'][data-layout='full'],
 .ww-game-layout[data-stage='night'][data-layout='compact'],
-.ww-game-layout[data-stage='night'][data-layout='tablet'] {
+.ww-game-layout[data-stage='night'][data-layout='tablet'],
+.ww-game-layout[data-stage='voting'][data-layout='full'],
+.ww-game-layout[data-stage='voting'][data-layout='compact'],
+.ww-game-layout[data-stage='voting'][data-layout='tablet'] {
   box-sizing: border-box;
   gap: 0.75rem;
   padding: 0.75rem;
@@ -391,7 +408,14 @@
     'action rail';
 }
 
-.ww-app:has(.ww-game-layout[data-stage='night']) .ww-app-nav {
+.ww-game-layout[data-stage='voting'][data-layout='full'],
+.ww-game-layout[data-stage='voting'][data-layout='compact'],
+.ww-game-layout[data-stage='voting'][data-layout='tablet'] {
+  grid-template-columns: minmax(0, 1fr) var(--rail);
+}
+
+.ww-app:has(.ww-game-layout[data-stage='night']) .ww-app-nav,
+.ww-app:has(.ww-game-layout[data-stage='voting']) .ww-app-nav {
   height: 4.5rem;
   min-height: 4.5rem;
   box-sizing: border-box;
@@ -399,26 +423,32 @@
   border-bottom-color: transparent;
 }
 
-.ww-app:has(.ww-game-layout[data-stage='night']) .ww-app-nav nav .MuiButton-root:first-of-type {
+.ww-app:has(.ww-game-layout[data-stage='night']) .ww-app-nav nav .MuiButton-root:first-of-type,
+.ww-app:has(.ww-game-layout[data-stage='voting']) .ww-app-nav nav .MuiButton-root:first-of-type {
   border-radius: 0;
   box-shadow: inset 0 -2px 0 var(--primary);
 }
 
 .ww-game-layout[data-stage='night'] .ww-game-status,
 .ww-game-layout[data-stage='night'] .ww-game-action,
-.ww-game-layout[data-stage='night'] .ww-game-rail:not([hidden]) {
+.ww-game-layout[data-stage='night'] .ww-game-rail:not([hidden]),
+.ww-game-layout[data-stage='voting'] .ww-game-status,
+.ww-game-layout[data-stage='voting'] .ww-game-action,
+.ww-game-layout[data-stage='voting'] .ww-game-rail:not([hidden]) {
   border: 0;
   border-radius: var(--radius);
   background: var(--surface);
 }
 
-.ww-game-layout[data-stage='night'] .ww-game-stage {
+.ww-game-layout[data-stage='night'] .ww-game-stage,
+.ww-game-layout[data-stage='voting'] .ww-game-stage {
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--bg);
 }
 
-.ww-game-layout[data-stage='night'] .ww-game-scene {
+.ww-game-layout[data-stage='night'] .ww-game-scene,
+.ww-game-layout[data-stage='voting'] .ww-game-scene {
   position: absolute;
   inset: 0;
   aspect-ratio: auto;
@@ -426,7 +456,8 @@
   align-self: stretch;
 }
 
-.ww-game-layout[data-stage='night'] .ww-game-scene::after {
+.ww-game-layout[data-stage='night'] .ww-game-scene::after,
+.ww-game-layout[data-stage='voting'] .ww-game-scene::after {
   content: '';
   position: absolute;
   inset: 0;
@@ -434,10 +465,19 @@
   background: rgb(20 11 34 / 0.42);
 }
 
+.ww-game-layout[data-stage='voting'] .ww-game-scene::after {
+  background: rgb(20 11 34 / 0.48);
+}
+
 .ww-game-layout[data-stage='night'] .ww-village img {
   object-position: center 28%;
 }
 
-.ww-game-layout[data-stage='night'] .ww-game-foreground {
+.ww-game-layout[data-stage='voting'] .ww-village img {
+  object-position: center 40%;
+}
+
+.ww-game-layout[data-stage='night'] .ww-game-foreground,
+.ww-game-layout[data-stage='voting'] .ww-game-foreground {
   overflow: auto;
 }

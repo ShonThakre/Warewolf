@@ -86,11 +86,41 @@ export function voteButtonLabel(options: {
   readonly stored: boolean;
   readonly casting: boolean;
   readonly canChange?: boolean | null;
+  readonly phase?: GamePhase;
 }): string {
   if (options.casting) return 'Sending…';
   if (options.stored) return 'Vote sent';
   if (options.hasStored && options.canChange === false) return 'Vote locked';
-  return options.hasStored ? 'Change vote' : 'Confirm vote';
+  if (options.hasStored) return 'Change vote';
+  return options.phase === 'REVOTE' ? 'Submit revote' : 'Submit vote';
+}
+
+/** Public card line: voting uses a bullet; revote uses an em dash. */
+export function voteSeatLabel(seatNumber: number, displayName: string, style: 'dot' | 'dash' = 'dot'): string {
+  return style === 'dash' ? `Seat ${seatNumber} — ${displayName}` : `Seat ${seatNumber} • ${displayName}`;
+}
+
+/** Life word on voting cards. Revote cards keep Alive, matching day discussion. */
+export function voteLifeLabel(status: string): string {
+  return status === 'ALIVE' ? 'Living' : 'Eliminated';
+}
+
+/** Footer privacy note under the submit control. */
+export function votePrivacyCopy(phase?: GamePhase): string {
+  return phase === 'REVOTE' ? 'Your vote is private and hidden from other players.' : 'Your vote is private.';
+}
+
+/** Stage headline for the revote board. */
+export function revoteBoardCopy(): { readonly title: string; readonly guide: string } {
+  return { title: 'Revote.', guide: 'Choose one of the tied players.' };
+}
+
+/** Discussion rail notice while a revote is open. */
+export function revoteDiscussionNotice(): { readonly title: string; readonly body: string } {
+  return {
+    title: 'Day • Revote',
+    body: 'The vote was tied, so the village is revoting among the tied players.',
+  };
 }
 
 /** Whether the abstain control should show. Unknown defaults to showing; the server refuses if needed. */

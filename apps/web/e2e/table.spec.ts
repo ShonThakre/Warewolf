@@ -216,7 +216,7 @@ test.describe('day ballot', () => {
     await expect(page.getByRole('heading', { name: 'Voting' })).toBeVisible();
     await expect(page.locator('.ww-game-layout')).toHaveAttribute('data-layout', spec.mode);
     await expect(page.locator('.ww-game-layout')).toHaveAttribute('data-stage', 'voting');
-    const confirm = page.getByRole('region', { name: 'Actions' }).getByRole('button', { name: 'Confirm vote' });
+    const confirm = page.getByRole('region', { name: 'Actions' }).getByRole('button', { name: 'Submit vote' });
     await expect(confirm).toBeDisabled();
     await expect(page.getByRole('button', { name: /Mira/ })).toBeDisabled();
     await page.getByRole('button', { name: /Rafi/ }).click();
@@ -259,7 +259,7 @@ test.describe('day ballot', () => {
     await expect(actions).toContainText('Choose a player to eliminate.');
     await expect(actions.getByRole('button', { name: 'Abstain' })).toHaveCount(0);
     await page.getByRole('button', { name: /Rafi/ }).click();
-    await actions.getByRole('button', { name: 'Confirm vote' }).click();
+    await actions.getByRole('button', { name: 'Submit vote' }).click();
     await expect(actions).toContainText('Vote sent. Your vote is Rafi. This ballot is locked.');
     await expect(page.getByRole('button', { name: /Asha/ })).toBeDisabled();
   });

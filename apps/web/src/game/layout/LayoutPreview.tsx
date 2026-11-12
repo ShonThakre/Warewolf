@@ -17,8 +17,8 @@ const ACTION_LABEL: Record<ActionKind, string> = {
   'wait-for-host': 'Waiting for host',
   'submit-ability': 'Submit',
   'continue-to-day': 'Continue to day',
-  'open-voting': 'Open voting',
-  'confirm-vote': 'Confirm vote',
+  'open-voting': 'Continue to voting',
+  'confirm-vote': 'Submit vote',
   'play-again': 'Play again',
 };
 

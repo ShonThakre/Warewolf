@@ -14,11 +14,27 @@ import { VillageScene } from '../game/components/VillageScene';
 import { useActionDraft } from '../game/components/actionDraft';
 import { actionRowText, actionStatus, choiceNames, choiceReady, choiceSeatLine, editablePrompt, matchesChoice, promptLabel, shownPrompt, submitLabel, type ActionTone } from '../game/components/actionCopy';
 import { choicePayload } from '../game/state/actions';
-import { guestActionCopy, lifeLabel, phaseActionNote } from '../game/components/phaseCopy';
+import { dayDiscussionActionCopy, guestActionCopy, lifeLabel, phaseActionNote } from '../game/components/phaseCopy';
 import { doctorAttackLine, killPickOf, killRowText, playerName, sameKillPick, type KillPick } from '../game/components/killCopy';
+import { morningHeadline, morningSurvivors } from '../game/components/morningCopy';
 import { shownTally } from '../game/components/tallyCopy';
 import { VoteTally } from '../game/components/VoteTally';
-import { canCastBallot, canChangeVote, revoteTargets, showAbstain, voteButtonLabel, voteMatches, voteRowText, VOTE_TARGET_RULE, type VoteChoice, type VoteRules } from '../game/components/voteCopy';
+import {
+  canCastBallot,
+  canChangeVote,
+  revoteBoardCopy,
+  revoteTargets,
+  showAbstain,
+  voteButtonLabel,
+  voteLifeLabel,
+  voteMatches,
+  votePrivacyCopy,
+  voteRowText,
+  voteSeatLabel,
+  VOTE_TARGET_RULE,
+  type VoteChoice,
+  type VoteRules,
+} from '../game/components/voteCopy';
 import { GameLayout, STAGE_SPECS, stageModeFor, type StageMode } from '../game/layout';
 import { actionPrompts, useMyActions, useSubmitAction } from '../game/state/actions';
 import { checkChatDraft, useChat, useChatModeration, usePostChat } from '../game/state/chat';
@@ -109,6 +125,7 @@ function TableScreen() {
 
   const stage = stageModeFor(state.phase);
   const voting = stage === 'voting';
+  const isRevote = state.phase === 'REVOTE';
   const voteKey = `${state.roundNumber}:${state.phase}`;
   if (voteKey !== ballotKey) {
     setBallotKey(voteKey);
@@ -122,7 +139,8 @@ function TableScreen() {
     setKillAck(null);
   }
   const voteOpen = voting && canCastBallot(state.you, state.phase);
-  const voteName = voteChoice?.kind === 'player' ? (state.players.find((player) => player.playerId === voteChoice.playerId)?.displayName ?? null) : null;
+  const voteNominee = voteChoice?.kind === 'player' ? (state.players.find((player) => player.playerId === voteChoice.playerId) ?? null) : null;
+  const voteName = voteNominee?.displayName ?? null;
   const voteStored = voteMatches(voteChoice, storedVote);
   const voteRules: VoteRules = { canAbstain: state.voting.abstain, canChange: state.voting.changeUntilClose };
   const voteLine = voting ? voteRowText({ phase: state.phase, canVote: voteOpen, choice: voteChoice, name: voteName, stored: voteStored, rules: voteRules }) : null;
@@ -130,6 +148,8 @@ function TableScreen() {
   const voteChangeable = canChangeVote(voteRules, storedVote !== undefined);
   const note = phaseActionNote(control.error);
   const night = stage === 'night';
+  const morning = stage === 'night-results';
+  const dayTalk = stage === 'day';
   const actionsReady = !roleView.isLoading && !actionsView.isLoading;
   const editable = prompts.filter(editablePrompt);
   const active = editable.find((prompt) => prompt.abilityInstanceId === activeId) ?? editable[0] ?? null;
@@ -141,7 +161,11 @@ function TableScreen() {
   const stored = active ? matchesChoice(active, selected, question, hint) || acked === choiceSignature : false;
   const anyStored = prompts.some((prompt) => prompt.action?.status === 'PENDING' || prompt.action?.status === 'LOCKED');
   const line = actionsReady ? actionRowText(night, active, choiceNames(state.players, selected), stored, anyStored) : null;
-  const privateSurface = night || (stage === 'day' && prompts.some(shownPrompt));
+  // Day discussion stays public. Only an open (or already submitted) day ability keeps a private panel.
+  const privateSurface =
+    night ||
+    (stage === 'day' &&
+      prompts.some((prompt) => editablePrompt(prompt) || (prompt.action != null && prompt.availability !== 'NOT_THIS_PHASE' && shownPrompt(prompt))));
   const loadError = actionsView.error && actionsView.error.code !== 'NOT_FOUND' ? actionsView.error.message : null;
   const issue = submission.error?.issues[0]?.message ?? submission.error?.message ?? loadError;
   const target = active?.ability.target ?? null;
@@ -264,8 +288,10 @@ function TableScreen() {
         <StageForeground
           state={state}
           stage={stage}
+          isRevote={isRevote}
           tally={tallyCard}
-          report={report}
+          notes={notes}
+          report={morning ? null : report}
           privateSurface={privateSurface}
           panel={privateSurface ? roleControls(night ? 'controls' : 'all') : null}
           kill={kill.view ? <KillTargetPanel players={state.players} view={kill.view} pick={killPick} onPick={setKillPick} /> : null}
@@ -291,6 +317,7 @@ function TableScreen() {
           mutedPlayerIds={chat.mutedPlayerIds}
           canPost={chat.canPost}
           refusal={chat.refusal}
+          phase={state.phase}
           isLoading={chat.isLoading}
           loadError={chat.error?.message ?? null}
           draft={message}
@@ -314,7 +341,19 @@ function TableScreen() {
         />
       }
       action={
-        <div className={night ? 'ww-action is-night' : 'ww-action'}>
+        <div
+          className={
+            night
+              ? 'ww-action is-night'
+              : morning
+                ? 'ww-action is-morning'
+                : dayTalk
+                  ? 'ww-action is-day'
+                  : voting
+                    ? `ww-action is-voting${isRevote ? ' is-revote' : ''}`
+                    : 'ww-action'
+          }
+        >
           {night ? roleControls('identity') : null}
           {problems.length > 0 ? (
             <div className="ww-action-alert-row">
@@ -336,18 +375,58 @@ function TableScreen() {
               </p>
             </div>
           ) : null}
+          {voting ? (
+            <div className="ww-vote-nominee" aria-live="polite">
+              <span className="ww-vote-nominee-label">Selected nominee</span>
+              {voteNominee ? (
+                isRevote ? (
+                  <p className="ww-vote-nominee-name">{voteSeatLabel(voteNominee.seatNumber, voteNominee.displayName, 'dash')}</p>
+                ) : (
+                  <div className="ww-vote-nominee-card">
+                    <PlayerAvatar name={voteNominee.displayName} avatarId={voteNominee.avatarId} />
+                    <div className="ww-vote-nominee-copy">
+                      <span className="ww-vote-nominee-name">{voteSeatLabel(voteNominee.seatNumber, voteNominee.displayName)}</span>
+                      <span className="ww-seat-life" data-life={voteNominee.lifeStatus}>
+                        <span className="ww-seat-life-dot" aria-hidden="true" />
+                        {voteLifeLabel(voteNominee.lifeStatus)}
+                      </span>
+                    </div>
+                  </div>
+                )
+              ) : (
+                <p className="ww-vote-nominee-empty">{voteChoice?.kind === 'abstain' ? 'Abstain' : '—'}</p>
+              )}
+              {isRevote && voteOpen ? (
+                <p className="ww-vote-privacy">
+                  <span className="ww-vote-privacy-lock" aria-hidden="true" />
+                  {votePrivacyCopy('REVOTE')}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
           <div className="ww-action-head">
-            {status ? (
+            {dayTalk ? (
+              <div className="ww-day-guide">
+                <span className="ww-day-guide-mark" aria-hidden="true">
+                  i
+                </span>
+                <div className="ww-day-guide-copy">
+                  <p className="ww-day-guide-title">{dayDiscussionActionCopy().title}</p>
+                  <p className="ww-day-guide-body">{control.canClose ? dayDiscussionActionCopy().body : guestActionCopy(state)}</p>
+                </div>
+              </div>
+            ) : null}
+            {status && !voting ? (
               <span className="ww-pill" data-tone={PILL_TONE[status.tone]}>
                 {status.label}
               </span>
             ) : null}
             {voteLine ? (
-              <p className="ww-action-copy" aria-live="polite">
+              <p className={voting ? 'ww-sr' : 'ww-action-copy'} aria-live="polite">
                 {voteLine}
               </p>
             ) : null}
-            {abstainVisible && !voteChoice ? <p className="ww-action-copy">Abstain sends a ballot that names nobody.</p> : null}
+            {abstainVisible && !voteChoice ? <p className={voting ? 'ww-sr' : 'ww-action-copy'}>Abstain sends a ballot that names nobody.</p> : null}
             {killLine ? (
               <p className="ww-action-copy" aria-live="polite">
                 {killLine}
@@ -363,8 +442,8 @@ function TableScreen() {
                 {line}
               </p>
             ) : null}
-            {!voteLine && !killLine && !line && !control.canClose && state.status !== 'CANCELLED' ? <p className="ww-action-copy">{guestActionCopy(state)}</p> : null}
-            {!voteLine && !killLine && !line && control.canClose ? <p className="ww-action-copy">You close this phase when the table is ready.</p> : null}
+            {!dayTalk && !voting && !voteLine && !killLine && !line && !control.canClose && state.status !== 'CANCELLED' ? <p className="ww-action-copy">{guestActionCopy(state)}</p> : null}
+            {!morning && !dayTalk && !voting && !voteLine && !killLine && !line && control.canClose ? <p className="ww-action-copy">You close this phase when the table is ready.</p> : null}
           </div>
           <div className="ww-action-buttons">
             {abstainVisible ? (
@@ -379,14 +458,29 @@ function TableScreen() {
               </Button>
             ) : null}
             {voteOpen ? (
-              <Button
-                variant="contained"
-                color="secondary"
-                disabled={!voteChoice || voteStored || ballot.isCasting || (storedVote !== undefined && !voteChangeable && !voteStored)}
-                onClick={() => void onCast()}
-              >
-                {voteButtonLabel({ hasStored: storedVote !== undefined, stored: voteStored, casting: ballot.isCasting, canChange: voteRules.canChange })}
-              </Button>
+              <div className="ww-vote-submit">
+                <Button
+                  className="ww-vote-submit-btn"
+                  variant="contained"
+                  color="secondary"
+                  disabled={!voteChoice || voteStored || ballot.isCasting || (storedVote !== undefined && !voteChangeable && !voteStored)}
+                  onClick={() => void onCast()}
+                >
+                  {voteButtonLabel({
+                    hasStored: storedVote !== undefined,
+                    stored: voteStored,
+                    casting: ballot.isCasting,
+                    canChange: voteRules.canChange,
+                    phase: state.phase,
+                  })}
+                </Button>
+                {isRevote ? null : (
+                  <p className="ww-vote-privacy">
+                    <span className="ww-vote-privacy-lock" aria-hidden="true" />
+                    {votePrivacyCopy()}
+                  </p>
+                )}
+              </div>
             ) : null}
             {kill.view?.editable ? (
               <Button className="ww-abstain" variant="outlined" aria-pressed={showingKill?.kind === 'NO_KILL'} onClick={() => setKillPick({ kind: 'NO_KILL' })}>
@@ -410,8 +504,12 @@ function TableScreen() {
             ) : null}
           </div>
           {control.canClose && state.status !== 'CANCELLED' ? (
-            <div className="ww-host-controls" role="group" aria-label="Host controls">
-              <span className="ww-host-label">Host</span>
+            <div
+              className={morning || dayTalk ? 'ww-morning-controls' : 'ww-host-controls'}
+              role="group"
+              aria-label={morning || dayTalk ? 'Continue' : 'Host controls'}
+            >
+              {morning || dayTalk ? null : <span className="ww-host-label">Host</span>}
               <PhaseCloseButton control={control} tone="primary" />
             </div>
           ) : null}
@@ -428,11 +526,13 @@ function sceneFor(stage: StageMode): SceneId {
   return scene === 'BY_OUTCOME' ? 'square_dusk' : scene;
 }
 
-/** Public seats. Night and voting use the shared target grid. The morning report's facts arrive later. */
+/** Public seats. Night and voting use the shared target grid. Morning shows the public night outcome. */
 function StageForeground({
   state,
   stage,
+  isRevote,
   tally,
+  notes,
   report,
   privateSurface,
   panel,
@@ -444,7 +544,9 @@ function StageForeground({
 }: {
   state: GameState;
   stage: StageMode;
+  isRevote: boolean;
   tally: ReactNode;
+  notes: readonly string[];
   report: ReactNode;
   privateSurface: boolean;
   panel: ReactNode;
@@ -455,12 +557,37 @@ function StageForeground({
   onToggle: (playerId: string) => void;
 }) {
   if (stage === 'night-results') {
+    const survivors = morningSurvivors(state.players);
+    const outcome = morningHeadline(notes);
+    const privateNotes = notes.filter((line) => !/\bwas eliminated\b/i.test(line));
     return (
       <article className="ww-morning" aria-label="Night results">
-        <h2>The village wakes</h2>
-        {tally}
-        {report}
-        {report ? null : <p className="ww-status-copy">The public report appears here.</p>}
+        <div className="ww-morning-card">
+          <p className="ww-morning-heading">
+            <span className="ww-status-sun" aria-hidden="true" />
+            Morning
+          </p>
+          <p className="ww-morning-outcome">{outcome}</p>
+          {tally}
+          <div className="ww-morning-survivors">
+            <h3 className="ww-morning-survivors-label">Survivors</h3>
+            <ul className="ww-morning-survivor-list" aria-label="Survivors">
+              {survivors.map((player) => (
+                <li key={player.playerId} className="ww-morning-survivor">
+                  <PlayerAvatar name={player.displayName} avatarId={player.avatarId} />
+                  <span className="ww-morning-survivor-name">{player.displayName}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        {privateNotes.length > 0 ? (
+          <ul className="ww-report" aria-label="Your report">
+            {privateNotes.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        ) : null}
       </article>
     );
   }
@@ -475,34 +602,59 @@ function StageForeground({
   }
 
   if (stage === 'night' || stage === 'voting') {
+    const grid = (
+      <PlayerGrid
+        players={state.players}
+        youId={state.you.playerId}
+        rule={gridRule}
+        selected={gridSelected}
+        allowedIds={allowedIds}
+        onToggle={onToggle}
+        presentation={stage === 'voting' ? (isRevote ? 'revote' : 'voting') : 'night'}
+      />
+    );
+    if (isRevote) {
+      const board = revoteBoardCopy();
+      return (
+        <article className="ww-revote" aria-label="Revote">
+          <div className="ww-revote-board">
+            <h2 className="ww-revote-title">{board.title}</h2>
+            <p className="ww-revote-guide">{board.guide}</p>
+            {grid}
+          </div>
+        </article>
+      );
+    }
     return (
       <>
         {tally}
         {report}
         {panel}
         {kill}
-        <PlayerGrid players={state.players} youId={state.you.playerId} rule={gridRule} selected={gridSelected} allowedIds={allowedIds} onToggle={onToggle} />
+        {grid}
       </>
     );
   }
 
   const grid = STAGE_SPECS[stage].foreground === 'player-grid';
+  const dayBoard = stage === 'day';
   return (
     <>
       {tally}
       {report}
       {privateSurface ? panel : null}
       {kill}
-      <ul className="ww-seats" aria-label={grid ? 'Players' : 'Seated players'}>
+      <ul className={dayBoard ? 'ww-seats ww-day-seats' : 'ww-seats'} aria-label={grid ? 'Players' : 'Seated players'}>
         {state.players.map((player) => (
           <li key={player.playerId} className="ww-seat" data-life={player.lifeStatus}>
             <PlayerAvatar name={player.displayName} avatarId={player.avatarId} dead={player.lifeStatus === 'DEAD'} />
-            <span className="ww-seat-name">{player.displayName}</span>
+            <span className="ww-seat-name">{dayBoard ? `#${player.seatNumber} ${player.displayName}` : player.displayName}</span>
             <span className="ww-seat-life" data-life={player.lifeStatus}>
+              {dayBoard ? <span className="ww-seat-life-dot" aria-hidden="true" /> : null}
               {lifeLabel(player.lifeStatus)}
             </span>
-            {player.isHost ? <span className="ww-seat-tag">Host</span> : null}
-            {player.playerId === state.you.playerId ? <span className="ww-seat-tag">You</span> : null}
+            {dayBoard ? null : player.isHost ? <span className="ww-seat-tag">Host</span> : null}
+            {dayBoard ? null : player.playerId === state.you.playerId ? <span className="ww-seat-tag">You</span> : null}
           </li>
         ))}
       </ul>

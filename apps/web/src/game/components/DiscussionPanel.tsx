@@ -1,8 +1,9 @@
 import type { ChatMessage } from '@warewolf/contracts';
-import type { ChatRefusal } from '@warewolf/domain';
+import type { ChatRefusal, GamePhase } from '@warewolf/domain';
 import { Button, TextField } from '@mui/material';
 import { PlayerAvatar } from './PlayerAvatar';
 import { chatRefusalCopy, chatRemainingCopy, chatSeatName } from './chatCopy';
+import { revoteDiscussionNotice } from './voteCopy';
 
 type Seat = { readonly playerId: string; readonly displayName: string; readonly avatarId: number | null; readonly lifeStatus: string };
 
@@ -18,6 +19,7 @@ export function DiscussionPanel({
   mutedPlayerIds,
   canPost,
   refusal,
+  phase,
   isLoading,
   loadError,
   draft,
@@ -35,6 +37,8 @@ export function DiscussionPanel({
   readonly mutedPlayerIds: readonly string[];
   readonly canPost: boolean;
   readonly refusal: ChatRefusal | null;
+  /** Used so morning closed copy differs from night. */
+  readonly phase?: GamePhase | null;
   readonly isLoading: boolean;
   readonly loadError: string | null;
   readonly draft: string;
@@ -52,23 +56,56 @@ export function DiscussionPanel({
     readonly onUnmute: (playerId: string) => void;
   } | null;
 }) {
-  const closed = chatRefusalCopy(canPost ? null : refusal);
-  const nightClosed = !canPost && refusal === 'CLOSED';
-  const helper = canPost ? chatRemainingCopy(remaining) : nightClosed ? null : (closed ?? (isLoading ? 'Opening chat…' : null));
+  const closed = chatRefusalCopy(canPost ? null : refusal, phase);
+  const channelClosed = !canPost && refusal === 'CLOSED';
+  const morningClosed = channelClosed && phase === 'DAY_ANNOUNCE';
+  const helper = canPost ? chatRemainingCopy(remaining) : channelClosed ? null : (closed ?? (isLoading ? 'Opening chat…' : null));
+
+  const dayOpen = phase === 'DAY_DISCUSSION' || phase === 'VOTING' || phase === 'REVOTE';
+  const revoteNotice = phase === 'REVOTE' ? revoteDiscussionNotice() : null;
 
   return (
-    <div className="ww-discussion" data-closed={nightClosed ? 'true' : undefined}>
-      <h2 className="ww-discussion-title">Discussion</h2>
-      {nightClosed && closed ? (
-        <p className="ww-discussion-closed" role="status">
-          <span className="ww-discussion-closed-mark" aria-hidden="true">
-            i
+    <div className="ww-discussion" data-closed={channelClosed ? 'true' : undefined} data-morning={morningClosed ? 'true' : undefined} data-live={dayOpen && !channelClosed ? 'true' : undefined} data-revote={revoteNotice ? 'true' : undefined}>
+      <h2 className="ww-discussion-title">
+        <span className="ww-discussion-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.5L3 21l2.1-5.1A8.5 8.5 0 1 1 21 11.5Z" />
+          </svg>
+        </span>
+        Discussion
+      </h2>
+      {revoteNotice ? (
+        <div className="ww-discussion-notice" role="status">
+          <span className="ww-discussion-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 11.5a8.5 8.5 0 0 1-12.4 7.5L3 21l2.1-5.1A8.5 8.5 0 1 1 21 11.5Z" />
+            </svg>
           </span>
-          {closed}
-        </p>
+          <div className="ww-discussion-notice-copy">
+            <p className="ww-discussion-notice-title">{revoteNotice.title}</p>
+            <p className="ww-discussion-notice-body">{revoteNotice.body}</p>
+          </div>
+        </div>
+      ) : null}
+      {channelClosed && closed ? (
+        <div className="ww-discussion-closed" role="status">
+          {morningClosed ? (
+            <span className="ww-discussion-lock" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="5" y="11" width="14" height="10" rx="2" />
+                <path d="M8 11V8a4 4 0 0 1 8 0v3" />
+              </svg>
+            </span>
+          ) : (
+            <span className="ww-discussion-closed-mark" aria-hidden="true">
+              i
+            </span>
+          )}
+          <p className="ww-discussion-closed-copy">{closed}</p>
+        </div>
       ) : null}
       <ul className="ww-discussion-log" aria-label="Messages">
-        {messages.length === 0 && !nightClosed ? <li className="ww-log-empty">{isLoading ? 'Opening chat…' : 'No messages yet.'}</li> : null}
+        {messages.length === 0 && !channelClosed ? <li className="ww-log-empty">{isLoading ? 'Opening chat…' : 'No messages yet.'}</li> : null}
         {messages.map((message) => {
           const seat = players.find((player) => player.playerId === message.playerId);
           const name = chatSeatName(players, message.playerId);
@@ -110,7 +147,7 @@ export function DiscussionPanel({
           {moderation.error}
         </p>
       ) : null}
-      {nightClosed ? null : (
+      {channelClosed ? null : (
         <form
           className="ww-discussion-composer"
           onSubmit={(event) => {
@@ -122,6 +159,7 @@ export function DiscussionPanel({
             className="ww-chat-field"
             size="small"
             label="Message"
+            placeholder="Type a message…"
             value={draft}
             disabled={!canPost || sending}
             onChange={(event) => onDraft(event.target.value)}
@@ -133,7 +171,7 @@ export function DiscussionPanel({
               {sendError}
             </p>
           ) : null}
-          <Button type="submit" variant="contained" color="secondary" disabled={!canPost || !sendable || sending}>
+          <Button type="submit" variant="contained" color="primary" disabled={!canPost || !sendable || sending}>
             Send
           </Button>
         </form>

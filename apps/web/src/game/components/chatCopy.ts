@@ -1,14 +1,14 @@
-import type { ChatRefusal } from '@warewolf/domain';
+import type { ChatRefusal, GamePhase } from '@warewolf/domain';
 
 /**
  * Composer copy (WW-1206). The server decides `canPost` and `refusal`.
  * These sentences do not name a role or a team.
  */
 
-export function chatRefusalCopy(refusal: ChatRefusal | null): string | null {
+export function chatRefusalCopy(refusal: ChatRefusal | null, phase?: GamePhase | null): string | null {
   switch (refusal) {
     case 'CLOSED':
-      return 'Discussion is closed at night.';
+      return phase === 'DAY_ANNOUNCE' ? 'Discussion will open after you continue to day.' : 'Discussion is closed at night.';
     case 'DEAD':
       return 'The dead read only.';
     case 'MUTED':

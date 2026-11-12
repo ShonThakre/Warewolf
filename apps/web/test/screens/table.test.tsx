@@ -109,6 +109,30 @@ describe('table', () => {
     expect(reads).toBeGreaterThanOrEqual(2);
   });
 
+  it('shows the morning card, survivors, and a locked discussion rail', async () => {
+    renderApp(`/game/${GAME}`, {
+      seat: host,
+      fetchFn: (async (input: RequestInfo | URL, init?: RequestInit) => {
+        const request = new Request(input, init);
+        const path = new URL(request.url).pathname;
+        if (path.endsWith('/state')) return json(200, gameStateFixture({ phase: 'DAY_ANNOUNCE', dead: [3] }));
+        if (path.endsWith('/chat')) return json(200, chatViewFixture({ you: { canPost: false, refusal: 'CLOSED' } }));
+        if (path.endsWith('/events')) return json(200, { events: [] });
+        if (path.endsWith('/me')) return json(200, ROLE_FIXTURES.villager);
+        if (path.endsWith('/me/actions')) return json(200, myActionsFixture(ROLE_FIXTURES.villager, { phase: 'DAY_ANNOUNCE' }));
+        return json(404, { error: { code: 'NOT_FOUND', message: 'Not found.' } });
+      }) as typeof fetch,
+    });
+    expect(await screen.findByRole('heading', { name: 'Morning' })).toBeTruthy();
+    expect(document.querySelector('[data-stage="night-results"]')).toBeTruthy();
+    expect(document.querySelector('[data-wash="day"]')).toBeTruthy();
+    expect(screen.getByRole('article', { name: 'Night results' }).textContent).toMatch(/No one was eliminated last night/);
+    expect(screen.getByRole('list', { name: 'Survivors' }).children.length).toBeGreaterThan(0);
+    expect(await screen.findByText('Discussion will open after you continue to day.')).toBeTruthy();
+    expect(screen.queryByLabelText('Message')).toBeNull();
+    expect(screen.getByRole('button', { name: 'Continue to day' })).toBeTruthy();
+  });
+
   it('names a dead seat and does not invent a role', async () => {
     renderApp(`/game/${GAME}`, { seat: host, fetchFn: stateFetch(gameStateFixture({ phase: 'DAY_DISCUSSION', dead: [3] })) });
     expect(await screen.findByRole('heading', { name: 'Day' })).toBeTruthy();
@@ -116,6 +140,30 @@ describe('table', () => {
     expect(screen.getAllByText('Alive').length).toBeGreaterThan(0);
     expect(document.querySelector('[data-stage="day"]')).toBeTruthy();
     expect(document.body.textContent).not.toContain('Villager');
+  });
+
+  it('shows day discussion cards, live chat, and Continue to voting', async () => {
+    renderApp(`/game/${GAME}`, {
+      seat: host,
+      fetchFn: (async (input: RequestInfo | URL, init?: RequestInit) => {
+        const request = new Request(input, init);
+        const path = new URL(request.url).pathname;
+        if (path.endsWith('/state')) return json(200, gameStateFixture({ phase: 'DAY_DISCUSSION' }));
+        if (path.endsWith('/chat')) return json(200, chatViewFixture({ count: 2, you: { canPost: true, refusal: null } }));
+        if (path.endsWith('/me')) return json(200, ROLE_FIXTURES.villager);
+        if (path.endsWith('/me/actions')) return json(200, myActionsFixture(ROLE_FIXTURES.villager, { phase: 'DAY_DISCUSSION' }));
+        if (path.endsWith('/events')) return json(200, { events: [] });
+        return json(404, { error: { code: 'NOT_FOUND', message: 'Not found.' } });
+      }) as typeof fetch,
+    });
+    expect(await screen.findByRole('heading', { name: 'Day' })).toBeTruthy();
+    expect(document.querySelector('[data-stage="day"]')).toBeTruthy();
+    expect(screen.getByText('Day / Discussion')).toBeTruthy();
+    expect(screen.getByText('Discuss and share your thoughts')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Continue to voting' })).toBeTruthy();
+    expect(screen.getByLabelText('Message')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Send' })).toBeTruthy();
+    expect(screen.getByRole('list', { name: 'Seated players' }).textContent).toMatch(/#1 /);
   });
 
   it('says the game moved on when the close was stale', async () => {
@@ -163,7 +211,7 @@ describe('table', () => {
     });
 
     const actions = await screen.findByRole('region', { name: 'Actions' });
-    const confirm = within(actions).getByRole('button', { name: 'Confirm vote' });
+    const confirm = within(actions).getByRole('button', { name: 'Submit vote' });
     expect((confirm as HTMLButtonElement).disabled).toBe(true);
     expect(within(actions).queryByText('Waiting for host')).toBeNull();
     expect(within(actions).queryByRole('button', { name: 'End the day' })).toBeNull();
@@ -173,7 +221,8 @@ describe('table', () => {
     fireEvent.click(confirm);
     await waitFor(() => expect(posts).toEqual([{ targetPlayerId: fixturePlayerId(2) }]));
     expect(within(actions).getByText('Vote sent. Your vote is Rafi. You can change it until voting closes.')).toBeTruthy();
-    expect(within(actions).getByText('Submitted')).toBeTruthy();
+    expect(within(actions).getByText('Selected nominee')).toBeTruthy();
+    expect(within(actions).getByText('Your vote is private.')).toBeTruthy();
     expect((confirm as HTMLButtonElement).disabled).toBe(true);
     expect(confirm.textContent).toBe('Vote sent');
 
@@ -211,7 +260,7 @@ describe('table', () => {
     expect(within(actions).queryByText(/abstain/i)).toBeNull();
 
     fireEvent.click(screen.getByRole('button', { name: /Rafi/ }));
-    fireEvent.click(within(actions).getByRole('button', { name: 'Confirm vote' }));
+    fireEvent.click(within(actions).getByRole('button', { name: 'Submit vote' }));
     await waitFor(() => expect(posts).toEqual([{ targetPlayerId: fixturePlayerId(2) }]));
     expect(within(actions).getByText('Vote sent. Your vote is Rafi. This ballot is locked.')).toBeTruthy();
     expect((within(actions).getByRole('button', { name: 'Vote sent' }) as HTMLButtonElement).disabled).toBe(true);
@@ -235,7 +284,7 @@ describe('table', () => {
 
     expect(await screen.findByRole('heading', { name: 'Revote' })).toBeTruthy();
     expect(screen.getByText('You cannot vote.')).toBeTruthy();
-    expect(screen.queryByRole('button', { name: 'Confirm vote' })).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Submit revote' })).toBeNull();
     expect(screen.getByRole('button', { name: 'End the day' })).toBeTruthy();
     expect((screen.getByRole('button', { name: /Asha/ }) as HTMLButtonElement).disabled).toBe(true);
   });
@@ -256,8 +305,9 @@ describe('table', () => {
     });
 
     expect(await screen.findByText('Choose one of the tied players, or abstain.')).toBeTruthy();
+    expect(screen.getByText('Day • Revote')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: /Rafi/ }));
-    fireEvent.click(screen.getByRole('button', { name: 'Confirm vote' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Submit revote' }));
     expect(await screen.findByText('That vote is not allowed.')).toBeTruthy();
     expect(screen.queryByText(/Submitted/)).toBeNull();
   });

@@ -84,8 +84,8 @@ test.describe('fixture shell', () => {
     const stages = [
       { stage: 'reveal', button: 'Waiting for host' },
       { stage: 'night-results', button: 'Continue to day' },
-      { stage: 'day', button: 'Open voting' },
-      { stage: 'voting', button: 'Confirm vote' },
+      { stage: 'day', button: 'Continue to voting' },
+      { stage: 'voting', button: 'Submit vote' },
       { stage: 'results', button: 'Play again' },
     ];
     for (const { stage, button } of stages) {
@@ -109,7 +109,7 @@ test.describe('fixture shell', () => {
       await page.setViewportSize({ width: NARROW_LANDSCAPE_CHECK.width, height: NARROW_LANDSCAPE_CHECK.height });
       await page.goto('/dev/layout/voting');
       await expect(page.locator('.ww-game-layout')).toHaveAttribute('data-layout', 'narrow-landscape');
-      await buttonInView(page, 'Confirm vote');
+      await buttonInView(page, 'Submit vote');
       await noHorizontalScroll(page);
     }
   });

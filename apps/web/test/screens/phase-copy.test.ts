@@ -17,7 +17,7 @@ describe('phase copy', () => {
     expect(closeButtonLabel(INFECTION_CLOSES.NIGHT_HOST_CONFIRM!)).toBe('Open reactions');
     expect(closeButtonLabel(INFECTION_CLOSES.NIGHT_REACTION!)).toBe('Resolve night');
     expect(closeButtonLabel(INFECTION_CLOSES.DAY_ANNOUNCE!)).toBe('Continue to day');
-    expect(closeButtonLabel(INFECTION_CLOSES.DAY_DISCUSSION!)).toBe('Open voting');
+    expect(closeButtonLabel(INFECTION_CLOSES.DAY_DISCUSSION!)).toBe('Continue to voting');
     expect(closeButtonLabel({ next: null, resolves: 'DAY' }, 'DAY_DISCUSSION')).toBe('Resolve the shot');
     expect(closeButtonLabel({ next: null, resolves: 'DAY' }, 'VOTING')).toBe('End the day');
     expect(closeButtonLabel(INFECTION_CLOSES.VOTING!)).toBe('End the day');
@@ -32,6 +32,7 @@ describe('phase copy', () => {
     expect(lifeLabel('ALIVE')).toBe('Alive');
     expect(lifeLabel('DEAD')).toBe('Eliminated');
     expect(guestActionCopy({ status: 'ACTIVE', phaseEndsAt: null })).toBe('Waiting for host');
+    expect(guestActionCopy({ status: 'ACTIVE', phase: 'DAY_DISCUSSION', phaseEndsAt: null })).toMatch(/host opens voting/i);
     expect(guestActionCopy({ status: 'ACTIVE', phaseEndsAt: '2026-11-11T20:01:30.000Z' })).toBe('The timer closes this phase.');
     expect(guestActionCopy({ status: 'CANCELLED', phaseEndsAt: null })).toMatch(/cancelled/i);
   });

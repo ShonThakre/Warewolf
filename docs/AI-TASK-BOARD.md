@@ -153,11 +153,64 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 | UX-06 | Role reveal matched to `04-role-reveal.png` at 1586×992 | Cursor | COMPLETED | UX-05 |
 | UX-07 | Night action matched to `05-night.png` at 1586×992 | Cursor | COMPLETED | UX-06 |
 | UX-08 | Night resolution / host reaction matched to `06-night-resolution.png` at 1586×992 | Cursor | COMPLETED | UX-07 |
+| UX-09 | Morning results matched to `07-morning-results.png` at 1586×992 | Cursor | COMPLETED | UX-08 |
+| UX-10 | Day discussion matched to `08-day-discussion.png` at 1586×992 | Cursor | COMPLETED | UX-09 |
 | HOST-01 | Host on Render (free plans): one Docker web service where the API serves the built client (`WEB_DIST_DIR`), plus Render Postgres. Merged to `main` (PR #2, then 0fb9894 for the free plans). Blueprint applied; Render redeploys on every push to `main`, so `main` must pass `pnpm typecheck`. Files: `Dockerfile`, `render.yaml`, `apps/api/src/{app,config}.ts`, `apps/api/src/http/web-client.ts`, `apps/api/test/static-web.test.ts`, `README.md`, `.env.example` | Claude | IN_PROGRESS | WW-1501 |
+| E2E-01 | Black-box game driver package `tools/e2e` (`@warewolf/e2e-tools`): HTTP driver, scripted scenarios, per-phase invariants, socket listener. Files: `tools/e2e/**`, `pnpm-lock.yaml` | Claude | IN_PROGRESS | — |
+| E2E-02 | Every pack played to a result through the API: `apps/api/test/modes.integration.test.ts`, root `e2e:api` script. Files: `apps/api/test/modes.integration.test.ts`, `apps/api/package.json`, `package.json` | Claude | IN_PROGRESS | E2E-01 |
+| E2E-03 | Browser flows against the real API: `apps/web/playwright.live.config.ts`, `apps/web/e2e-live/**`, `e2e:live` script. Cursor reviews | Claude | READY | E2E-01 |
+| E2E-04 | Run E2E and write `docs/werewolf/e2e-report.md` (mode × scenario matrix, new `BUG-` tasks) | Claude | READY | E2E-02, E2E-03 |
+| HOWTO-01 | How to Play page replaces the placeholder: `apps/web/src/game/howto/**`, `apps/web/src/routes/HowToPlay.tsx`, `apps/web/src/routes.tsx`, `docs/werewolf/how-to-play.md`. Cursor polishes visuals | Claude | READY | — |
+| GAP-01 | Seeker publishes a stored result in day discussion (domain step, day resolution, public event, client data) | Claude | READY | — |
+| GAP-02 | In-game cancel, host transfer, and leave (API check, hooks; Cursor: buttons) | Claude + Cursor | READY | UX-09 |
+| GAP-03 | Ultimate 20 deliveries: Ghost hint, Necromancer return, Alchemist silence in chat, chaos/rewind/copy private events | Claude | READY | — |
+| GAP-04 | Play again clears the old seat; remove the unreachable Table play-again and cancelled stage | Claude | BACKLOG | UX-09 |
+| GAP-05 | Stale copy: Lobby "Chat is not open in this version.", old Phase 11 comments | Cursor | READY | — |
+| GAP-06 | Connection indicator on the table (hook by Claude, visual by Cursor) | Claude + Cursor | BACKLOG | UX-09 |
+| GAP-07 | Coverage: Servant `WITH_VAMPIRE` win test; simulator runs for `classic-10`, `chaos-15`, `ultimate-20` | Claude | READY | — |
+| UX-11 | Voting matched to `09-voting.png` at 1586×992 | Cursor | COMPLETED | UX-10 |
+| UX-12 | Revote matched to `10-revote.png` at 1586×992 | Cursor | COMPLETED | UX-11 |
+| UX-13 to UX-14 | Mockups 11–12: host overview, game results | Cursor | BACKLOG | UX-12 |
 
 ---
 
 ## Task details
+
+### UX-12 — Revote pixel match
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Table `REVOTE` matches `10-revote.png` at 1586×992. Gold Day — Revote pill, Revote. headline, only tied horizontal cards (`Seat N — Name`, Alive), Selected nominee + Submit revote + long privacy note. Discussion notice explains the tie. No prior tallies on the board. Rail ~404px.
+- **Checked:** table, vote-copy, phase-copy tests (34). Typecheck clean. Live Classic revote at 1586×992: two tied seats, rail 404px, no vote totals. Portrait 390×844 keeps Submit revote reachable with no horizontal overflow.
+- **Files:** `apps/web/src/routes/Table.tsx`, `apps/web/src/game/components/{PlayerGrid,GameStatusBar,DiscussionPanel,voteCopy,table-screen.css}`, `apps/web/src/game/layout/game-layout.css`, `apps/web/test/screens/{table,vote-copy}.test.*`, `docs/AI-TASK-BOARD.md`.
+- **Depends on:** UX-11
+
+### UX-11 — Voting pixel match
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Table voting matches `09-voting.png` at 1586×992. Gold VOTING pill with sun, Day • Vote to eliminate a player. Four-column public cards (`Seat N • Name`, Living/Eliminated) with purple selected outline and check. Footer shows Selected nominee, Submit vote, and Your vote is private. Discussion rail ~399px. `square_dusk` scene.
+- **Checked:** table, vote-copy, phase-copy, layout-mode tests (83). Typecheck clean. Live Classic voting at 1586×992: rail 399px, 4 columns, nominee footer, Submit vote. Portrait 390×844 keeps Submit reachable with no horizontal overflow.
+- **Files:** `apps/web/src/routes/Table.tsx`, `apps/web/src/game/components/{PlayerGrid,GameStatusBar,voteCopy,phaseCopy,table-screen.css}`, `apps/web/src/game/layout/{game-layout.css,LayoutPreview.tsx}`, `apps/web/test/screens/{table,vote-copy}.test.*`, `apps/web/e2e/{layout,table}.spec.ts`, `docs/AI-TASK-BOARD.md`.
+- **Depends on:** UX-10
+
+### UX-10 — Day discussion pixel match
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Table `DAY_DISCUSSION` matches `08-day-discussion.png` at 1586×992. Status shows Day / Discussion with a sun pill. The stage uses `square_day` and public seat cards (`#N Name`, Alive). Discussion rail is ~459px with live messages, Type a message…, and Send. Action guide plus Continue to voting for the host. Night-only role panels stay off the day stage.
+- **Checked:** Table, phase-copy, chat-copy, layout-mode tests (77). Typecheck clean. Browser at 1586×992 on a live Classic day: rail 459px, seat cards, chat message, Continue to voting. Portrait 390×844 keeps Continue reachable with no horizontal overflow.
+- **Files:** `apps/web/src/routes/Table.tsx`, `apps/web/src/game/components/{DiscussionPanel,GameStatusBar,phaseCopy,table-screen.css}`, `apps/web/src/game/layout/{game-layout.css,LayoutPreview.tsx}`, `apps/web/test/screens/{table,phase-copy}.test.*`, `apps/web/e2e/layout.spec.ts`, `docs/AI-TASK-BOARD.md`.
+- **Depends on:** UX-09
+
+### UX-09 — Morning results pixel match
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Table `DAY_ANNOUNCE` matches `07-morning-results.png` at 1586×992. Status uses a Morning pill and “Night has ended…”. The stage uses `square_day` with a centered outcome card (public elimination line or nobody died, Survivors avatars). Discussion is locked with a padlock and “Discussion will open after you continue to day.” Host Continue to day stays in the action bar. Private investigation notes stay under the card as Your report.
+- **Checked:** Morning-copy, chat-copy, table, phase-copy, and layout-mode tests (78). Typecheck clean. Browser at 1586×992 on a live Classic morning: card ~(263,352,712,325), day wash, locked discussion, Continue to day. Portrait 390×844 keeps Continue on screen with no horizontal overflow.
+- **Files:** `apps/web/src/routes/Table.tsx`, `apps/web/src/game/components/{morningCopy,GameStatusBar,DiscussionPanel,chatCopy,phaseCopy,table-screen.css}`, `apps/web/src/game/layout/stageMode.ts`, `apps/web/test/screens/{morning-copy,chat-copy,table}.test.*`, `apps/web/test/game/layout-mode.test.ts`, `docs/AI-TASK-BOARD.md`.
+- **Depends on:** UX-08
 
 ### UX-08 — Night resolution pixel match
 

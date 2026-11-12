@@ -47,7 +47,7 @@ export function closeButtonLabel(close: PhaseClose, phase?: GamePhase | null): s
     case 'DAY_DISCUSSION':
       return 'Continue to day';
     case 'VOTING':
-      return 'Open voting';
+      return 'Continue to voting';
     case 'REVOTE':
       return 'Start the revote';
     default:
@@ -113,13 +113,13 @@ export function phaseGuide(phase: GamePhase): string {
     case 'NIGHT_REACTION':
       return 'Some roles may react to the night’s target.';
     case 'DAY_ANNOUNCE':
-      return 'The village learns what happened in the night.';
+      return 'Night has ended. See what happened, then continue to day.';
     case 'DAY_DISCUSSION':
-      return 'Talk it over. Voting opens next.';
+      return 'Discuss and share your thoughts.';
     case 'VOTING':
-      return 'Living players vote on who to eliminate.';
+      return 'Day • Vote to eliminate a player';
     case 'REVOTE':
-      return 'The vote tied. Only the tied players can be chosen.';
+      return 'Day • Choose among the tied players';
     case 'FINISHED':
       return 'The game is over.';
     case 'CANCELLED':
@@ -136,10 +136,21 @@ export function formatCountdown(seconds: number): string {
 }
 
 /** What a guest reads in the action row. The host gets the close button instead. */
-export function guestActionCopy(state: { status: string; phaseEndsAt: string | null }): string {
+export function guestActionCopy(state: { status: string; phase?: string; phaseEndsAt: string | null }): string {
   if (state.status === 'CANCELLED') return 'This game was cancelled. Roles stay hidden.';
+  if (state.phase === 'DAY_DISCUSSION') {
+    return 'Talk with the group, ask questions, and raise any suspicions. When you are ready, the host opens voting.';
+  }
   if (state.phaseEndsAt) return 'The timer closes this phase.';
   return 'Waiting for host';
+}
+
+/** Day discussion action guidance. Hosts and guests both read it. */
+export function dayDiscussionActionCopy(): { readonly title: string; readonly body: string } {
+  return {
+    title: 'Discuss and share your thoughts',
+    body: 'Talk with the group, ask questions, and raise any suspicions. When you are ready, continue to voting to choose a player to eliminate.',
+  };
 }
 
 /** A stale close is one sentence. Any other refusal shows the server's message. */

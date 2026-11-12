@@ -22,6 +22,32 @@ export function GameStatusBar({ phase, roundNumber, seconds, showClock, onElapse
   const round = roundLabel(roundNumber);
   const guide = phaseGuide(phase);
   const night = NIGHT_PHASES.has(phase);
+  const morning = phase === 'DAY_ANNOUNCE';
+  const dayTalk = phase === 'DAY_DISCUSSION';
+  const voting = phase === 'VOTING';
+  const revote = phase === 'REVOTE';
+
+  if (morning || dayTalk || voting || revote) {
+    const pill = dayTalk ? 'Day / Discussion' : voting ? phaseName.toUpperCase() : revote ? 'Day — Revote' : phaseName;
+    return (
+      <div className="ww-status" data-phase={phase}>
+        <div className="ww-status-pack">
+          <span className="ww-pill ww-status-phase" data-tone="morning">
+            <span className="ww-status-sun" aria-hidden="true" />
+            <span className="ww-status-title is-pill">{pill}</span>
+          </span>
+          {dayTalk || revote ? null : <p className="ww-status-guide">{guide}</p>}
+          {(dayTalk || voting || revote) && showClock ? <CountdownTimer seconds={seconds} {...(onElapsed ? { onElapsed } : {})} /> : null}
+        </div>
+        {morning && showClock ? <CountdownTimer seconds={seconds} {...(onElapsed ? { onElapsed } : {})} /> : null}
+        <h1 className="ww-sr">{phaseName}</h1>
+        <p className="ww-sr" aria-live="polite">
+          {phaseName}. {round}. {guide}
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="ww-status" data-phase={phase}>
       <div className="ww-status-pack">

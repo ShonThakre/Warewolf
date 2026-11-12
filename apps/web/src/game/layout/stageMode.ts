@@ -53,7 +53,7 @@ export const STAGE_SPECS: Readonly<Record<StageMode, StageSpec>> = {
   lobby: { scene: 'lobby_campfire', wash: 'night', foreground: 'avatars', portraitForeground: 'scene', action: 'start' },
   reveal: { scene: 'square_night', wash: 'night', foreground: 'avatars', portraitForeground: 'scene', action: 'wait-for-host' },
   night: { scene: 'square_night', wash: 'night', foreground: 'player-grid', portraitForeground: 'middle', action: 'submit-ability' },
-  'night-results': { scene: 'square_night', wash: 'night', foreground: 'result-card', portraitForeground: 'scene', action: 'continue-to-day' },
+  'night-results': { scene: 'square_day', wash: 'day', foreground: 'result-card', portraitForeground: 'scene', action: 'continue-to-day' },
   day: { scene: 'square_day', wash: 'day', foreground: 'avatars', portraitForeground: 'scene', action: 'open-voting' },
   voting: { scene: 'square_dusk', wash: 'day', foreground: 'player-grid', portraitForeground: 'middle', action: 'confirm-vote' },
   results: { scene: 'BY_OUTCOME', wash: 'day', foreground: 'victory', portraitForeground: 'scene', action: 'play-again' },

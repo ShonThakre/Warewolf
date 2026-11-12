@@ -6,6 +6,7 @@ import { fixtureName, fixturePlayerId } from '../../src/game/fixtures/role';
 describe('chat copy', () => {
   it('disables the composer with the server refusal and counts an emoji as one', () => {
     expect(chatRefusalCopy('CLOSED')).toBe('Discussion is closed at night.');
+    expect(chatRefusalCopy('CLOSED', 'DAY_ANNOUNCE')).toBe('Discussion will open after you continue to day.');
     expect(chatRefusalCopy('DEAD')).toBe('The dead read only.');
     expect(chatRefusalCopy('MUTED')).toBe('The host muted you.');
     expect(chatRefusalCopy(null)).toBeNull();
