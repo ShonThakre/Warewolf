@@ -66,7 +66,7 @@ Drizzle has no down migrations. Each `apps/api/drizzle/<tag>.sql` needs a hand-w
 1. In the Render dashboard choose **New > Blueprint**, connect GitHub, and pick this repository. Render reads `render.yaml`, shows the two resources and their monthly cost, and creates them on **Apply**.
 2. When the first deploy is live, the game is at `https://warewolf-<suffix>.onrender.com`. `GET /api/v1/health/ready` should answer `{"status":"ok","database":"ok"}`.
 
-Keep the service at one instance. Phase deadlines are in-process timers and Socket.IO rooms are in memory. The default plans are always-on (`starter` and `basic-256mb`). A free web service sleeps after 15 idle minutes and a free database is deleted after 30 days.
+Keep the service at one instance. Phase deadlines are in-process timers and Socket.IO rooms are in memory. Both resources use Render's free plans. The free web service sleeps after 15 idle minutes, and the first visit after that waits about a minute while it wakes. The free database expires 30 days after creation. For an always-on service with a database that stays, set the plans to `starter` and `basic-256mb` (about $13 a month).
 
 To try the same image locally: `docker build -t warewolf .`, then run it with `-p 3000:3000 -e DATABASE_URL=...`. `compose.prod.yaml`, the two-container nginx stack, still works as before.
 

@@ -9,9 +9,9 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     dockerContext: .
-    # Always on. "free" also works, but it sleeps after 15 idle minutes, so
-    # open sockets drop and the first visit waits about a minute.
-    plan: starter
+    # Free: sleeps after 15 idle minutes and wakes on the next visit in about
+    # a minute. Phase timers recover on boot. "starter" ($7/mo) stays on.
+    plan: free
     region: singapore
     numInstances: 1
     branch: main
@@ -25,8 +25,9 @@ services:
 
 databases:
   - name: warewolf-db
-    # "free" expires after 30 days and its data is deleted.
-    plan: basic-256mb
+    # Free: expires 30 days after creation, then its data is deleted. Recreate
+    # it, or move to "basic-256mb" ($6/mo) to keep it.
+    plan: free
     region: singapore
     databaseName: warewolf
     user: warewolf
