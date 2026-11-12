@@ -63,6 +63,13 @@ export function questionLabel(question: string): string {
   return QUESTION_LABELS[question] ?? 'Ask the allowed question';
 }
 
+/** The note under an exclusive choice. The Vampire team may take only one of its two actions. */
+export function exclusiveNote(group: string | undefined): string | null {
+  if (!group) return null;
+  if (group === 'vampire_choice') return 'The Vampire team chooses one action tonight: kill or mark.';
+  return 'This replaces your other choice.';
+}
+
 /** Why a row is disabled. PASSIVE is omitted by the panel, so it has no sentence. */
 export function availabilitySentence(availability: Availability): string | null {
   switch (availability) {

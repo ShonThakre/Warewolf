@@ -65,9 +65,12 @@ describe('tallyDay', () => {
 
   it('applies no-vote, then a swap, then a double vote', () => {
     const votes = [vote('a', 'd'), vote('b', 'd'), vote('c', 'a')];
-    const silenced = tallyDay({ round: 1, ballot: 'FIRST', players, assignments: [], abilities: [], votes, chaosEffects: [{ kind: 'NO_VOTE', playerIds: ['a', 'b'] }] });
-    expect(silenced.eliminated).toBe('a');
+    const silenced = tallyDay({ round: 1, ballot: 'FIRST', players, assignments: [], abilities: [], votes, chaosEffects: [{ kind: 'NO_VOTE', playerIds: [] }] });
+    expect(silenced.eliminated).toBeNull();
+    expect(silenced.counts).toEqual({});
     expect(silenced.chaosOutcomes[0]).toEqual({ kind: 'NO_VOTE', applied: true });
+    const abstained = tallyDay({ round: 1, ballot: 'FIRST', players, assignments: [], abilities: [], votes: [vote('a', null)], chaosEffects: [{ kind: 'NO_VOTE', playerIds: [] }] });
+    expect(abstained.chaosOutcomes[0]).toEqual({ kind: 'NO_VOTE', applied: false });
 
     const swapped = tallyDay({
       round: 1,

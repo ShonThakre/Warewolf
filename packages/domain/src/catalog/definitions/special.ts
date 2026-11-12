@@ -31,12 +31,12 @@ export const assassin: RoleDefinition = role({
   category: 'NEUTRAL',
   defaultFaction: 'NEUTRAL',
   allowedFactions: ['NEUTRAL', 'VILLAGE', 'WOLF_PACK'],
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   decisionIds: ['OD-09'],
   profiles: [
     profile({
       id: 'assassin_mark',
-      status: 'RECOMMENDED',
+      status: 'CONFIRMED',
       description: 'On night 1, marks one living player. Wins if that player is later eliminated by anyone. Does not kill.',
       decisionIds: ['OD-09'],
       victory: individual('MARKED_TARGET_ELIMINATED'),
@@ -69,7 +69,7 @@ export const cursedVillager: RoleDefinition = role({
   description: 'Starts as a villager. Surviving a wolf attack turns them into an Infected Wolf if the wolf cap allows.',
   category: 'TRANSFORMATION',
   defaultFaction: 'VILLAGE',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   decisionIds: ['OD-06'],
   abilities: [
     ability({
@@ -91,7 +91,7 @@ export const loneWolf: RoleDefinition = role({
   category: 'INDEPENDENT',
   defaultFaction: 'INDEPENDENT',
   wolfAligned: true,
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   infectionTarget: 'INELIGIBLE',
   decisionIds: ['OD-10', 'OD-37'],
   abilities: [
@@ -115,7 +115,7 @@ export const immortal: RoleDefinition = role({
   category: 'DEFENSIVE',
   defaultFaction: 'VILLAGE',
   allowedFactions: ['VILLAGE', 'NEUTRAL', 'WOLF_PACK', 'INDEPENDENT'],
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   decisionIds: ['OD-12'],
   abilities: [
     ability({
@@ -137,7 +137,7 @@ export const avenger: RoleDefinition = role({
   category: 'REACTIVE',
   defaultFaction: 'VILLAGE',
   allowedFactions: ['VILLAGE', 'NEUTRAL', 'WOLF_PACK'],
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   decisionIds: ['OD-13'],
   abilities: [
     ability({

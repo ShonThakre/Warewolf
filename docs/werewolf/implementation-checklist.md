@@ -100,7 +100,7 @@ Dependencies refer to task ids or to decision ids in [open-decisions.md](./open-
 |---|---|---|---|---|---|---|
 | WW-801 | Pure `resolveNight` in the documented step order | P0 | WW-701 | XL | Golden fixtures for the same-night examples | Done. Steps 1 to 18, every information kind, delayed poison, and persistent effects. `packages/domain/test/night-golden.test.ts` compares the whole result for each section 8 example; `night-expanded.test.ts` covers each new step |
 | WW-802 | Transaction, game lock, resolution_run, event rows | P0 | WW-801, WW-501 | L | Double resolve is one commit | Done. Event rows are written after this commit by WW-804. `apps/api/test/night.integration.test.ts`: racing closes, a forced second resolve, the unique run key, and a failed write that rolls back and then retries |
-| WW-803 | Host kill confirmation constrained to submissions | P0 | WW-802, WW-503 | M | A target nobody submitted is rejected | Not started |
+| WW-803 | Host kill confirmation constrained to submissions | P0 | WW-802, WW-503 | M | A target nobody submitted is rejected | Done. A target no wolf named is 422. Host confirm cannot close without a choice or no kill. The informed Doctor reads `finalWolfTarget`. The table picker is on the host confirm stage |
 | WW-804 | Private result events after commit | P0 | WW-802 | M | Investigation and infection events have the audiences in the API design | Done. `game_events` is written after the night commit from the stored rows, with separate player and host payloads. `apps/api/test/events.integration.test.ts` |
 
 ---
@@ -111,7 +111,7 @@ Dependencies refer to task ids or to decision ids in [open-decisions.md](./open-
 |---|---|---|---|---|---|---|
 | WW-901 | Ballots, weights, abstain, replace, close, revote | P0 | WW-501 | L | Tie fixture matches OD-40 | Done. A tie opens one revote. A second tie eliminates nobody. `POST /games/:gameId/votes` |
 | WW-902 | Victory evaluator with team and individual records | P0 | WW-801 | L | Parity equality is a wolf win. Jester does not end the game by default | Done. Night and day closes write `victory_records`. A night that ends the game does not open the day |
-| WW-903 | Public tally and results screen | P1 | WW-901, WW-902 | M | Finished game shows original and final roles. Cancelled game does not | Not started |
+| WW-903 | Public tally and results screen | P1 | WW-901, WW-902 | M | Finished game shows original and final roles. Cancelled game does not | Done. The results route shows catalog names, the outcome, and infections. A cancelled game shows seats and the reason. No public tally |
 
 ---
 
@@ -121,14 +121,14 @@ Grouped so a role ships with its handler tests. Unresolved roles stay unseatable
 
 | ID | Description | Priority | Depends on | Complexity | Acceptance | Status |
 |---|---|---|---|---|---|---|
-| WW-1001 | Detective, Oracle, Tracker, Psychic, Medium, Prophet, Seer | P1 | WW-801, OD-21–OD-27 | L | Each result fixture matches the catalog profile | Partly done. Every result kind resolves (WW-801, `night-expanded.test.ts`) and the private result rows are stored (WW-804). Left: emitting them (WW-1102) and prompts |
-| WW-1002 | Bodyguard, Shieldbearer, Trapper, Blacksmith item, Immortal | P1 | WW-801 | L | Protection matrix in night-resolution.md | Partly done. Night side resolves (WW-801). Left: Immortal on day elimination (WW-901) |
-| WW-1003 | Sniper, Poisoner, Disruptor | P1 | WW-801 | M | Poison is not stopped by Guard in the default toggle | Partly done. Disruptor and the Poisoner's scheduling resolve (WW-801). Left: the Sniper and a day-due poison, both in the day resolution |
-| WW-1004 | Jester, Assassin mark, Cursed, Lone Wolf, Avenger | P1 | WW-902 | L | Individual wins record without always ending the game | Not started |
-| WW-1005 | Shapeshifter, Spy, Elder, Mayor, Healer Assistant | P1 | WW-801, WW-901 | L | Copy cannot chain. Assistant is idle while Doctor lives | Partly done. Shapeshifter, Spy, and the Assistant's night inheritance resolve (WW-801). Left: Elder and Mayor weights, and inheritance after a day vote (WW-901) |
+| WW-1001 | Detective, Oracle, Tracker, Psychic, Medium, Prophet, Seer | P1 | WW-801, OD-21–OD-27 | L | Each result fixture matches the catalog profile | Done. Every result kind resolves and is stored. The table shows that seat's own sentence. A host copy that names another actor stays off the table |
+| WW-1002 | Bodyguard, Shieldbearer, Trapper, Blacksmith item, Immortal | P1 | WW-801 | L | Protection matrix in night-resolution.md | Done. Night protection resolves. A day close lets Immortal spend the one charge and stay alive |
+| WW-1003 | Sniper, Poisoner, Disruptor | P1 | WW-801 | M | Poison is not stopped by Guard in the default toggle | Done 12 November 2026. Disruptor and poison scheduling resolve at night (WW-801); day-due poison resolves in the day close; the Sniper's day shot resolves when discussion closes (WW-1003b, OD-29) |
+| WW-1004 | Jester, Assassin mark, Cursed, Lone Wolf, Avenger | P1 | WW-902 | L | Individual wins record without always ending the game | Done. A Jester day-vote win continues the game. The Assassin mark is passed into victory. Cursed conversion, the Lone Wolf kill, and Avenger revenge resolve at night |
+| WW-1005 | Shapeshifter, Spy, Elder, Mayor, Healer Assistant | P1 | WW-801, WW-901 | L | Copy cannot chain. Assistant is idle while Doctor lives | Done. Copy, Spy, and night inheritance resolve. Vote weight adds Elder and Mayor. A day close hands a dead Doctor's abilities to a living Assistant |
 | WW-1006 | Keep Hermit, Confuser, Priest, Bard, and Assassin execute unseatable | P0 | WW-203 | S | Validation error names the decision id | Done |
-| WW-1007 | Pack Wolf and Classic knowledge flag | P1 | WW-701, OD-35 | M | Classic reveal includes pack mates. Infection reveal does not | Not started |
-| WW-1008 | Ultimate 20 mode, pack, roles, and pure day and victory functions | P1 | WW-802 | L | A 20-seat Ultimate room deals the locked roster. Domain tests cover the new night steps, `tallyDay`, and `evaluateVictory` | Done as an engine. Left: persist rewinds, chaos, revivals, silences, and hints; call `drawChaos`; pass revival and chaos success into the victory call that phase close already makes |
+| WW-1007 | Pack Wolf and Classic knowledge flag | P1 | WW-701, OD-35 | M | Classic reveal includes pack mates. Infection reveal does not | Done. Classic `knowsTeammates` shows pack mates. Infection wolves see none |
+| WW-1008 | Ultimate 20 mode, pack, roles, and pure day and victory functions | P1 | WW-802 | L | A 20-seat Ultimate room deals the locked roster. Domain tests cover the new night steps, `tallyDay`, and `evaluateVictory` | Done. U20-PLAY persists the Chaos draw, success count, and revivals, promotes a Vampire mark at dawn after the next night, and keeps the Vampire team action private. Silences and hints are still recorded on the night result and are not a separate persisted counter |
 
 ---
 
@@ -137,9 +137,9 @@ Grouped so a role ships with its handler tests. Unresolved roles stay unseatable
 | ID | Description | Priority | Depends on | Complexity | Acceptance | Status |
 |---|---|---|---|---|---|---|
 | WW-1101 | Socket authentication and rooms | P0 | WW-403 | M | Foreign token cannot join a player room | Done. Handshake token, `join-session` enters only that seat's rooms, a foreign token joins nothing. `apps/api/test/socket.integration.test.ts` |
-| WW-1102 | Emit stored events after commit and support `afterSeq` | P0 | WW-804, WW-1101 | M | Kill the socket, reconnect, and the private result arrives once | Not started |
-| WW-1103 | Phase banners update from events | P1 | WW-1102, WW-604 | M | Two browsers move from night to day together | Not started |
-| WW-1104 | Chat message contract, storage, send endpoint, and socket fan-out with host moderation | P1 | WW-1102, OD-72 chat rules | L | A message reaches only the audience the chat rules allow. Rate limit and length checks return 422 or 429. A muted seat cannot post | Not started. Chat rules accepted 11 November 2026 |
+| WW-1102 | Emit stored events after commit and support `afterSeq` | P0 | WW-804, WW-1101 | M | Kill the socket, reconnect, and the private result arrives once | Done. `GET /events?afterSeq` and `join-session` replay the stored rows. A villager does not receive the Seeker's result |
+| WW-1103 | Phase banners update from events | P1 | WW-1102, WW-604 | M | Two browsers move from night to day together | Done. A public `PHASE_CHANGED` row is written and emitted after every close. `useGameState` refetches on it. `apps/api/test/phase-events.integration.test.ts` |
+| WW-1104 | Chat message contract, storage, send endpoint, and socket fan-out with host moderation | P1 | WW-1102, OD-72 chat rules | L | A message reaches only the audience the chat rules allow. Rate limit and length checks return 422 or 429. A muted seat cannot post | In review 12 November 2026. API, storage, socket fan-out, moderation, and the client data layer. See the board |
 
 ---
 
@@ -148,11 +148,11 @@ Grouped so a role ships with its handler tests. Unresolved roles stay unseatable
 | ID | Description | Priority | Depends on | Complexity | Acceptance | Status |
 |---|---|---|---|---|---|---|
 | WW-1201 | Configuration browser, counts, warnings, locked Infection Core. Step rail on landscape and desktop. One step and a count strip in portrait | P0 | WW-304, WW-303 | L | Invalid start control stays disabled. The summary counts stay visible at 1024×768 and at 390×844 | Done. Host setup at `/lobby/:gameId/setup` |
-| WW-1202 | Host dashboard sections listed in the UI plan, using `ResponsiveSidebar` | P0 | WW-1103, WW-803 | L | Host sees submissions. A player route does not. Sections remain reachable at 844×390 and at 390×844 | Not started |
-| WW-1203 | Results recap on `GameLayout` | P1 | WW-903 | M | Recap matches API results. Cancelled games hide roles. The stat row fits 1920×1080 and 390×844 | Not started |
+| WW-1202 | Host dashboard sections listed in the UI plan, using `ResponsiveSidebar` | P0 | WW-1103, WW-803 | L | Host sees submissions. A player route does not. Sections remain reachable at 844×390 and at 390×844 | Done |
+| WW-1203 | Results recap on `GameLayout` | P1 | WW-903 | M | Recap matches API results. Cancelled games hide roles. The stat row fits 1920×1080 and 390×844 | Done |
 | WW-1204 | `GameLayout` for lobby, reveal, night, day, and vote, including the portrait reflow and safe areas | P0 | WW-1201, WW-604 | L | Desktop and landscape show the same regions. Primary buttons clear system bars. No horizontal page scroll at the seven UI-plan viewports | Done. Fixture shell covers lobby, reveal, night, night results, day, voting, and results at the seven viewports. The live reveal stays a private scene |
-| WW-1206 | Live composer in the discussion rail, including the host moderation controls | P1 | WW-1104, WW-1204 | M | The composer is enabled only when the chat rules allow it. It stays reachable at the seven viewports | Not started. Chat rules accepted 11 November 2026 |
-| WW-1205 | Playwright coverage for the seven viewports in the UI plan | P0 | WW-1204 | M | `desktop-fhd`, `desktop-wide`, `tablet-land`, `phone-land-lg`, `phone-land`, `phone-land-sm`, and `phone-portrait` pass the layout assertions | Not started |
+| WW-1206 | Live composer in the discussion rail, including the host moderation controls | P1 | WW-1104, WW-1204 | M | The composer is enabled only when the chat rules allow it. It stays reachable at the seven viewports | Done. Send stays on screen at the seven viewports, including the collapsed rail at 568×320. The results recap does not show chat |
+| WW-1205 | Playwright coverage for the seven viewports in the UI plan | P0 | WW-1204 | M | `desktop-fhd`, `desktop-wide`, `tablet-land`, `phone-land-lg`, `phone-land`, `phone-land-sm`, and `phone-portrait` pass the layout assertions | Done. `e2e/layout.spec.ts` and `e2e/table.spec.ts` cover the seven projects, including the 568×320 rail |
 
 ---
 
@@ -162,8 +162,8 @@ Grouped so a role ships with its handler tests. Unresolved roles stay unseatable
 |---|---|---|---|---|---|---|
 | WW-1301 | Token hashing, generic errors, rate limits | P0 | WW-302, WW-601 | M | Security tests in the testing plan | Done. Hashed tokens, generic 404/403/409/422 bodies, and 429 on a join burst. `apps/api/test/security.integration.test.ts` |
 | WW-1302 | Boot recovery for timed and host-paced games | P0 | WW-502, WW-802 | M | Restart test | Done. After a resolved Classic night, a restart with a passed day deadline advances and leaves that night's `resolution_run` at one. `apps/api/test/recovery.integration.test.ts` |
-| WW-1303 | Audit review of every host route | P0 | WW-1202 | M | No route writes a role or a winner directly | Not started |
-| WW-1304 | Structured logs with ids only | P2 | WW-1301 | S | A test logger assertion excludes role names | Not started |
+| WW-1303 | Audit review of every host route | P0 | WW-1202 | M | No route writes a role or a winner directly | Done 12 November 2026. Audit test in `apps/api/test/host-routes.integration.test.ts`; one socket finding fixed. See the board |
+| WW-1304 | Structured logs with ids only | P2 | WW-1301 | S | A test logger assertion excludes role names | Done. `logLine` keeps ids and drops a role name. Phase close uses it |
 
 ---
 
@@ -172,7 +172,7 @@ Grouped so a role ships with its handler tests. Unresolved roles stay unseatable
 | ID | Description | Priority | Depends on | Complexity | Acceptance | Status |
 |---|---|---|---|---|---|---|
 | WW-1401 | Seeded simulator using player projections only | P1 | WW-902 | L | 1,000 Infection games finish and write JSON | Done. `simulate` in `packages/domain`. Bots see `SeatProjection` only. 1,000 Infection games, seed 1, policy `random-legal`, write JSON. Frequencies are bot measurements |
-| WW-1402 | Run 10,000 Infection games on the approved Doctor mode and publish the report under docs | P1 | WW-1401, OD-02 | M | The report names seed, policy, and Doctor negates | Not started |
+| WW-1402 | Run 10,000 Infection games on the approved Doctor mode and publish the report under docs | P1 | WW-1401, OD-02 | M | The report names seed, policy, and Doctor negates | Done 12 November 2026. Report in `docs/werewolf/simulation/` |
 | WW-1403 | API integration suite for 10, 15, 20, 24, and 30 seat deals | P1 | WW-402 | M | Counts match the presets | Done. `classic-10`, `chaos-15`, `infection-core`, `expanded-24`, and `expanded-30` deal the preset counts. `apps/api/test/deal-counts.integration.test.ts` |
 
 ---
@@ -181,9 +181,9 @@ Grouped so a role ships with its handler tests. Unresolved roles stay unseatable
 
 | ID | Description | Priority | Depends on | Complexity | Acceptance | Status |
 |---|---|---|---|---|---|---|
-| WW-1501 | Production Compose file for web, api, and PostgreSQL | P1 | WW-1302 | M | A clean machine boots and passes health checks | Not started |
-| WW-1502 | Migrations on startup or a documented release step | P1 | WW-1501 | S | An empty volume reaches the current schema | Not started |
-| WW-1503 | Request ids and a minimal uptime check | P2 | WW-1501 | S | Logs include request id and game id | Not started |
+| WW-1501 | Production Compose file for web, api, and PostgreSQL | P1 | WW-1302 | M | A clean machine boots and passes health checks | Done. `compose.prod.yaml` with `apps/api/Dockerfile` and `apps/web/Dockerfile`. The API health check is `GET /api/v1/health` |
+| WW-1502 | Migrations on startup or a documented release step | P1 | WW-1501 | S | An empty volume reaches the current schema | Done. The API image runs `cli.js up` before `main.js` |
+| WW-1503 | Request ids and a minimal uptime check | P2 | WW-1501 | S | Logs include request id and game id | Done 12 November 2026. See the board |
 
 ---
 
@@ -191,10 +191,10 @@ Grouped so a role ships with its handler tests. Unresolved roles stay unseatable
 
 | ID | Description | Priority | Depends on | Complexity | Acceptance | Status |
 |---|---|---|---|---|---|---|
-| WW-1601 | Add Capacitor to `apps/web` and sync the Vite build into `apps/web/android` | P1 | WW-1204 | M | `cap sync` copies the responsive client into the Android project. Orientation stays unlocked | Not started |
-| WW-1602 | Produce a sideload `app-debug.apk` with INTERNET permission and a build-time API origin | P1 | WW-1601, WW-1501 | M | Gradle assembleDebug installs and reaches the API. Keystore stays out of git | Not started |
-| WW-1603 | Store the bearer token with Capacitor Preferences in the APK and sessionStorage on web | P1 | WW-1601 | S | Token survives APK process kill. `/me` remains the source of truth | Not started |
-| WW-1604 | Install smoke test: open APK, create or join, restore session after restart | P1 | WW-1602, WW-1603 | M | Smoke checklist passes on a physical or emulated device | Not started |
+| WW-1601 | Add Capacitor to `apps/web` and sync the Vite build into `apps/web/android` | P1 | WW-1204 | M | `cap sync` copies the responsive client into the Android project. Orientation stays unlocked | Done 12 November 2026. See the board |
+| WW-1602 | Produce a sideload `app-debug.apk` with INTERNET permission and a build-time API origin | P1 | WW-1601, WW-1501 | M | Gradle assembleDebug installs and reaches the API. Keystore stays out of git | Done 12 November 2026: debug APK builds, LAN path verified. Install on a device is WW-1604 |
+| WW-1603 | Store the bearer token with Capacitor Preferences in the APK and sessionStorage on web | P1 | WW-1601 | S | Token survives APK process kill. `/me` remains the source of truth | Done in code 12 November 2026. On-device restart is checked in WW-1604. See the board |
+| WW-1604 | Install smoke test: open APK, create or join, restore session after restart | P1 | WW-1602, WW-1603 | M | Smoke checklist passes on a physical or emulated device | Done 12 November 2026 on the Android emulator: open, create over LAN, restore after process kill. See the board |
 
 ---
 

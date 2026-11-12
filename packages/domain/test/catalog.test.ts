@@ -92,7 +92,8 @@ describe('role catalog', () => {
   it('encodes the confirmed Infection Edition abilities', () => {
     expect(getProfile(role('guard'))?.abilities[0]).toMatchObject({
       capability: 'PROTECT',
-      cancels: ['WOLF_KILL'],
+      // OD-29: the night's protection also covers the next day's Sniper shot.
+      cancels: ['WOLF_KILL', 'SNIPER'],
       target: { kind: 'PLAYERS', self: true, notSameAsLastRound: true },
     });
     const witch = getProfile(role('witch'))?.abilities ?? [];

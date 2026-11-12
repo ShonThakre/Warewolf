@@ -53,6 +53,20 @@ describe('seeded simulator (WW-1401)', () => {
     writeFileSync(path, `${JSON.stringify(report)}\n`);
     expect(JSON.parse(JSON.stringify(report)).note).toMatch(/Not a human win rate/);
   }, 180_000);
+
+  it('saving-doctor spends the save on every attack it is told of, and stays within the seat view', () => {
+    const views: SeatProjection[] = [];
+    const saving = simulate({ games: 300, seed: 3, policyId: 'saving-doctor', onView: (view) => views.push(view) });
+    const random = simulate({ games: 300, seed: 3, policyId: 'random-legal' });
+    expect(saving.finished).toBe(300);
+    // An informed Doctor who never declines negates far more than a random one.
+    expect(saving.doctorNegatedFraction).toBeGreaterThan(random.doctorNegatedFraction + 0.2);
+    for (const view of views) {
+      const found = new Set<string>();
+      exactRoleIds(view, found);
+      expect([...found]).toEqual([view.roleId]);
+    }
+  }, 180_000);
 });
 
 function viewHasNoRole(id: string): boolean {

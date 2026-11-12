@@ -1,5 +1,5 @@
 import type { HostRoster, MyRole, OwnAbility, RoleRef, RosterEntry, Teammate } from '@warewolf/contracts';
-import { DEFAULT_CATALOG, type GameConfiguration, type RoleCatalog } from '@warewolf/domain';
+import { DEFAULT_CATALOG, isVampireTeamRole, type GameConfiguration, type RoleCatalog } from '@warewolf/domain';
 import type { AbilityInstanceRow, GamePlayerRow, GameRow, RoleAssignmentRow } from '../db/schema.js';
 
 /**
@@ -9,8 +9,12 @@ import type { AbilityInstanceRow, GamePlayerRow, GameRow, RoleAssignmentRow } fr
  * seats of teammates the configuration lets them know.
  */
 
-/** Classic Pack Wolves see each other when the configuration says so. Infection wolves never do (C-07). */
+/**
+ * Classic Pack Wolves see each other when the configuration says so. Infection wolves never do (C-07).
+ * A Vampire and a Servant see the living Vampire team. A pending mark does not.
+ */
 export function teammatesVisible(config: GameConfiguration, assignment: RoleAssignmentRow): boolean {
+  if (isVampireTeamRole(assignment.currentRoleId)) return true;
   return config.wolves.knowsTeammates && assignment.currentFaction === 'WOLF_PACK';
 }
 

@@ -89,7 +89,7 @@ describe('gamePath', () => {
     ['ACTIVE', 'NIGHT_SUBMIT', `/game/${GAME}`],
     ['ACTIVE', 'VOTING', `/game/${GAME}`],
     ['FINISHED', 'FINISHED', `/game/${GAME}/results`],
-    ['CANCELLED', 'CANCELLED', null],
+    ['CANCELLED', 'CANCELLED', `/game/${GAME}/results`],
   ] as const)('%s / %s goes to %s', (status, phase, path) => {
     expect(gamePath(GAME, status, phase)).toBe(path);
   });

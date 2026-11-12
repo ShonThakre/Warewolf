@@ -1,0 +1,9 @@
+**/node_modules
+**/dist
+**/.git
+**/coverage
+**/.vite
+apps/web/test-results
+apps/web/playwright-report
+# The Android shell (WW-1601) is built by Gradle on a developer machine, never in the web image.
+apps/web/android

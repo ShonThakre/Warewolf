@@ -5,6 +5,7 @@ import {
   ACTION_REJECTIONS,
   ACTION_WINDOWS,
   CAPABILITIES,
+  CHAT_OPEN_PHASES,
   CONVERSION_REASONS,
   EFFECT_STATUSES,
   FACTIONS,
@@ -68,6 +69,7 @@ describe('schema matches the domain', () => {
     ['scheduled_effects', 'scheduled_effects_kind_ck', NIGHT_EFFECT_KINDS],
     ['scheduled_effects', 'scheduled_effects_status_ck', EFFECT_STATUSES],
     ['scheduled_effects', 'scheduled_effects_due_phase_ck', RESOLUTION_KINDS],
+    ['chat_messages', 'chat_messages_phase_ck', CHAT_OPEN_PHASES],
   ] as const)('%s.%s lists exactly the domain values', (table, name, values) => {
     expect(quoted(checksOf(table)[name]!.value)).toEqual([...values]);
   });

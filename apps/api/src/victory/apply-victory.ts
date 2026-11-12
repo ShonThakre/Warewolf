@@ -13,6 +13,7 @@ import { gamePlayers, games, roleAssignments, victoryRecords, type GameRow, type
  */
 export async function applyVictory(tx: Transaction, game: GameRow, dayEliminated: readonly string[]): Promise<boolean> {
   const config = parseGameConfiguration(game.configSnapshot);
+  const [stored] = await tx.select().from(games).where(eq(games.id, game.id));
   const players = await tx.select().from(gamePlayers).where(eq(gamePlayers.gameId, game.id));
   const assignments = await tx.select().from(roleAssignments).where(eq(roleAssignments.gameId, game.id));
   const byPlayer = new Map(assignments.map((a) => [a.playerId, a]));
@@ -30,6 +31,9 @@ export async function applyVictory(tx: Transaction, game: GameRow, dayEliminated
       markTargetPlayerId: a.markTargetPlayerId,
     })),
     dayEliminated,
+    chaosSuccesses: stored?.chaosSuccesses ?? 0,
+    chaosAchieved: stored?.chaosAchieved ?? false,
+    revivedBy: stored?.revivedBy ?? [],
   });
 
   const state = new Map<string, IndividualVictoryState>(assignments.map((a) => [a.playerId, a.individualVictory]));
@@ -53,6 +57,10 @@ export async function applyVictory(tx: Transaction, game: GameRow, dayEliminated
         terminal: result.ended,
       });
     }
+  }
+
+  if (result.chaosAchieved && stored && !stored.chaosAchieved) {
+    await tx.update(games).set({ chaosAchieved: true }).where(eq(games.id, game.id));
   }
 
   if (!result.ended) return false;

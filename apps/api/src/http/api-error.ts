@@ -49,6 +49,10 @@ export const errors = {
   /** A dead voter, a dead target, an abstention the rules forbid, or a revote target outside the tie. */
   voteIneligible: () => new ApiError('VOTE_INELIGIBLE', HttpStatus.CONFLICT),
   rateLimited: () => new ApiError('RATE_LIMITED', HttpStatus.TOO_MANY_REQUESTS),
+  // Chat (WW-1104, OD-72). Each refusal states what the caller already knows: the phase, their own life, their own mute.
+  chatClosed: () => new ApiError('CHAT_CLOSED', HttpStatus.CONFLICT),
+  chatReadOnly: () => new ApiError('CHAT_READ_ONLY', HttpStatus.FORBIDDEN),
+  chatMuted: () => new ApiError('CHAT_MUTED', HttpStatus.FORBIDDEN),
 };
 
 /** Parses a request body with a contract schema. Failures are 422 with field issues. */

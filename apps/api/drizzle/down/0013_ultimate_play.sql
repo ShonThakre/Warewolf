@@ -1,0 +1,10 @@
+ALTER TABLE "scheduled_effects" DROP CONSTRAINT IF EXISTS "scheduled_effects_chaos_kind_ck";
+ALTER TABLE "scheduled_effects" DROP CONSTRAINT IF EXISTS "scheduled_effects_attack_types_ck";
+ALTER TABLE "scheduled_effects" ADD CONSTRAINT "scheduled_effects_attack_types_ck" CHECK (attack_types <@ array['WOLF_KILL', 'SNIPER', 'POISON', 'REVENGE', 'DAY_VOTE']::text[]);
+ALTER TABLE "scheduled_effects" DROP COLUMN IF EXISTS "chaos_counted";
+ALTER TABLE "scheduled_effects" DROP COLUMN IF EXISTS "player_ids";
+ALTER TABLE "scheduled_effects" DROP COLUMN IF EXISTS "chaos_kind";
+ALTER TABLE "games" DROP COLUMN IF EXISTS "revived_by";
+ALTER TABLE "games" DROP COLUMN IF EXISTS "chaos_used_kinds";
+ALTER TABLE "games" DROP COLUMN IF EXISTS "chaos_achieved";
+ALTER TABLE "games" DROP COLUMN IF EXISTS "chaos_successes";

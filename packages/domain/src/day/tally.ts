@@ -127,10 +127,9 @@ export function tallyDay(input: TallyInput): TallyResult {
   const chaosOutcomes: TallyChaosOutcome[] = [];
   for (const effect of input.chaosEffects ?? []) {
     if (effect.kind === 'NO_VOTE') {
-      const before = ballots.length;
-      const blocked = new Set(effect.playerIds);
-      ballots = ballots.filter((v) => !blocked.has(v.voterId));
-      chaosOutcomes.push({ kind: effect.kind, applied: ballots.length !== before });
+      const counted = ballots.filter((v) => v.targetId !== null);
+      ballots = ballots.filter((v) => v.targetId === null);
+      chaosOutcomes.push({ kind: effect.kind, applied: counted.length > 0 });
       continue;
     }
     if (effect.kind === 'SWAP_VOTES') {

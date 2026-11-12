@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { drawChaos, getPack, type NightAbility, type NightEffect } from '../src/index.js';
+import { chaosSuccessCount, drawChaos, getPack, rememberChaosKind, type NightAbility, type NightEffect } from '../src/index.js';
 import { act, deaths, night, statusOf, table, type Seat, update, withAbility } from './support/night.js';
 
 const config = getPack('ultimate-20')!.config;
@@ -21,7 +21,7 @@ const core: Seat[] = [
   { id: 'v1', roleId: 'normal_villager' },
 ];
 
-const mark = (target: string, source = 'vampire', dueRound = 3): NightEffect => ({
+const mark = (target: string, source = 'vampire', dueRound = 2): NightEffect => ({
   id: `mark-${target}`,
   kind: 'VAMPIRE_MARK',
   sourcePlayerId: source,
@@ -47,8 +47,25 @@ describe('drawChaos', () => {
     expect(new Set(drawn)).toEqual(new Set(kinds));
     const again = drawChaos(used as never, ['a', 'b'], () => 0);
     expect(kinds).toContain(again.kind);
+    expect(rememberChaosKind(used as never, again.kind)).toEqual([again.kind]);
+  });
+
+  it('names nobody for a table-wide event, one player for a double vote, and two for a swap', () => {
+    const nobody = drawChaos([], ['a', 'b', 'c'], () => CHAOS_INDEX.NO_VOTE);
+    const swap = drawChaos([], ['a', 'b', 'c'], (max) => (max === 6 ? CHAOS_INDEX.SWAP_VOTES : 0));
+    const doubled = drawChaos([], ['a', 'b', 'c'], (max) => (max === 6 ? CHAOS_INDEX.DOUBLE_VOTE : 0));
+    const disabled = drawChaos([], ['a', 'b', 'c'], (max) => (max === 6 ? CHAOS_INDEX.ABILITY_DISABLED : 0));
+    expect(nobody).toMatchObject({ kind: 'NO_VOTE', playerIds: [] });
+    expect(swap.playerIds).toEqual(['a', 'b']);
+    expect(doubled.playerIds).toEqual(['a']);
+    expect(disabled.playerIds).toEqual(['a']);
+    expect(chaosSuccessCount(true)).toBe(1);
+    expect(chaosSuccessCount(false)).toBe(0);
+    expect(chaosSuccessCount(null)).toBe(0);
   });
 });
+
+const CHAOS_INDEX = { ABILITY_DISABLED: 0, PROTECTIONS_OFF: 1, NO_KILLS: 2, NO_VOTE: 3, SWAP_VOTES: 4, DOUBLE_VOTE: 5 };
 
 describe('Ultimate 20 night', () => {
   it('keeps the Alpha’s later exclusive choice', () => {
@@ -116,21 +133,62 @@ describe('Ultimate 20 night', () => {
     expect(deaths(all)).toEqual(['shadow']);
   });
 
-  it('converts a Vampire mark after two nights, and drops it when someone dies or the target is a wolf', () => {
+  it('promotes a mark at dawn after the next night, and cancels it when someone dies or the target is a wolf', () => {
     const t = table(core);
     const placed = night(t, [act('vampire', 'vampire_mark', ['alchemist'])], { config });
-    expect(placed.newEffects).toEqual([expect.objectContaining({ kind: 'VAMPIRE_MARK', targetPlayerId: 'alchemist', dueRound: 3 })]);
+    expect(placed.conversions).toEqual([]);
+    expect(placed.newEffects).toEqual([expect.objectContaining({ kind: 'VAMPIRE_MARK', targetPlayerId: 'alchemist', dueRound: 2 })]);
+    expect(placed.publicFacts.deaths).toEqual([]);
 
-    const due = night(t, [], { config, round: 3, effects: [mark('alchemist')] });
-    expect(due.conversions[0]).toMatchObject({ playerId: 'alchemist', toRoleId: 'vampire_servant', cause: 'VAMPIRE' });
+    const due = night(t, [], { config, round: 2, effects: [mark('alchemist')] });
+    expect(due.conversions[0]).toMatchObject({ playerId: 'alchemist', toRoleId: 'vampire_servant', fromRoleId: 'alchemist', cause: 'VAMPIRE' });
+    expect(due.grants.map((grant) => grant.abilityId).sort()).toEqual(['servant_kill', 'servant_mark']);
+    expect(due.grants.every((grant) => grant.availableFromRound === 3)).toBe(true);
     expect(due.abilityUpdates.filter((row) => row.abilityInstanceId.startsWith('alchemist:')).every((row) => row.patch.status === 'REVOKED')).toBe(true);
+    expect(due.grants.some((grant) => grant.abilityId === 'infected_kill')).toBe(false);
 
-    const deadVampire = night(table(core, { dead: ['vampire'] }), [], { config, round: 3, effects: [mark('alchemist')] });
+    const sameNight = night(t, [act('vampire', 'vampire_mark', ['alchemist']), act('alpha', 'alpha_u20_kill', ['alchemist'])], { config });
+    expect(sameNight.newEffects.some((effect) => effect.kind === 'VAMPIRE_MARK')).toBe(false);
+    expect(deaths(sameNight)).toEqual(['alchemist']);
+
+    const killed = night(t, [act('alpha', 'alpha_u20_kill', ['alchemist'])], { config, round: 2, effects: [mark('alchemist')] });
+    expect(killed.conversions).toEqual([]);
+    expect(killed.closedEffects).toEqual([{ effectId: 'mark-alchemist', status: 'EXPIRED' }]);
+
+    const deadVampire = night(table(core, { dead: ['vampire'] }), [], { config, round: 2, effects: [mark('alchemist')] });
     expect(deadVampire.conversions).toEqual([]);
     expect(deadVampire.closedEffects).toEqual([{ effectId: 'mark-alchemist', status: 'EXPIRED' }]);
 
-    const wolf = night(t, [], { config, round: 3, effects: [mark('alpha')] });
+    const wolf = night(t, [], { config, round: 2, effects: [mark('alpha')] });
     expect(wolf.closedEffects).toEqual([{ effectId: 'mark-alpha', status: 'EXPIRED' }]);
+  });
+
+  it('lets the Vampire team choose kill or mark, and not both', () => {
+    const t = table([...core, { id: 'servant', roleId: 'vampire_servant' }]);
+    const marked = night(t, [act('vampire', 'vampire_mark', ['v1']), act('servant', 'servant_kill', ['fox'])], { config });
+    expect(deaths(marked)).toEqual([]);
+    expect(marked.newEffects).toEqual([expect.objectContaining({ kind: 'VAMPIRE_MARK', targetPlayerId: 'v1' })]);
+    expect(statusOf(marked, marked.actions.find((action) => action.reason === 'SUPERSEDED')!.actionId)?.reason).toBe('SUPERSEDED');
+
+    const killed = night(t, [act('servant', 'servant_kill', ['fox'])], { config });
+    expect(deaths(killed)).toEqual(['fox']);
+    expect(killed.newEffects.some((effect) => effect.kind === 'VAMPIRE_MARK')).toBe(false);
+
+    const both = act('vampire', 'vampire_mark', ['v1']);
+    const later = act('vampire', 'vampire_kill', ['fox']);
+    const exclusive = night(t, [both, later], { config });
+    expect(statusOf(exclusive, both.id)?.reason).toBe('SUPERSEDED');
+    expect(deaths(exclusive)).toEqual(['fox']);
+
+    const servants = table([...core, { id: 'a-servant', roleId: 'vampire_servant' }, { id: 'b-servant', roleId: 'vampire_servant' }]);
+    const disagreed = night(servants, [act('b-servant', 'servant_kill', ['fox']), act('a-servant', 'servant_mark', ['v1'])], { config });
+    expect(deaths(disagreed)).toEqual([]);
+    expect(disagreed.newEffects).toEqual([expect.objectContaining({ kind: 'VAMPIRE_MARK', sourcePlayerId: 'a-servant' })]);
+
+    const healed = night(t, [act('vampire', 'vampire_kill', ['v1']), act('alchemist', 'alchemist_heal', ['v1'])], { config });
+    expect(deaths(healed)).toEqual([]);
+    const guarded = night(t, [act('vampire', 'vampire_kill', ['v1']), act('guardian', 'guardian_protect', ['v1'])], { config });
+    expect(deaths(guarded)).toEqual(['v1']);
   });
 
   it('rewinds a kill, restores an action the Shadow Wolf blocked, and loses to a block it did not rewind', () => {
@@ -205,6 +263,13 @@ describe('Ultimate 20 night', () => {
     const stopped = night(t, [act('alpha', 'alpha_u20_kill', ['v1']), act('demon', 'chaos_event')], { config, chaos: { kind: 'NO_KILLS', playerIds: [] } });
     expect(deaths(stopped)).toEqual([]);
     expect(stopped.chaosEvent?.success).toBe(true);
+
+    const quiet = night(t, [act('demon', 'chaos_event')], { config, chaos: { kind: 'NO_KILLS', playerIds: [] } });
+    expect(quiet.chaosEvent?.success).toBe(false);
+    const missed = night(t, [act('demon', 'chaos_event')], { config, chaos: { kind: 'ABILITY_DISABLED', playerIds: ['v1'] } });
+    expect(missed.chaosEvent?.success).toBe(false);
+    const unusedShield = night(t, [act('guardian', 'guardian_protect', ['v1']), act('demon', 'chaos_event')], { config, chaos: { kind: 'PROTECTIONS_OFF', playerIds: [] } });
+    expect(unusedShield.chaosEvent?.success).toBe(false);
 
     for (const kind of ['NO_VOTE', 'SWAP_VOTES', 'DOUBLE_VOTE'] as const) {
       const day = night(t, [act('demon', 'chaos_event')], { config, chaos: { kind, playerIds: kind === 'SWAP_VOTES' ? ['v1', 'fox'] : ['v1'] } });

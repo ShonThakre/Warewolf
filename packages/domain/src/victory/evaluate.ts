@@ -13,6 +13,11 @@ import type { PlayerId, RoleId } from '../snapshot.js';
  * A team win ends the game and keeps individual wins. A converted role's
  * individual win is revoked. Chaos Demon's condition is checked on every
  * call and, once true, stays achieved.
+ *
+ * Vampire team, from the Ultimate 20 images: a living Vampire and a living
+ * Servant when the game ends, or the Vampire team still alive after both
+ * Village and Wolves are gone. That second path is not a Village win.
+ * Mind Controller stays the unresolved alive-at-end default (OD-76).
  */
 
 export interface VictoryPlayer {
@@ -89,16 +94,20 @@ export function evaluateVictory(input: VictoryInput): VictoryResult {
   const others = [...alive].filter((id) => !wolves.some((w) => w.playerId === id));
   const wolfAlignedAlive = input.assignments.some((a) => a.wolfAligned && alive.has(a.playerId));
   const villageAlive = input.assignments.some((a) => a.currentFaction === 'VILLAGE' && alive.has(a.playerId));
-  const villageWins = alive.size > 0 && !wolfAlignedAlive;
   const wolvesWin = wolves.length > 0 && wolves.length >= others.length;
   const noTeams = !villageAlive && wolves.length === 0;
   const cap = input.roundCapReached === true || input.round >= input.roundCap;
-  const ending = villageWins || wolvesWin || noTeams || cap;
+  const livingServants = input.assignments.filter((a) => a.currentRoleId === 'vampire_servant' && alive.has(a.playerId));
+  const livingVampire = input.assignments.some((a) => a.currentRoleId === 'vampire' && alive.has(a.playerId));
+  const pair = livingVampire && livingServants.length > 0;
+  /** Village and Wolves are both gone, and someone on the Vampire team is alive. */
+  const wipe = !villageAlive && wolves.length === 0 && alive.size > 0 && (livingVampire || livingServants.length > 0);
+  const villageWins = alive.size > 0 && !wolfAlignedAlive && !wipe;
+  const ending = villageWins || wolvesWin || noTeams || cap || wipe;
 
   const dayEliminated = new Set(input.dayEliminated ?? []);
   const revivedBy = new Set(input.revivedBy ?? []);
   const successes = input.chaosSuccesses ?? 0;
-  const servantExists = input.assignments.some((a) => a.currentRoleId === 'vampire_servant');
   let chaosAchieved = input.chaosAchieved === true;
   const individuals: VictoryIndividual[] = [];
 
@@ -140,7 +149,7 @@ export function evaluateVictory(input: VictoryInput): VictoryResult {
         achieved = ending && isAlive;
         break;
       case 'ALIVE_WITH_SERVANT':
-        achieved = ending && isAlive && servantExists;
+        achieved = isAlive && ((pair && ending) || (wipe && livingVampire));
         break;
       case 'ALIVE_AFTER_REVIVE':
         achieved = ending && isAlive && revivedBy.has(assignment.playerId);
@@ -155,8 +164,9 @@ export function evaluateVictory(input: VictoryInput): VictoryResult {
   }
 
   const vampireWon = individuals.some((i) => i.trigger === 'ALIVE_WITH_SERVANT' && i.state === 'ACHIEVED');
-  if (vampireWon) {
+  if (vampireWon || (wipe && livingServants.length > 0)) {
     for (const assignment of input.assignments) {
+      if (!alive.has(assignment.playerId)) continue;
       const definition = victoryOf(assignment, catalog);
       if (definition?.type === 'INDIVIDUAL' && definition.trigger === 'WITH_VAMPIRE') {
         individuals.push({ playerId: assignment.playerId, trigger: 'WITH_VAMPIRE', state: 'ACHIEVED' });
@@ -164,6 +174,7 @@ export function evaluateVictory(input: VictoryInput): VictoryResult {
     }
   }
 
+  if (wipe) return { ended: true, team: null, draw: false, individuals, chaosAchieved };
   if (villageWins) return { ended: true, team: 'VILLAGE', draw: false, individuals, chaosAchieved };
   if (wolvesWin) return { ended: true, team: 'WOLF_PACK', draw: false, individuals, chaosAchieved };
   if (noTeams) {

@@ -1,0 +1,164 @@
+/* Host dashboard. The grid follows the setup shell: rail beside the canvas, controls pinned. */
+
+.ww-host {
+  height: 100%;
+  min-height: 0;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: clamp(12rem, 22vw, 18rem) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'strip strip'
+    'rail canvas'
+    'action action';
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.ww-host[data-steps='one'] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'strip'
+    'rail'
+    'canvas'
+    'action';
+}
+
+.ww-host-strip {
+  grid-area: strip;
+  min-width: 0;
+  padding: calc(var(--space) / 2) var(--space);
+  background: var(--surface-raised);
+  border-bottom: 1px solid var(--border);
+}
+
+.ww-host-title,
+.ww-host-heading,
+.ww-host-subhead {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 800;
+}
+
+.ww-host-rail {
+  grid-area: rail;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) / 4);
+  overflow: auto;
+  padding: calc(var(--space) / 2);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+}
+
+.ww-host[data-steps='one'] .ww-host-rail {
+  flex-direction: row;
+  border-right: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.ww-host-section.MuiButton-root {
+  justify-content: flex-start;
+  gap: calc(var(--space) / 2);
+  min-width: 0;
+  color: var(--text);
+  font-size: var(--text-label);
+  text-transform: none;
+}
+
+.ww-host[data-steps='one'] .ww-host-section.MuiButton-root {
+  flex: 0 0 auto;
+}
+
+.ww-host-section svg {
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: 0 0 auto;
+}
+
+.ww-host-canvas {
+  grid-area: canvas;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space);
+  padding: var(--space);
+}
+
+.ww-host-copy {
+  margin: 0;
+  font-size: var(--text-body);
+}
+
+.ww-host-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space);
+  min-width: 0;
+}
+
+.ww-host-facts,
+.ww-host-list {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) / 2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  min-width: 0;
+}
+
+.ww-host-facts li,
+.ww-host-list li {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: var(--text-body);
+}
+
+.ww-host-list li {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) / 4);
+}
+
+.ww-host-list span {
+  color: var(--text-muted);
+  font-size: var(--text-label);
+}
+
+.ww-host-action {
+  grid-area: action;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space);
+  padding: var(--space);
+  padding-bottom: max(var(--space), env(safe-area-inset-bottom));
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 599px) {
+  .ww-host:not([data-steps='one']) {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .ww-host-section-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}

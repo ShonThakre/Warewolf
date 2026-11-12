@@ -48,7 +48,7 @@ export const alphaWolf: RoleDefinition = role({
     }),
     profile({
       id: 'alpha_ultimate',
-      status: 'RECOMMENDED',
+      status: 'CONFIRMED',
       description: 'Ultimate 20. Each night, either kill one player or infect one player.',
       abilities: [
         ability({
@@ -115,7 +115,8 @@ export const guard: RoleDefinition = role({
     ability({
       id: 'guard_protect',
       capability: 'PROTECT',
-      cancels: ['WOLF_KILL'],
+      // OD-29: a night's protection covers its target through the next day's Sniper shot.
+      cancels: ['WOLF_KILL', 'SNIPER'],
       target: players({ self: true, notSameAsLastRound: true }),
       decisionIds: ['OD-47', 'OD-48'],
     }),
@@ -123,7 +124,7 @@ export const guard: RoleDefinition = role({
 });
 
 const doctorSave = (extra: Partial<Parameters<typeof ability>[0]>) =>
-  ability({ id: 'doctor_save', capability: 'HEAL', cancels: ['WOLF_KILL'], resultAudience: ['SELF', 'HOST'], ...extra });
+  ability({ id: 'doctor_save', capability: 'HEAL', cancels: ['WOLF_KILL', 'SNIPER'], resultAudience: ['SELF', 'HOST'], ...extra });
 
 export const doctor: RoleDefinition = role({
   id: 'doctor',
@@ -152,7 +153,7 @@ export const doctor: RoleDefinition = role({
     }),
     profile({
       id: 'doctor_limited',
-      status: 'RECOMMENDED',
+      status: 'CONFIRMED',
       description: 'Expanded presets. A finite number of saves, blind by default.',
       decisionIds: ['OD-02'],
       chargePolicy: 'LIMITED',
@@ -167,7 +168,7 @@ export const doctor: RoleDefinition = role({
     }),
     profile({
       id: 'doctor_blind',
-      status: 'RECOMMENDED',
+      status: 'CONFIRMED',
       description: 'Classic. Picks a player to save during the night without knowing the target. Unlimited, configurable down.',
       decisionIds: ['OD-02'],
       abilities: [
@@ -226,7 +227,7 @@ export const packWolf: RoleDefinition = role({
   description: 'Classic wolf. Submits a wolf kill each night. Knows the other Pack Wolves when the game allows it.',
   category: 'CORE',
   defaultFaction: 'WOLF_PACK',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   infectionTarget: 'INELIGIBLE',
   decisionIds: ['OD-35', 'OD-36', 'OD-37'],
   abilities: [wolfKill('pack_kill', { decisionIds: ['OD-36', 'OD-37'] })],

@@ -87,7 +87,7 @@ const baseQuery: BaseQueryFn<string | FetchArgs, unknown, FetchBaseQueryError, E
 export const api = createApi({
   reducerPath: 'api',
   baseQuery,
-  tagTypes: ['Lobby', 'Configuration', 'MyRole', 'HostRoster', 'GameState', 'MyActions'],
+  tagTypes: ['Lobby', 'Configuration', 'MyRole', 'HostRoster', 'GameState', 'MyActions', 'KillTarget', 'Chat'],
   endpoints: (build) => ({
     getHealth: build.query<HealthResponse, void>({
       query: () => 'health',

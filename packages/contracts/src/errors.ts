@@ -24,6 +24,12 @@ export const ERROR_CODES = [
   'ACTION_TARGET_ILLEGAL',
   'ACTION_DUPLICATE',
   'VOTE_INELIGIBLE',
+  /** Chat is closed in this phase: it opens for day discussion and the ballots (OD-72). */
+  'CHAT_CLOSED',
+  /** The caller is dead. Dead players read the chat and never post. */
+  'CHAT_READ_ONLY',
+  /** The host muted the caller's seat. */
+  'CHAT_MUTED',
   'NOT_HOST',
   'PHASE_CONFLICT',
   /** Host confirm cannot close until the host has chosen a target or no kill (WW-803). */

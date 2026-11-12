@@ -9,7 +9,7 @@ export const sniper: RoleDefinition = role({
   description: 'One shot per game, fired during the day discussion before voting opens.',
   category: 'OFFENSE',
   defaultFaction: 'VILLAGE',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   decisionIds: ['OD-29'],
   abilities: [
     ability({
@@ -33,7 +33,7 @@ export const poisoner: RoleDefinition = role({
   defaultFaction: 'NEUTRAL',
   allowedFactions: ['NEUTRAL', 'VILLAGE', 'WOLF_PACK'],
   requiresFactionChoice: true,
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   decisionIds: ['OD-28'],
   abilities: [
     ability({
@@ -57,7 +57,7 @@ export const disruptor: RoleDefinition = role({
   defaultFaction: 'NEUTRAL',
   allowedFactions: ['NEUTRAL', 'VILLAGE', 'WOLF_PACK'],
   requiresFactionChoice: true,
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   decisionIds: ['OD-30'],
   abilities: [
     ability({

@@ -1,7 +1,8 @@
 import { type ArgumentsHost, Catch, type ExceptionFilter, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import type { ErrorBody, ErrorCode } from '@warewolf/contracts';
-import type { Response } from 'express';
+import type { Request, Response } from 'express';
 import { ApiError } from './api-error.js';
+import { requestIdOf } from './request-log.js';
 
 const CODE_BY_STATUS: Partial<Record<number, ErrorCode>> = {
   [HttpStatus.BAD_REQUEST]: 'VALIDATION_FAILED',
@@ -11,7 +12,8 @@ const CODE_BY_STATUS: Partial<Record<number, ErrorCode>> = {
   [HttpStatus.UNPROCESSABLE_ENTITY]: 'VALIDATION_FAILED',
 };
 
-const GENERIC_MESSAGE: Partial<Record<ErrorCode, string>> = {
+/** Every code needs a message: a missing one would reach the player as "Something went wrong." */
+const GENERIC_MESSAGE: Readonly<Record<ErrorCode, string>> = {
   VALIDATION_FAILED: 'The request is not valid.',
   UNAUTHENTICATED: 'Sign in to continue.',
   FORBIDDEN: 'That is not available.',
@@ -33,6 +35,9 @@ const GENERIC_MESSAGE: Partial<Record<ErrorCode, string>> = {
   ACTION_DUPLICATE: 'That action is already locked in.',
   IDEMPOTENCY_CONFLICT: 'That request key was already used for a different request.',
   VOTE_INELIGIBLE: 'That vote is not allowed.',
+  CHAT_CLOSED: 'Chat opens in day discussion and voting.',
+  CHAT_READ_ONLY: 'The dead read only.',
+  CHAT_MUTED: 'The host muted you.',
   KILL_TARGET_REQUIRED: 'Choose a target, or choose no kill, before closing this phase.',
   KILL_TARGET_NOT_SUBMITTED: 'No wolf chose that player tonight.',
   RATE_LIMITED: 'Too many requests. Wait a moment and try again.',
@@ -55,7 +60,9 @@ export class ErrorFilter implements ExceptionFilter {
     const code: ErrorCode = exception instanceof ApiError ? exception.code : (CODE_BY_STATUS[status] ?? 'INTERNAL');
 
     if (status >= 500) {
-      this.logger.error(exception instanceof Error ? (exception.stack ?? exception.message) : String(exception));
+      const request = requestIdOf(host.switchToHttp().getRequest<Request>());
+      const detail = exception instanceof Error ? (exception.stack ?? exception.message) : String(exception);
+      this.logger.error(`request=${request ?? 'none'} ${detail}`);
     }
 
     const body: ErrorBody = { error: { code, message: GENERIC_MESSAGE[code] ?? 'Something went wrong.' } };

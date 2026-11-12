@@ -188,7 +188,7 @@ Distinct from Detective, Oracle, and Seer.
 | Faction | VILLAGE |
 | Status | CONFIRMED |
 
-Protect one living player per night, including self (OD-47, recommended). Cannot repeat the same target on consecutive nights. Blocks `WOLF_KILL` only. Does not block infection, poison, sniper, or votes unless a future config adds attack types. Lost on infection.
+Protect one living player per night, including self (OD-47, recommended). Cannot repeat the same target on consecutive nights. Blocks `WOLF_KILL`, and a Sniper shot at the same player the following day (`SNIPER`, OD-29). Does not block infection, poison, or votes unless a future config adds attack types. Lost on infection.
 
 ### 5. Doctor
 
@@ -376,7 +376,7 @@ Guard remains the Infection Edition protector and is not replaced by these roles
 
 | Role | id | Default faction | Status | Recommended ability |
 |---|---|---|---|---|
-| 25 Sniper | `sniper` | VILLAGE | RECOMMENDED | KILL `SNIPER`, 1 per game, day discussion window. OD-29 |
+| 25 Sniper | `sniper` | VILLAGE | CONFIRMED | KILL `SNIPER`, 1 per game, day discussion window. Resolves when discussion closes, before voting. Last night's Guard, Doctor, or Shieldbearer protection, or an Immortal, stops it. OD-29 (accepted 12 November 2026) |
 | 26 Poisoner | `poisoner` | Configurable, default NEUTRAL | RECOMMENDED | POISON, 1 per game, delay per OD-28 |
 | 27 Disruptor | `disruptor` | Configurable, default NEUTRAL | RECOMMENDED | BLOCK_ACTION, 1 per game. OD-30 |
 
@@ -483,6 +483,6 @@ After that player is infected, this row becomes `REVOKED` with reason `INFECTION
 
 ## H. Ultimate 20 roles
 
-The catalog has 51 roles. Fourteen of them exist for Ultimate 20 and are not seated in Infection Edition: Shadow Wolf, Vampire, Vampire Servant (created by a mark, never dealt), Joker, Time Wizard, Guardian, Alchemist, Fox, Mimic, Ghost, Mind Controller, Necromancer, Double Agent, and Chaos Demon. Alpha Wolf and Oracle gain a second profile, `alpha_ultimate` and `oracle_alignment`. The default profiles are unchanged.
+The catalog has 51 roles. Fourteen of them exist for Ultimate 20 and are not seated in Infection Edition: Shadow Wolf, Vampire, Vampire Servant (created by a mark, never dealt), Joker, Time Wizard, Guardian, Alchemist, Fox, Mimic, Ghost, Mind Controller, Necromancer, Double Agent, and Chaos Demon. Alpha Wolf and Oracle gain a second profile, `alpha_ultimate` and `oracle_alignment`. The default profiles are unchanged. A Servant is `NEUTRAL` in the faction enum. The Vampire team is those two roles, not a new faction. Mind Controller's win is not in the images (OD-76).
 
 New capabilities: `CONVERT`, `REWIND`, `SILENCE`, `REVIVE`, `HINT`, `CHAOS`. A Ghost hint uses a `TEXT` target. Fox investigations use the result kind `FACTION`. Individual triggers that must not be rewritten to "alive at the end" are stored as `INDIVIDUAL`. The roster, the lock, and the open questions are in [ultimate-20-rules.md](./ultimate-20-rules.md).

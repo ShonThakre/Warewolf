@@ -91,3 +91,214 @@
   font-size: var(--text-body);
   font-weight: 800;
 }
+
+.ww-kill-panel {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) / 2);
+  padding: var(--space) var(--space) 0;
+}
+
+.ww-kill-title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 800;
+}
+
+.ww-kill-candidates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--space) / 2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ww-kill-candidates .MuiButton-root {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  height: auto;
+  line-height: 1.2;
+}
+
+.ww-kill-name {
+  font-weight: 800;
+}
+
+.ww-kill-named {
+  font-size: var(--text-label);
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.ww-discussion {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+.ww-discussion-log {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space);
+  min-height: 0;
+  margin: 0;
+  overflow: auto;
+  padding: var(--space);
+  list-style: none;
+}
+
+.ww-chat-message {
+  display: flex;
+  gap: calc(var(--space) / 2);
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.ww-chat-main {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.ww-chat-name,
+.ww-chat-body {
+  margin: 0;
+}
+
+.ww-chat-name {
+  font-size: var(--text-label);
+  font-weight: 800;
+}
+
+.ww-chat-body {
+  overflow-wrap: anywhere;
+  font-size: var(--text-body);
+}
+
+.ww-chat-muted {
+  color: var(--text-muted);
+  font-weight: 700;
+}
+
+.ww-chat-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: calc(var(--space) / 2);
+  margin-top: calc(var(--space) / 4);
+}
+
+.ww-discussion-composer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: calc(var(--space) / 2);
+  padding: var(--space);
+  border-top: 1px solid var(--border);
+}
+
+.ww-chat-field {
+  flex: 1 1 8rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.ww-chat-field .MuiInputBase-root {
+  min-width: 0;
+}
+
+.ww-discussion-composer .ww-action-alert,
+.ww-discussion > .ww-action-alert {
+  flex: 1 1 100%;
+  padding: 0 var(--space);
+}
+
+.ww-tally {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) / 2);
+  min-width: 0;
+  margin: var(--space);
+  padding: var(--space);
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.ww-tally-title,
+.ww-tally-result,
+.ww-tally-note {
+  margin: 0;
+  font-size: var(--text-body);
+}
+
+.ww-tally-title {
+  font-weight: 800;
+}
+
+.ww-tally-counts {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) / 2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ww-tally-counts li {
+  display: grid;
+  grid-template-columns: minmax(4rem, 8rem) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: calc(var(--space) / 2);
+  min-width: 0;
+}
+
+.ww-tally-name,
+.ww-tally-total {
+  overflow-wrap: anywhere;
+  font-size: var(--text-body);
+  font-weight: 700;
+}
+
+.ww-tally-track {
+  display: block;
+  height: 0.5rem;
+  background: var(--border);
+  border-radius: var(--radius-pill);
+}
+
+.ww-tally-fill {
+  display: block;
+  height: 100%;
+  width: var(--tally);
+  background: var(--accent);
+  border-radius: var(--radius-pill);
+}
+
+.ww-tally-note {
+  color: var(--text-muted);
+}
+
+.ww-morning .ww-tally,
+.ww-recap .ww-tally {
+  margin: 0;
+}
+
+.ww-report {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) / 2);
+  margin: var(--space) 0 0;
+  padding: 0;
+  list-style: none;
+  min-width: 0;
+}
+
+.ww-report li {
+  overflow-wrap: anywhere;
+  font-size: var(--text-body);
+}

@@ -527,6 +527,12 @@ The APK is this client, built with Capacitor around the Vite app. There is no se
 
 The app's only Android permission is `INTERNET`. The API origin is a build-time setting. A phone cannot call `localhost` on the developer machine. Debug builds may use cleartext HTTP on the local network. Release builds use HTTPS.
 
+As built (WW-1601): `apps/web/capacitor.config.ts` sets the app id `com.warewolf.werewolf`, the name Werewolf, and `webDir: 'dist'`. `pnpm --filter @warewolf/web android:sync` runs the Vite build and `cap sync android`. The copied build under `android/app/src/main/assets/public` is generated and not committed. `apps/web/test/android/android-project.test.ts` fails if the activity gains an orientation lock, a permission other than `INTERNET`, a dev-server URL, or a second app id.
+
+The debug APK (WW-1602): `VITE_API_ORIGIN` is read by Vite and by `capacitor.config.ts` at sync. An `http://` origin serves the WebView from `http://localhost` (an https page may not call an http API), and `android/app/src/debug/AndroidManifest.xml` allows cleartext in debug builds only. The API lists the WebView origin in `CORS_ORIGINS`. Keystores are ignored by git. Steps are in the README, "Android debug APK".
+
+The seat token (WW-1603): `src/session/nativeStorage.ts` picks Capacitor Preferences inside the APK and sessionStorage on the web. The seat is read once before the first render and written through in order, so a reopened app lands back in its game. A 401 still clears it.
+
 The activity allows portrait and landscape. The WebView reports safe-area insets. Google Play listing and store screenshots are out of scope. The APK can be built once create, join, lobby, reveal, the game layout, and voting work. It does not wait for every expanded role.
 
 ---

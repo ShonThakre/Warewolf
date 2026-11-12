@@ -9,7 +9,7 @@ export const bodyguard: RoleDefinition = role({
   description: 'Guards another player. If the wolves attack that player, the Bodyguard takes the hit instead.',
   category: 'PROTECTION',
   defaultFaction: 'VILLAGE',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   decisionIds: ['OD-14'],
   abilities: [
     ability({
@@ -29,12 +29,12 @@ export const shieldbearer: RoleDefinition = role({
   description: 'Shields one player from the wolf kill each night. Cannot shield the same player two nights in a row.',
   category: 'PROTECTION',
   defaultFaction: 'VILLAGE',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   abilities: [
     ability({
       id: 'shieldbearer_protect',
       capability: 'PROTECT',
-      cancels: ['WOLF_KILL'],
+      cancels: ['WOLF_KILL', 'SNIPER'],
       target: players({ self: true, notSameAsLastRound: true }),
       decisionIds: ['OD-48'],
     }),
@@ -47,7 +47,7 @@ export const trapper: RoleDefinition = role({
   description: 'Sets a trap on a player. Wolves who attack that player are revealed to the Trapper and their attack fails.',
   category: 'PROTECTION',
   defaultFaction: 'VILLAGE',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   decisionIds: ['OD-15'],
   abilities: [
     ability({

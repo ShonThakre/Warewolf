@@ -7,10 +7,14 @@ import { RoleViewService } from './assignment/role-view.service.js';
 import { DEAL_RANDOM, StartService, cryptoRandomInt } from './assignment/start.service.js';
 import { SeatGuard } from './auth/seat.js';
 import { CatalogController } from './catalog/catalog.controller.js';
+import { ChatController } from './chat/chat.controller.js';
+import { ChatService } from './chat/chat.service.js';
 import { APP_CONFIG, type AppConfig } from './config.js';
 import { ConfigurationController, ConfigurationService } from './configuration/configuration.js';
 import { DatabaseModule } from './db/database.js';
 import { DayResolutionService } from './day/day-resolution.service.js';
+import { TallyController, TallyService } from './day/tallies.js';
+import { EventController } from './events/event.controller.js';
 import { EventService } from './events/event.service.js';
 import { VoteController } from './day/vote.controller.js';
 import { VoteService } from './day/vote.service.js';
@@ -22,7 +26,12 @@ import { PhaseController } from './phase/phase.controller.js';
 import { PhaseService } from './phase/phase.service.js';
 import { PHASE_RESOLVERS, phaseResolvers, type PhaseResolvers } from './phase/resolution.js';
 import { PHASE_CLOCK, PHASE_SCHEDULER, TimeoutScheduler, systemClock, type Clock, type PhaseScheduler } from './phase/timing.js';
+import { DashboardController } from './host/dashboard.controller.js';
+import { DashboardService } from './host/dashboard.service.js';
 import { PlayGateway } from './realtime/play.gateway.js';
+import { ResultsController } from './results/results.controller.js';
+import { ResultsService } from './results/results.service.js';
+import { ReadinessController } from './system/readiness.controller.js';
 import { SystemController } from './system/system.controller.js';
 
 /**
@@ -54,7 +63,7 @@ export class AppModule {
     return {
       ...base,
       imports: [DatabaseModule.forUrl(config.databaseUrl)],
-      controllers: [...base.controllers, LobbyController, ConfigurationController, AssignmentController, PhaseController, ActionController, KillTargetController, VoteController],
+      controllers: [...base.controllers, LobbyController, ConfigurationController, AssignmentController, PhaseController, ActionController, KillTargetController, VoteController, EventController, ChatController, ResultsController, DashboardController, ReadinessController, TallyController],
       providers: [
         ...base.providers,
         SeatGuard,
@@ -73,6 +82,10 @@ export class AppModule {
         PlayGateway,
         VoteService,
         KillTargetService,
+        ChatService,
+        ResultsService,
+        DashboardService,
+        TallyService,
         {
           provide: PHASE_RESOLVERS,
           inject: [NightResolutionService, DayResolutionService],

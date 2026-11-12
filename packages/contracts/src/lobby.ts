@@ -68,7 +68,7 @@ export const changeAvatarRequestSchema = z.object({ avatarId: avatarIdSchema });
 export type ChangeAvatarRequest = z.input<typeof changeAvatarRequestSchema>;
 
 // POST /games/:gameId/host/transfer
-export const transferHostRequestSchema = z.object({ playerId: z.uuid() });
+export const transferHostRequestSchema = z.strictObject({ playerId: z.uuid() });
 export type TransferHostRequest = z.input<typeof transferHostRequestSchema>;
 
 /** Why the host cannot start yet. Warnings are not blockers; they need acknowledgement at start. */

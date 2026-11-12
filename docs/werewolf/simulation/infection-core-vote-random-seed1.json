@@ -1,0 +1,36 @@
+{
+  "presetId": "infection-core",
+  "policyId": "vote-random",
+  "seed": 1,
+  "games": 10000,
+  "finished": 10000,
+  "note": "Bot measurements for this seed and policy. Not a human win rate.",
+  "finish": {
+    "VILLAGE": 8707,
+    "WOLF_PACK": 503,
+    "draw": 790,
+    "other": 0
+  },
+  "individuals": {},
+  "rounds": {
+    "mean": 11.0408,
+    "median": 11
+  },
+  "deaths": {
+    "nightMean": 0,
+    "dayMean": 10.109
+  },
+  "infectionSuccesses": {
+    "0": 10000
+  },
+  "survivalByStartingRole": {
+    "guard": 0.5146,
+    "normal_villager": 0.5134214285714286,
+    "seeker": 0.51495,
+    "witch": 0.5146,
+    "doctor": 0.5147,
+    "alpha_wolf": 0.1293
+  },
+  "abilityUseRate": {},
+  "doctorNegatedFraction": 0
+}

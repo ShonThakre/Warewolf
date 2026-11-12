@@ -55,8 +55,8 @@ export function useHostRoster(): HostRosterState {
 }
 
 /**
- * The route a seated player belongs on for a game's status and phase. Null
- * for a cancelled game: the current screen shows the cancellation.
+ * The route a seated player belongs on for a game's status and phase.
+ * A cancelled game uses the results screen, which lists seats and the reason.
  *
  * The reveal is shown while the game is in ROLE_REVEAL. Its "I understand"
  * goes to the table, and the table does not send the player back.
@@ -70,7 +70,7 @@ export function gamePath(gameId: string, status: GameStatus, phase: GamePhase): 
     case 'FINISHED':
       return `/game/${gameId}/results`;
     case 'CANCELLED':
-      return null;
+      return `/game/${gameId}/results`;
   }
 }
 

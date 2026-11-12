@@ -5,7 +5,7 @@ import type { PlayerId } from '../snapshot.js';
 import type { Rng } from './rng.js';
 import { type BotAction, type BotChoice, type ProjectedAbility, type SeatProjection } from './view.js';
 
-export const POLICY_IDS = ['random-legal', 'infection-priority', 'vote-random'] as const;
+export const POLICY_IDS = ['random-legal', 'infection-priority', 'vote-random', 'saving-doctor'] as const;
 export type PolicyId = (typeof POLICY_IDS)[number];
 
 export interface Policy {
@@ -133,7 +133,28 @@ function chooseRandom(view: SeatProjection, rng: Rng, votes: 'abstain' | 'living
   return { kind: 'ACTIONS', actions: nightActions(view, rng) };
 }
 
+/**
+ * `saving-doctor` (WW-1402 follow-up): `random-legal`, except that a seat told
+ * the final wolf target always spends its save on it. This measures the OD-02
+ * case directly: an informed Doctor with unlimited saves who never declines.
+ * It knows only what the projection tells that seat.
+ */
+function savingChoice(view: SeatProjection, rng: Rng): BotChoice {
+  const random = chooseRandom(view, rng, 'abstain');
+  if (view.window !== 'NIGHT_REACTION' || !view.finalWolfTarget || random.kind !== 'ACTIONS') return random;
+  const players = new Map(view.seats.map((seat) => [seat.id, seat.lifeStatus]));
+  const actions = [...random.actions];
+  for (const ability of view.abilities) {
+    if (ability.config.target.kind !== 'FINAL_WOLF_TARGET') continue;
+    if (actions.some((action) => action.abilityInstanceId === ability.id)) continue;
+    const set = legalSets(view, ability, players)[0];
+    if (set) actions.push({ abilityInstanceId: ability.id, targetPlayerIds: set.targets, payload: set.payload });
+  }
+  return { kind: 'ACTIONS', actions };
+}
+
 export const POLICIES: Readonly<Record<PolicyId, Policy>> = {
+  'saving-doctor': { id: 'saving-doctor', choose: savingChoice },
   'random-legal': { id: 'random-legal', choose: (view, rng) => chooseRandom(view, rng, 'abstain') },
   'infection-priority': { id: 'infection-priority', choose: (view, rng) => chooseRandom(view, rng, 'living') },
   'vote-random': {

@@ -364,6 +364,12 @@ describe('night_actions', () => {
 
 describe('0002_avatars on existing data', () => {
   it('gives seats that predate avatars their seat number as avatar', async () => {
+    expect(await rollbackLast(pool)).toBe('0013_ultimate_play');
+    expect(await rollbackLast(pool)).toBe('0012_day_tallies');
+    expect(await tableExists('day_tallies')).toBe(false);
+    expect(await rollbackLast(pool)).toBe('0011_chat');
+    expect(await tableExists('chat_messages')).toBe(false);
+    expect(await tableExists('chat_mutes')).toBe(false);
     expect(await rollbackLast(pool)).toBe('0010_game_events');
     expect(await tableExists('game_events')).toBe(false);
     expect(await rollbackLast(pool)).toBe('0009_ultimate_20');
@@ -389,6 +395,12 @@ describe('0002_avatars on existing data', () => {
 
 describe('rollback', () => {
   it('reverts one migration at a time, then rolls forward again', async () => {
+    expect(await rollbackLast(pool)).toBe('0013_ultimate_play');
+    expect(await rollbackLast(pool)).toBe('0012_day_tallies');
+    expect(await tableExists('day_tallies')).toBe(false);
+    expect(await rollbackLast(pool)).toBe('0011_chat');
+    expect(await tableExists('chat_messages')).toBe(false);
+    expect(await tableExists('chat_mutes')).toBe(false);
     expect(await rollbackLast(pool)).toBe('0010_game_events');
     expect(await tableExists('game_events')).toBe(false);
     expect(await rollbackLast(pool)).toBe('0009_ultimate_20');
@@ -441,5 +453,8 @@ describe('rollback', () => {
     expect(await tableExists('votes')).toBe(true);
     expect(await tableExists('victory_records')).toBe(true);
     expect(await tableExists('game_events')).toBe(true);
+    expect(await tableExists('chat_messages')).toBe(true);
+    expect(await tableExists('chat_mutes')).toBe(true);
+    expect(await tableExists('day_tallies')).toBe(true);
   });
 });

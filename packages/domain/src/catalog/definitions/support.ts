@@ -9,12 +9,12 @@ export const blacksmith: RoleDefinition = role({
   description: 'Protects with forged gear. Two variants exist and are never merged.',
   category: 'SUPPORT',
   defaultFaction: 'VILLAGE',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   decisionIds: ['OD-16'],
   profiles: [
     profile({
       id: 'blacksmith_item',
-      status: 'RECOMMENDED',
+      status: 'CONFIRMED',
       description: 'Gives one player a one-time shield that blocks a wolf kill. Spent when it blocks or when the holder dies.',
       decisionIds: ['OD-16'],
       abilities: [
@@ -57,7 +57,7 @@ export const elder: RoleDefinition = role({
   description: 'Votes count double. If the wolves kill the Elder, the village is weakened in the next day vote.',
   category: 'SUPPORT',
   defaultFaction: 'VILLAGE',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   decisionIds: ['OD-33'],
   abilities: [
     ability({
@@ -77,7 +77,7 @@ export const mayor: RoleDefinition = role({
   description: 'Votes count double from the start of the game.',
   category: 'SUPPORT',
   defaultFaction: 'VILLAGE',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   decisionIds: ['OD-34'],
   abilities: [
     ability({
@@ -108,7 +108,7 @@ export const healerAssistant: RoleDefinition = role({
   description: "Takes over the Doctor's save, with its remaining charges, when the Doctor dies or is converted.",
   category: 'SUPPORT',
   defaultFaction: 'VILLAGE',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   requiresRoleId: 'doctor',
   decisionIds: ['OD-32'],
   abilities: [

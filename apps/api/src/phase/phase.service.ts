@@ -17,6 +17,8 @@ import { DATABASE, type Database, type Transaction } from '../db/database.js';
 import { gamePlayers, games, nightActions, type GamePlayerRow, type GameRow } from '../db/schema.js';
 import { errors } from '../http/api-error.js';
 import { EventService } from '../events/event.service.js';
+import { logLine } from '../http/log-line.js';
+import { PlayGateway } from '../realtime/play.gateway.js';
 import { LobbyService } from '../lobby/lobby.service.js';
 import { hostDecisionFor } from '../night/night-input.js';
 import { PHASE_RESOLVERS, type PhaseResolvers } from './resolution.js';
@@ -28,7 +30,7 @@ export const TIMED_CLOSE_RETRY_MS = 5_000;
 type TimedClose =
   | { readonly kind: 'IDLE' }
   | { readonly kind: 'EARLY'; readonly at: Date }
-  | { readonly kind: 'CLOSED'; readonly game: GameRow; readonly nightRound: number | null };
+  | { readonly kind: 'CLOSED'; readonly game: GameRow; readonly nightRound: number | null; readonly ballotRound: number | null };
 
 function describeClose(step: CloseStep): PhaseClose {
   switch (step.kind) {
@@ -69,6 +71,7 @@ export class PhaseService implements OnApplicationBootstrap {
     @Inject(PHASE_SCHEDULER) private readonly scheduler: PhaseScheduler,
     @Inject(PHASE_RESOLVERS) private readonly resolvers: PhaseResolvers,
     @Inject(EventService) private readonly events: EventService,
+    @Inject(PlayGateway) private readonly play: PlayGateway,
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
@@ -81,9 +84,14 @@ export class PhaseService implements OnApplicationBootstrap {
    */
   async recover(): Promise<number> {
     try {
-      await this.events.republishNights();
+      this.play.emitStored(await this.events.republishNights());
     } catch (error) {
       this.logger.error(`night event recovery failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    try {
+      this.play.emitStored(await this.events.republishTallies());
+    } catch (error) {
+      this.logger.error(`tally event recovery failed: ${error instanceof Error ? error.message : String(error)}`);
     }
     const open = await this.db
       .select({ id: games.id, phaseEndsAt: games.phaseEndsAt })
@@ -144,6 +152,8 @@ export class PhaseService implements OnApplicationBootstrap {
     });
     this.track(closed.game);
     await this.publishNight(closed.game.id, closed.nightRound);
+    await this.publishTallies(closed.game.id, closed.ballotRound);
+    await this.publishPhase(closed.game);
     return this.state(gameId, seat);
   }
 
@@ -166,6 +176,8 @@ export class PhaseService implements OnApplicationBootstrap {
     if (outcome.kind === 'CLOSED') {
       this.track(outcome.game);
       await this.publishNight(outcome.game.id, outcome.nightRound);
+      await this.publishTallies(outcome.game.id, outcome.ballotRound);
+      await this.publishPhase(outcome.game);
     }
   }
 
@@ -174,7 +186,7 @@ export class PhaseService implements OnApplicationBootstrap {
    * needs, then writes the next phase, round, and deadline with the version
    * guard. The caller has already checked who may close and when.
    */
-  private async closeLocked(tx: Transaction, game: GameRow, by: 'HOST' | 'TIMER'): Promise<{ game: GameRow; nightRound: number | null }> {
+  private async closeLocked(tx: Transaction, game: GameRow, by: 'HOST' | 'TIMER'): Promise<{ game: GameRow; nightRound: number | null; ballotRound: number | null }> {
     if (!isClosable(game.phase)) throw errors.phaseConflict();
     // OD-01: host confirm ends only with a chosen target or an explicit "no kill" (WW-803).
     if (game.phase === 'NIGHT_HOST_CONFIRM' && !(await hostDecisionFor(tx, game.id, game.roundNumber))) throw errors.killTargetRequired();
@@ -195,6 +207,8 @@ export class PhaseService implements OnApplicationBootstrap {
     }
     const step = planClose(game.phase, rules);
     const nightRound = step.kind === 'RESOLVE_NIGHT' ? game.roundNumber : null;
+    // A closed ballot has a public tally to publish after commit (OD-85).
+    const ballotRound = step.kind === 'RESOLVE_DAY' && (step.ballot === 'FIRST' || step.ballot === 'REVOTE') ? game.roundNumber : null;
     const result = await this.resolve(tx, game, step);
     const next = positionAfter(game, result);
     // The machine only produces listed transitions. Reaching this is a bug, not a client error.
@@ -216,15 +230,34 @@ export class PhaseService implements OnApplicationBootstrap {
       .returning();
     if (!updated) throw errors.phaseConflict();
 
-    this.logger.log(`phase game=${game.id} round=${updated.roundNumber} ${game.phase}->${updated.phase} by=${by}`);
-    return { game: updated, nightRound };
+    this.logger.log(logLine('phase', { game: game.id, round: updated.roundNumber, from: game.phase, to: updated.phase, by }));
+    return { game: updated, nightRound, ballotRound };
+  }
+
+  /** The public phase signal. A failure here does not roll the close back. */
+  private async publishPhase(game: GameRow): Promise<void> {
+    try {
+      this.play.emitStored(await this.events.publishPhase(game.id, game.phase, game.roundNumber, game.stateVersion));
+    } catch (error) {
+      this.logger.error(`phase event failed game=${game.id}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /** The public tally of a closed ballot. A failure here does not roll the day back; boot recovery repairs it. */
+  private async publishTallies(gameId: string, round: number | null): Promise<void> {
+    if (round === null) return;
+    try {
+      this.play.emitStored(await this.events.publishTallies(gameId, round));
+    } catch (error) {
+      this.logger.error(`tally events failed game=${gameId} round=${round}: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   /** Events are written after the night commit. A failure here does not roll the night back. */
   private async publishNight(gameId: string, round: number | null): Promise<void> {
     if (round === null) return;
     try {
-      await this.events.publishNight(gameId, round);
+      this.play.emitStored(await this.events.publishNight(gameId, round));
     } catch (error) {
       this.logger.error(`night events failed game=${gameId} round=${round}: ${error instanceof Error ? error.message : String(error)}`);
     }

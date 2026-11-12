@@ -263,8 +263,8 @@ Elder and Mayor weights are read from modifier rows. Expired modifiers are ignor
 
 1. An exclusive group keeps the latest action and marks the earlier one `SUPERSEDED`.
 2. Time Wizard rewind removes the target's actions tonight (`REWOUND`) before blocks. A block cancels the rewind only when the blocker is someone else.
-3. Chaos, if a draw was passed in, applies ability disable, protections off, or no kills. Day events are recorded with `success: null` and a `CHAOS_DAY` effect. The API does not draw or pass that event yet.
+3. Chaos, if a draw was passed in, applies ability disable, protections off, or no kills. A day event is recorded with `success: null` and a `CHAOS_DAY` effect. Success is true only when the effect changed the night. The API draws the event before calling `resolveNight`.
 4. Protections off skips shield application, including a bodyguard redirect and a delayed-poison cure.
 5. No kills cancels remaining live attacks before deaths.
-6. A Vampire mark is due two rounds later and converts only when both players are still alive, the target was not converted tonight, and the target is not in the wolf pack.
-7. Silence, revival, and a Ghost hint are recorded. A returned player is listed on `publicFacts.returned`. Persistence of rewinds, chaos, silences, revivals, and hints is not in the night service yet.
+6. The Vampire team keeps one kill or one mark. The Vampire's submission wins; otherwise the lowest player id wins. A mark is scheduled only when both players are alive at dawn, and it is due the next night. A due mark converts only when both are still alive, the target was not converted tonight, the target is not already on the Vampire team, and the target is not in the wolf pack.
+7. Silence, revival, and a Ghost hint are recorded. A returned player is listed on `publicFacts.returned`. The night close draws Chaos with `crypto.randomInt` when the Demon submitted, stores the used kinds, and increments the success count only when `chaosEvent.success` is true. Day close applies `CHAOS_DAY` and counts a success only when the ballot changed. Revival ids are stored for the Necromancer. The victory evaluator reads those counts.

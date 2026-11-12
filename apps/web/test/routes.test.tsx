@@ -14,16 +14,11 @@ describe('router placeholders', () => {
     ['/', 'Werewolf'],
     ['/roles', 'Role catalog'],
     ['/how-to-play', 'How to play'],
-    ['/game/g1/host', 'Host dashboard'],
-    ['/game/g1/results', 'Results'],
+    ['/game/g1/results', 'Werewolf'],
+    ['/game/g1/host', 'Werewolf'],
   ])('%s renders %s', async (path, title) => {
     renderAt(path);
     expect(await screen.findByRole('heading', { level: 1, name: title })).toBeTruthy();
-  });
-
-  it('shows the game id on the host placeholder', () => {
-    renderAt('/game/abc123/host');
-    expect(screen.getByText('Game abc123')).toBeTruthy();
   });
 
   it('renders a not-found page for unknown paths', () => {

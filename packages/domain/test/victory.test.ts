@@ -55,11 +55,57 @@ describe('evaluateVictory', () => {
     expect(joker.individuals).toContainEqual({ playerId: 'j', trigger: 'ELIMINATED_BY_DAY_VOTE', state: 'ACHIEVED' });
     expect(joker.ended).toBe(false);
 
-    const vampire = game([seat('vam', 'vampire', 'NEUTRAL'), seat('srv', 'vampire_servant', 'NEUTRAL', 'DEAD')], { roundCapReached: true, round: 3 });
+    const deadServant = game([
+      seat('vam', 'vampire', 'NEUTRAL'),
+      seat('srv', 'vampire_servant', 'NEUTRAL', 'DEAD'),
+      seat('v', 'normal_villager', 'VILLAGE'),
+      seat('w', 'pack_wolf', 'WOLF_PACK'),
+    ], { roundCapReached: true, round: 3 });
+    expect(deadServant.individuals).not.toContainEqual({ playerId: 'vam', trigger: 'ALIVE_WITH_SERVANT', state: 'ACHIEVED' });
+
+    const vampire = game([seat('vam', 'vampire', 'NEUTRAL'), seat('srv', 'vampire_servant', 'NEUTRAL')], { roundCapReached: true, round: 3 });
     expect(vampire.individuals).toEqual(expect.arrayContaining([
       { playerId: 'vam', trigger: 'ALIVE_WITH_SERVANT', state: 'ACHIEVED' },
       { playerId: 'srv', trigger: 'WITH_VAMPIRE', state: 'ACHIEVED' },
     ]));
+
+    const wipe = game([
+      seat('vam', 'vampire', 'NEUTRAL'),
+      seat('srv', 'vampire_servant', 'NEUTRAL'),
+      seat('v', 'normal_villager', 'VILLAGE', 'DEAD'),
+      seat('w', 'pack_wolf', 'WOLF_PACK', 'DEAD'),
+    ]);
+    expect(wipe).toMatchObject({ ended: true, team: null, draw: false });
+    expect(wipe.individuals).toEqual(expect.arrayContaining([
+      { playerId: 'vam', trigger: 'ALIVE_WITH_SERVANT', state: 'ACHIEVED' },
+      { playerId: 'srv', trigger: 'WITH_VAMPIRE', state: 'ACHIEVED' },
+    ]));
+
+    const vampireAlone = game([
+      seat('vam', 'vampire', 'NEUTRAL'),
+      seat('v', 'normal_villager', 'VILLAGE', 'DEAD'),
+      seat('w', 'pack_wolf', 'WOLF_PACK', 'DEAD'),
+    ]);
+    expect(vampireAlone).toMatchObject({ ended: true, team: null, draw: false });
+    expect(vampireAlone.individuals).toContainEqual({ playerId: 'vam', trigger: 'ALIVE_WITH_SERVANT', state: 'ACHIEVED' });
+
+    const servantsAlone = game([
+      seat('vam', 'vampire', 'NEUTRAL', 'DEAD'),
+      seat('srv', 'vampire_servant', 'NEUTRAL'),
+      seat('v', 'normal_villager', 'VILLAGE', 'DEAD'),
+      seat('w', 'pack_wolf', 'WOLF_PACK', 'DEAD'),
+    ]);
+    expect(servantsAlone.individuals).toContainEqual({ playerId: 'srv', trigger: 'WITH_VAMPIRE', state: 'ACHIEVED' });
+    expect(servantsAlone.individuals).not.toContainEqual({ playerId: 'vam', trigger: 'ALIVE_WITH_SERVANT', state: 'ACHIEVED' });
+
+    const besideVillage = game([
+      seat('vam', 'vampire', 'NEUTRAL'),
+      seat('srv', 'vampire_servant', 'NEUTRAL'),
+      seat('v', 'normal_villager', 'VILLAGE'),
+      seat('w', 'pack_wolf', 'WOLF_PACK', 'DEAD'),
+    ]);
+    expect(besideVillage.team).toBe('VILLAGE');
+    expect(besideVillage.individuals).toContainEqual({ playerId: 'vam', trigger: 'ALIVE_WITH_SERVANT', state: 'ACHIEVED' });
 
     const necro = game([seat('n', 'necromancer', 'NEUTRAL')], { roundCapReached: true, revivedBy: ['n'] });
     expect(necro.individuals).toContainEqual({ playerId: 'n', trigger: 'ALIVE_AFTER_REVIVE', state: 'ACHIEVED' });

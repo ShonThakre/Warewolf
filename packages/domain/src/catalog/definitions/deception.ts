@@ -10,7 +10,7 @@ export const shapeshifter: RoleDefinition = role({
   category: 'TRANSFORMATION',
   defaultFaction: 'NEUTRAL',
   allowedFactions: ['NEUTRAL', 'VILLAGE', 'WOLF_PACK'],
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   decisionIds: ['OD-31', 'OD-58'],
   abilities: [
     ability({
@@ -43,7 +43,7 @@ export const spy: RoleDefinition = role({
   category: 'DECEPTION',
   defaultFaction: 'VILLAGE',
   allowedFactions: ['VILLAGE', 'NEUTRAL', 'WOLF_PACK'],
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   decisionIds: ['OD-19', 'OD-46'],
   abilities: [
     ability({

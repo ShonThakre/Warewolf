@@ -37,7 +37,8 @@ describe('startState', () => {
   const valid = validateConfiguration(classic);
 
   it('is ready with every seat taken and a valid draft', () => {
-    expect(startState('LOBBY', 10, classic, valid)).toEqual({ ready: true, blockers: [], requiresWarningAcknowledgement: true });
+    // Classic is a confirmed preset with no warnings since 12 November 2026.
+    expect(startState('LOBBY', 10, classic, valid)).toEqual({ ready: true, blockers: [], requiresWarningAcknowledgement: false });
   });
 
   it('lists every blocker', () => {

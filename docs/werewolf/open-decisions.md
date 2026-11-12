@@ -126,11 +126,15 @@ Recorded here so later implementation does not reopen them.
 
 ### OD-05 Who infection may target
 
+**Decided 12 November 2026: accepted as recommended.**
+
 **Recommendation.** `VILLAGE_ONLY` in Infection Edition, which has no other factions. Expanded default: living Village-faction players who are not already wolves. Neutrals and independents are ineligible unless the host sets `infectionEligibility` to `ANY_NON_PACK_WOLF`.
 
 Infecting a neutral revokes that player's individual victory because the role is removed. The host UI must say so before a custom config allows it.
 
 ### OD-06 Cursed Villager conversion trigger
+
+**Decided 12 November 2026: accepted as recommended.**
 
 The brief says the Cursed Villager starts as a villager and, if successfully attacked by wolves but survives, may become an Infected Wolf. It asks whether Guard or Doctor protection counts as survival.
 
@@ -147,15 +151,21 @@ This is a recommended rule, not a confirmed one.
 
 ### OD-07 When a same-night submitted action of a converted player resolves
 
+**Decided 12 November 2026: accepted as recommended.**
+
 **Recommendation.** Actions submitted while the player still held the old role resolve during that night. Conversion is applied after action resolution. Wolf kill submission is available only on later nights. This matches C-06.
 
 ### OD-08 Jester and game end
+
+**Decided 12 November 2026: accepted as recommended.**
 
 **Question.** The brief requires an individual victory and asks whether the game continues after the Jester wins.
 
 **Recommendation.** Record a Jester win, reveal the Jester if `revealOnIndividualWin` is true (default true), and continue. `endGameOnIndividualWin` defaults false. Team victory is evaluated after the Jester is removed from the living counts. Both can be recorded when `allowMultipleWinners` is true (default true).
 
 ### OD-09 Assassin variants
+
+**Decided 12 November 2026: accepted as recommended.** Variant A (`MARK`) only; variant B (`EXECUTE`) stays out of presets until its extra rule is decided.
 
 Do not merge these.
 
@@ -176,6 +186,8 @@ Do not merge these.
 
 ### OD-10 Lone Wolf victory and parity
 
+**Decided 12 November 2026: accepted as recommended.**
+
 The brief says the Lone Wolf is an independent wolf, does not know other wolves, has an individual victory, and can have an independent kill. It asks whether victory is last survivor or a kill count.
 
 **Recommendation.**
@@ -190,6 +202,8 @@ The brief says the Lone Wolf is an independent wolf, does not know other wolves,
 
 ### OD-11 Hermit
 
+**Decided 12 November 2026: kept out of version 1.**
+
 The brief forbids inventing the win condition. No ability and no victory will be attached.
 
 **Preset rule.** Hermit cannot be seated until the host selects one victory from a future approved list. Shippable presets omit Hermit.
@@ -197,6 +211,8 @@ The brief forbids inventing the win condition. No ability and no victory will be
 **Candidate list for a later decision, none of them active.** Survive until game end. Never be the target of a night action. Never receive a day vote. Outlast N nights. These are placeholders, not rules.
 
 ### OD-12 Immortal charge
+
+**Decided 12 November 2026: accepted as recommended.**
 
 **Recommendation.**
 
@@ -212,6 +228,8 @@ The brief forbids inventing the win condition. No ability and no victory will be
 
 ### OD-13 Avenger
 
+**Decided 12 November 2026: accepted as recommended.** Revenge fires against a named killer and the day-vote plurality leader, never against the anonymous pack kill.
+
 **Recommendation.**
 
 - The revenge target is the primary cause recorded on the elimination.
@@ -222,6 +240,8 @@ The brief forbids inventing the win condition. No ability and no victory will be
 - Multiple contributors beyond the cases above remain unresolved. The engine records every contributor on `EliminationRecord.causes` so a later rule can use them.
 
 ### OD-14 Bodyguard
+
+**Decided 12 November 2026: accepted as recommended.**
 
 **Recommendation.**
 
@@ -235,6 +255,8 @@ The brief forbids inventing the win condition. No ability and no victory will be
 
 ### OD-15 Trapper
 
+**Decided 12 November 2026: accepted as recommended.**
+
 **Recommendation.**
 
 - Place a trap on one living player per night, two successful traps per game.
@@ -246,6 +268,8 @@ The brief forbids inventing the win condition. No ability and no victory will be
 - It does not announce publicly.
 
 ### OD-16 Blacksmith variants
+
+**Decided 12 November 2026: accepted as recommended.** Variant B (`ITEM`).
 
 Do not merge.
 
@@ -260,11 +284,15 @@ Do not merge.
 
 ### OD-17 Priest
 
+**Decided 12 November 2026: kept out of version 1.**
+
 The brief says the exact power must be configured and must not be assumed. No ability is defined.
 
 Priest is in the catalog with `implementationStatus: UNRESOLVED` and zero abilities. Presets omit Priest. A custom game that enables Priest without a selected approved ability fails validation.
 
 ### OD-18 Confuser
+
+**Decided 12 November 2026: kept out of version 1.**
 
 The brief says the transformation mechanic is unresolved. No swap, scramble, or copy behavior is defined.
 
@@ -272,11 +300,15 @@ Confuser is catalogued and disabled. Enabling it fails validation until a future
 
 ### OD-19 Spy information
 
+**Decided 12 November 2026: accepted as recommended.**
+
 The brief requires an explicit information grant and forbids full wolf identities by default.
 
 **Recommendation.** One night action. Result is the integer count of legal wolf-kill submissions that night, with no names, no targets, and no Alpha identity. Anything richer requires a new decision. The API returns that integer to the Spy and the host only.
 
 ### OD-20 Bard
+
+**Decided 12 November 2026: kept out of version 1.**
 
 In a digital game the day discussion is already available to every living player. The tabletop power "let selected players speak" has no effect unless discussion is closed.
 
@@ -284,9 +316,13 @@ In a digital game the day discussion is already available to every living player
 
 ### OD-21 Oracle
 
+**Decided 12 November 2026: accepted as recommended.**
+
 **Recommendation, kept distinct from Seeker.** Once every two nights, the Oracle learns the target's role category: `WOLF`, `VILLAGE_POWER`, `VILLAGE_BASIC`, `NEUTRAL`, or `INDEPENDENT`. The Oracle does not learn the role id or wolf teammates. "Future event" remains an unused information mode until defined.
 
 ### OD-22 Seer
+
+**Decided 12 November 2026: accepted as recommended.**
 
 Kept distinct from Seeker and Detective.
 
@@ -294,25 +330,37 @@ Kept distinct from Seeker and Detective.
 
 ### OD-23 Detective
 
+**Decided 12 November 2026: accepted as recommended.**
+
 **Recommendation.** Separate role. Learns Wolf or Non-Wolf. Two uses per game. Does not learn the role id. This matches the brief's "may have two investigations."
 
 ### OD-24 Psychic comparison key
+
+**Decided 12 November 2026: accepted as recommended.**
 
 **Recommendation.** Compare `currentFaction`. Two neutrals both read as the same faction even when their roles differ. The result is `SAME` or `DIFFERENT` plus nothing else. Alternative, not adopted: compare role ids.
 
 ### OD-25 Medium
 
+**Decided 12 November 2026: accepted as recommended.**
+
 **Recommendation.** Once per night the Medium learns the current role id at death of one dead player. No conversation channel with the dead. The host also sees the lookup because the host already knows roles.
 
 ### OD-26 Prophet
+
+**Decided 12 November 2026: accepted as recommended.**
 
 **Recommendation.** Every three nights the Prophet may ask one whitelisted question. The only shipped question is `WOLF_PACK_SIZE_AT_LEAST` with a configured integer. The answer is yes or no from server state. Free-text questions are rejected so a Prophet cannot ask for names.
 
 ### OD-27 Tracker detail
 
+**Decided 12 November 2026: accepted as recommended.**
+
 **Recommendation.** The Tracker learns the list of player ids their target selected that night. Action types stay hidden, so an infection and a kill look the same. Empty list if the target took no targeted action or was blocked. Multiple visits are all returned. Results go to the Tracker and the host.
 
 ### OD-28 Poison versus protection
+
+**Decided 12 November 2026: accepted as recommended.**
 
 **Recommendation.**
 
@@ -324,13 +372,19 @@ Kept distinct from Seeker and Detective.
 
 ### OD-29 Sniper
 
+**Decided 12 November 2026: accepted as recommended.** How the protection clause is applied, since protections are placed at night and the shot is fired by day: a Guard, Doctor, or Shieldbearer protection that resolved on the target the night before covers that player through the following day, because those abilities now list `SNIPER` in `cancels`. A Doctor's save on the final wolf target covers that player. The Blacksmith's shield item does not stop the shot yet: it stays with its holder across nights, and a day check of held items is not built. An Immortal survives the shot. The shot is spent when it is fired, even when it is stopped. It resolves when day discussion closes, before voting opens, and only in games that seat a role with a day kill. A Sniper death does not win a Jester. Built in WW-1003b.
+
 **Recommendation.** One shot per game. The Sniper fires during the day discussion, before voting opens. The shot is a Village-attributed kill. Guard, Doctor, Immortal, and shields can prevent it using the same protection pipeline as a special kill of type `SNIPER`. The host sees the action. The server validates the target. Killing a villager is legal.
 
 ### OD-30 Disruptor
 
+**Decided 12 November 2026: accepted as recommended.**
+
 **Recommendation.** Once per game in presets, configurable. The Disruptor names one living player. Every special ability that player submitted that night is cancelled before resolution. Villager votes are not abilities and are not blocked. Infection submitted by a blocked Alpha is cancelled. The blocked player is not told why, unless `informTarget` is set. Default false.
 
 ### OD-31 Shapeshifter
+
+**Decided 12 November 2026: accepted as recommended.**
 
 **Recommendation.**
 
@@ -344,6 +398,8 @@ Kept distinct from Seeker and Detective.
 
 ### OD-32 Healer Assistant
 
+**Decided 12 November 2026: accepted as recommended.**
+
 **Recommendation.**
 
 - While the Doctor is alive, the Assistant has no heal action.
@@ -354,15 +410,21 @@ Kept distinct from Seeker and Detective.
 
 ### OD-33 Elder penalty
 
+**Decided 12 November 2026: accepted as recommended.**
+
 **Recommendation.** The Elder has vote weight 2 while alive. If wolves kill the Elder at night, the next day each Village-faction vote has weight 1 and one extra phantom weight of 1 is applied against the Village plurality after tally, which can create a tie. The modifier expires after that day. Infecting the Elder removes the weight immediately and does not apply the death penalty, because infection is not a wolf kill death.
 
 This penalty is a concrete recommendation for an underspecified "voting disadvantage."
 
 ### OD-34 Mayor
 
+**Decided 12 November 2026: accepted as recommended.**
+
 **Recommendation.** Vote weight 2 from game start. The weight applies while the Mayor's identity is still secret. `publicLeader` defaults false. If true, the public player list shows the Mayor label and no other role. Weight is configurable and validation rejects a weight that can unilaterally exceed half the living seats at game start.
 
 ### OD-35 Classic wolves knowing each other
+
+**Decided 12 November 2026: accepted as recommended.**
 
 The anonymity rule is confirmed for Alpha and Infected Wolves only.
 
@@ -370,31 +432,45 @@ The anonymity rule is confirmed for Alpha and Infected Wolves only.
 
 ### OD-36 Pack Wolf as a role
 
+**Decided 12 November 2026: accepted as recommended.**
+
 Classic mode needs a basic wolf. The numbered list has Alpha and Infected Wolf, which carry infection rules.
 
 **Recommendation.** Add `pack_wolf` as a catalog role required by Classic mode. It submits a wolf kill and has no infection power. This is an engine role, not a claim that the missing images named it.
 
 ### OD-37 Friendly fire outside Infection Edition
 
+**Decided 12 November 2026: accepted as recommended.**
+
 **Recommendation.** Off in Classic and Expanded presets. On in Infection Edition because that case is confirmed. Lone Wolf can target anyone, including pack wolves, because the Lone Wolf is not on the pack team.
 
 ### OD-38 Investigation snapshot
+
+**Decided 12 November 2026: accepted as recommended.**
 
 **Recommendation.** Wolf / Non-Wolf, category, role id, and Psychic comparisons use the state at the start of the night, before conversions and deaths. The Tracker uses the action list from that same night.
 
 ### OD-39 Death reveal
 
+**Decided 12 November 2026: accepted as built.**
+
 **Recommendation.** Day-vote eliminations reveal the current role. Night deaths reveal the current role. Original role stays host-only until game end. Configuration can set night reveal to hidden. Infection Edition default: reveal current role on death.
 
 ### OD-40 Tie votes
+
+**Decided 12 November 2026: accepted as built.**
 
 **Recommendation.** One revote between the tied players only. Abstention allowed on the revote. A second tie eliminates nobody. Hosts do not break ties in the default rules.
 
 ### OD-41 Abstention and vote changes
 
+**Decided 12 November 2026: accepted as built.**
+
 **Recommendation.** Abstention is allowed and counts as no weight. A living player may replace their vote until the ballot closes. The last legal vote counts. Earlier votes remain in the audit log as superseded.
 
 ### OD-42 Dead voting and disconnected voting
+
+**Decided 12 November 2026: accepted as built.**
 
 **Recommendation.** Dead players cannot vote or act. A disconnected living player may vote if they reconnect before close. Their earlier vote stands if they do not. No proxy votes.
 
@@ -412,61 +488,91 @@ Classic mode needs a basic wolf. The numbered list has Alpha and Infected Wolf, 
 
 ### OD-45 Does the infected player learn the Alpha's identity
 
+**Decided 12 November 2026: accepted as built.**
+
 **Recommendation.** No. The private event says the player's own role changed to Infected Wolf.
 
 ### OD-46 Wolf submissions visible to other wolves
+
+**Decided 12 November 2026: accepted as recommended.**
 
 **Derived from C-07 and recommended as an API rule.** A wolf does not receive other wolves' targets, names, or submission counts. The host does. The Spy's recommended result is a count with no names, which is a deliberate exception for that role only.
 
 ### OD-47 Guard self-protection and Alpha self-infection
 
+**Decided 12 November 2026: accepted as built.**
+
 **Recommendation.** Guard may protect themselves, still subject to the consecutive-night rule. Alpha cannot infect themselves. A wolf cannot be infected. Witch and Doctor may target themselves, and Doctor self-save is confirmed.
 
 ### OD-48 Multiple protections
+
+**Decided 12 November 2026: accepted as recommended.**
 
 **Recommendation.** Any single successful wolf-kill protection negates the kill. Every protector who spent an action consumes their nightly use or item, including redundant protectors.
 
 ### OD-49 Witch potions on one target
 
+**Decided 12 November 2026: accepted as built.**
+
 **Confirmed that both potions can be used the same night.** Recommendation: they may name the same player or two players. Save cancels a wolf kill on that player. Poison schedules poison. Using both on the same player can cancel the wolf kill and still poison them.
 
 ### OD-50 Individual and team wins together
+
+**Decided 12 November 2026: accepted as built.**
 
 **Recommendation.** Evaluate individual triggers first and record them. Then evaluate team terminal conditions. If any team terminal condition is met, the game ends and recorded individual winners are kept. If only non-terminal individual wins fired, the game continues. Draws are a separate end state.
 
 ### OD-51 Only neutrals or independents left
 
+**Decided 12 November 2026: accepted as built.**
+
 **Recommendation.** If no Village and no Wolf Pack remain, evaluate individual rules. If exactly one individual winner qualifies, the game ends with that winner. If several qualify, the game ends with all of them. If none qualify, the game is a draw.
 
 ### OD-52 Draw
+
+**Decided 12 November 2026: accepted as built.**
 
 **Recommendation.** The host may cancel. Cancellation is `CANCELLED`, not a victory. A configured round cap defaults to 20. Reaching it with no terminal victory is a draw. The cap is a safety rail, not a lore rule.
 
 ### OD-53 Host disconnect
 
+**Decided 12 November 2026: accepted as built.**
+
 **Recommendation.** The seat remains host. Socket loss does not transfer power. The host token reconnects and receives a snapshot. Another player cannot become host unless the host calls a transfer action. If the host is absent longer than a configured lobby timeout, any seated player may call a unanimous surrender that cancels the game. Unanimous means every currently connected living player.
 
 ### OD-54 Host adjudication
+
+**Decided 12 November 2026: accepted as built.**
 
 **Recommendation.** The host cannot type a winner, edit a role, or delete a vote. The host can pace phases, confirm a kill target only from legal submissions, and cancel the game. `allowHostAdjudication` defaults false and is rejected by the production validator if true.
 
 ### OD-55 Reconnect after a submitted action
 
+**Decided 12 November 2026: accepted as built.**
+
 **Recommendation.** The action remains. Reconnect restores state. The player may replace a replaceable action until the window closes.
 
 ### OD-56 Duplicate and concurrent resolution
+
+**Decided 12 November 2026: accepted as built.**
 
 **Recommendation.** One database transaction locks the game row, requires the expected `stateVersion`, and writes one `resolution_run` per round. A second resolver receives a conflict and publishes nothing.
 
 ### OD-57 Server restart mid-phase
 
+**Decided 12 November 2026: accepted as built.**
+
 **Recommendation.** All authoritative state is in PostgreSQL. On boot, timed phases whose deadline has passed auto-advance in Classic. Host-paced games stay in the current phase and wait for the host. Clients reload by player token and event cursor.
 
 ### OD-58 Copy and infection interaction
 
+**Decided 12 November 2026: accepted as recommended.**
+
 **Recommendation.** A copied ability is revoked when the Shapeshifter is infected. Infection cannot be copied. A copy of a Doctor does not create a second informed veto in Infection Edition unless the copied ability id is `doctor_save` and the config explicitly allows `copyInformedDoctor`. Default false, because two unlimited vetoes make night kills impossible.
 
 ### OD-59 Role registry source of truth
+
+**Decided 12 November 2026: accepted as built.**
 
 **Recommendation.** Definitions live in code in the domain package, versioned by a catalog hash stored on the game snapshot. Database rows store ids and per-game overrides, not a second editable copy of the global catalog. This avoids a plugin platform.
 
@@ -482,6 +588,8 @@ The repository has no application stack. This choice is blocking for Phase 1 and
 
 ### OD-61 Missing reference images and Pack 2 arithmetic
 
+**Decided 12 November 2026: accepted as built.** No 21-seat Pack 2 preset ships; the reconstruction stays marked as one.
+
 The brief says the expanded reference image disagrees with itself on village counts, and the images were not available here.
 
 **Do not ship** a 5 + 13 + 3 preset. That sum is 21.
@@ -492,25 +600,37 @@ The validated reconstruction is Pack 2A in [role-configuration.md](./role-config
 
 ### OD-62 Art
 
+**Decided 12 November 2026: accepted as built.** Role and avatar art now exists under `art/`; missing art falls back to a monogram.
+
 No role art exists in the repository. The reveal screen should reserve an image slot and render a monogram until art is provided. Art is not a rules blocker.
 
 ### OD-63 Accounts and multi-accounting
+
+**Decided 12 November 2026: accepted as built.** Guest seats only in version 1; one person can hold several seats.
 
 **Recommendation.** Version 1 uses guest seat tokens. One human with several browsers can hold several seats. Full prevention needs accounts, and accounts are out of scope for the first Infection ship. Document the limitation in the host UI. Rate-limit room creation and joins.
 
 ### OD-64 Spectator and mid-game join
 
+**Decided 12 November 2026: accepted as built.**
+
 **Recommendation.** No spectators and no joins after start in version 1. Seat count must equal the configured player count before start.
 
 ### OD-65 Kick and rejoin
+
+**Decided 12 November 2026: accepted as built.**
 
 **Recommendation.** Before start, the host may remove a seat and that person may rejoin if the room is open. After start, a seat cannot be replaced by a new person. The same token can reconnect.
 
 ### OD-66 Display names
 
+**Decided 12 November 2026: accepted as built.**
+
 **Recommendation.** Unique among seats in a game, 2 to 24 characters, trimmed, no control characters.
 
 ### OD-67 Minimum and maximum players
+
+**Decided 12 November 2026: accepted as built.**
 
 | Mode | Minimum | Maximum | Default |
 |---|---:|---:|---:|
@@ -523,13 +643,19 @@ Infection Edition's fixed 20 is confirmed. Other bounds are recommendations.
 
 ### OD-68 Day vote after a night victory
 
+**Decided 12 November 2026: accepted as built.**
+
 **Recommendation.** If night resolution already ended the game, day and voting do not open.
 
 ### OD-69 Elder and Mayor both seated
 
+**Decided 12 November 2026: accepted as built.**
+
 **Recommendation.** Weights multiply from a base of 1 by summing modifiers, they do not multiply by each other. An Elder who is not the Mayor has weight 2. Validation warns if any single weight is 3 or more.
 
 ### OD-70 Assistant and Doctor both resolving a save
+
+**Decided 12 November 2026: accepted as built.**
 
 Covered by OD-32. Both cannot hold an active heal in the same resolution.
 
@@ -577,6 +703,14 @@ Covered by OD-32. Both cannot hold an active heal in the same resolution.
 
 ---
 
+### OD-85 Public vote tally
+
+**Decided 12 November 2026: counts per target, published when each ballot closes.** After a ballot closes, every seat sees the weighted total for each player who received votes, the number of abstentions, who was eliminated, and any tie. Who voted for whom is never published; the host sees ballots on the dashboard. Counts are not shown while a ballot is open. The results recap lists each ballot's counts the same way. Built in WW-904.
+
+**Options considered.** Counts after close (chosen), fully open ballots, hidden counts, live counts during voting.
+
+---
+
 ### OD-73 Victory for Neutral roles without an individual win
 
 **Question.** Shapeshifter defaults to Neutral, and Poisoner, Disruptor, Immortal, and Avenger may be configured as Neutral. None of them has an individual victory, and Neutral is not a team. The validator rejects a Neutral or Independent seat with no victory (`NEUTRAL_VICTORY_MISSING`), and the Chaos pack seats a Neutral Shapeshifter.
@@ -595,6 +729,8 @@ Covered by OD-32. Both cannot hold an active heal in the same resolution.
 
 ### OD-74 Whether the night windows depend on who is alive
 
+**Decided 12 November 2026: option 1, fixed by the configuration**, as recommended. This is how WW-503 already behaves, so no code changes.
+
 **Question.** The host-confirm and Doctor-reaction windows exist only when the configuration needs them (OD-01, OD-02). Once a game is running, should a window still open when nobody can use it, for example after the informed Doctor has died or been infected?
 
 **Options.**
@@ -612,41 +748,61 @@ Covered by OD-32. Both cannot hold an active heal in the same resolution.
 
 ### OD-75 Joker's win ending the game
 
+**Decided 12 November 2026: accepted as built.** The Joker's win is recorded and the game continues.
+
 Ultimate 20 records a Joker win on a day elimination and does not end the game while both teams remain. Whether that win should end the game is open. See ultimate-20-rules.md.
 
 ### OD-76 Mind Controller's win
 
-The image names the Chaos team and gives no win card. The engine stores alive at game end.
+**Decided 12 November 2026: accepted as built.** The Mind Controller wins if alive at game end, alongside the winning team (as OD-73).
+
+The images name the Chaos team and give no win card. This is unresolved. The engine stores alive at game end, and that default is not an image rule.
 
 ### OD-77 Chaos event pool
 
-The transcript lists five events. The reference image lists six: disable an ability, protections off, no kills, no vote, swap votes, and double vote. The engine draws those six uniformly without replacement and resets the pool after all six.
+**Decided 12 November 2026: accepted as built.** Shuffled deck: all six effects come up once, in random order, before any repeats.
+
+The images list six effects: nobody votes the next day, protections do not work that night, two players' votes are swapped, nobody kills that night, one player gets double vote weight, and one player's ability is disabled. The images do not say how the draw is chosen. The engine draws those six uniformly, without replacement, and resets the pool after all six. A success is counted only when the effect changes the game.
 
 ### OD-78 Infection and the original power
+
+**Decided 12 November 2026: accepted as built.** Each converted role keeps or loses its power by its `lostOnInfection` flag.
 
 Ultimate infection follows each role's `lostOnInfection` flag. Double Agent becomes an infected wolf. Whether every converted role should keep its power is open.
 
 ### OD-79 Vampire servant abilities
 
-A successful mark converts the target to `vampire_servant`, revokes abilities lost on infection and copied abilities, and grants no kill. Whether the original ability should survive is open.
+**Decided 12 November 2026: accepted as built.** A Servant follows the same flag and joins the Vampire team's kill-or-mark choice.
+
+The guide does not say whether a Servant keeps the original ability. The engine still revokes abilities lost on infection and copied abilities, keeps any ability with `lostOnInfection: false`, and does not grant a wolf kill. It also grants the shared team kill and team mark, because the guide says the team chooses one of those. That grant is the team action, not a ruling on the original power.
 
 ### OD-80 Necromancer limits
+
+**Decided 12 November 2026: accepted as built.** The same player may be returned twice; a returned player can be attacked again.
 
 The engine allows the same player to be returned twice and leaves a returned player attackable. They cannot vote or use abilities. The image does not say.
 
 ### OD-81 Time Wizard's target
 
+**Decided 12 November 2026: accepted as built.** The blind rewind: every action the target submitted tonight is removed, before blocks resolve.
+
 The engine removes every action one player submitted tonight, before blocks resolve. The transcript said one action from the previous night, after the result. The decided behavior is the blind rewind.
 
 ### OD-82 Guardian and poison
+
+**Decided 12 November 2026: accepted as built.**
 
 The engine stops a wolf kill only. Poison is not stopped.
 
 ### OD-83 Chaos Demon's final five
 
+**Decided 12 November 2026: accepted as built.**
+
 The engine checks on every victory evaluation. Once three successful events have happened with the demon alive among five or fewer players, the flag stays achieved.
 
 ### OD-84 Team wins and individual records
+
+**Decided 12 November 2026: accepted as built.**
 
 A village or wolf win ends the game and keeps individual records that were already achieved.
 
@@ -668,6 +824,15 @@ The product owner can unblock Infection Edition by accepting or replacing the it
 | OD-71 | Capacitor APK wrapping the shared web client, orientation unlocked. **Accepted** |
 | OD-73 | A Neutral or Independent role with no individual victory wins if alive at game end, alongside the winning team. **Accepted and implemented** (11 November 2026) |
 | OD-72 | ~~Discussion rail shows the public event feed. The composer stays disabled~~ Replaced: real server-side chat in version 1. Chat rules **Accepted** (11 November 2026), see OD-72 |
-| OD-74 | Night windows are fixed by the configuration, not by who is alive, so silent infection stays silent. **Recommended**, adopted as the engineering default in WW-503 (11 November 2026). Awaiting product-owner confirmation |
+| OD-74 | Night windows are fixed by the configuration, not by who is alive, so silent infection stays silent. **Accepted** (12 November 2026). Built in WW-503 |
+| OD-85 | Vote counts per target are public after each ballot closes; who voted for whom is not. **Accepted** (12 November 2026) |
+| OD-29 | Sniper: one day shot, before voting; a protection from the night before, or an Immortal, stops it. **Accepted** (12 November 2026) |
+| OD-05 to OD-10, OD-12 to OD-16 | Infection targets, Cursed Villager, same-night conversion, Jester, Assassin (mark), Lone Wolf, Immortal, Avenger, Bodyguard, Trapper, Blacksmith (item). **Accepted as recommended** (12 November 2026) |
+| OD-19, OD-21 to OD-28 | Spy, Oracle, Seer, Detective, Psychic, Medium, Prophet, Tracker, poison versus protection. **Accepted as recommended** (12 November 2026) |
+| OD-30 to OD-34 | Disruptor, Shapeshifter, Healer Assistant, Elder penalty, Mayor. **Accepted as recommended** (12 November 2026) |
+| OD-35 to OD-38, OD-46, OD-48, OD-58 | Classic Pack Wolves see each other; Pack Wolf role; no friendly fire outside Infection Edition; investigations read the start-of-night state; wolves never see each other's submissions; redundant protectors all spend; copying and infection. **Accepted as recommended** (12 November 2026) |
+| OD-11, OD-17, OD-18, OD-20 | Hermit, Priest, Confuser, Bard: no mechanic. **Kept out of every preset** until a real power is decided (12 November 2026) |
+| OD-39 to OD-42, OD-45, OD-47, OD-49 to OD-57, OD-59, OD-61 to OD-70 | General rules: death reveal, ties, abstention, dead and disconnected voting, infection privacy, self-targeting, Witch potions, combined wins, neutrals-only and draw endings, host powers and disconnects, reconnects, concurrent resolution, restarts, catalog source, Pack 2 arithmetic, art, guest seats, no spectators, kick and rejoin, names, player counts, no day after a night victory, vote-weight sums. **Accepted as built** (12 November 2026) |
+| OD-75 to OD-84 | Ultimate 20: Joker win continues the game, Mind Controller alive at end, shuffled Chaos deck, conversions follow `lostOnInfection`, Necromancer may return a player twice, blind Time Wizard rewind, Guardian stops wolf kills only, Chaos Demon final five, team wins keep individual records. **Accepted as built** (12 November 2026) |
 
 Expanded, Chaos, Investigation, and Protection presets additionally need the recommended role defaults in OD-06 through OD-34 accepted or replaced. Hermit, Confuser, Priest, and Bard stay out of those presets until their UNRESOLVED entries gain a real mechanic.

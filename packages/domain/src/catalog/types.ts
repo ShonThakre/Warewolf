@@ -27,7 +27,7 @@ export const ABILITY_TIMINGS = ['NIGHT', 'NIGHT_REACTION', 'DAY', 'PASSIVE'] as 
 export type AbilityTiming = (typeof ABILITY_TIMINGS)[number];
 
 /** Named lethal sources. Protection lists which ones it cancels. */
-export const ATTACK_TYPES = ['WOLF_KILL', 'SNIPER', 'POISON', 'REVENGE', 'DAY_VOTE'] as const;
+export const ATTACK_TYPES = ['WOLF_KILL', 'SNIPER', 'POISON', 'REVENGE', 'DAY_VOTE', 'VAMPIRE'] as const;
 export type AttackType = (typeof ATTACK_TYPES)[number];
 
 /** Facts an information ability can return. */
@@ -122,9 +122,13 @@ export const INDIVIDUAL_TRIGGERS = [
   'SOLE_SURVIVOR',
   'ALIVE_AT_GAME_END',
   // Ultimate 20 (docs/werewolf/ultimate-20-rules.md).
-  /** Vampire: alive when the game ends, and at least one Servant was ever made. */
+  /**
+   * Vampire team. A living Vampire and a living Servant at game end, or the
+   * team still alive after Village and Wolves are both gone. A dead Servant
+   * does not count. The images state both paths.
+   */
   'ALIVE_WITH_SERVANT',
-  /** Vampire Servant: wins when a Vampire's own win is recorded. */
+  /** Vampire Servant: shares a Vampire-team win. A dead Servant does not. */
   'WITH_VAMPIRE',
   /** Fox: alive at the moment no wolf-aligned player is left. */
   'ALL_WOLVES_ELIMINATED_WHILE_ALIVE',
