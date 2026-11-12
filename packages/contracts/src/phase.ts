@@ -54,6 +54,15 @@ export const gameStateSchema = z.object({
   close: phaseCloseSchema.nullable(),
   /** Seats in seat order. Life status is public; roles are not. */
   players: z.array(statePlayerSchema),
+  /**
+   * Ballot rules from the saved configuration. Every seat can read them
+   * during voting. Booleans only, so the rest of the configuration stays off
+   * this route. Configuration GET is lobby-only.
+   */
+  voting: z.object({
+    abstain: z.boolean(),
+    changeUntilClose: z.boolean(),
+  }),
   you: z.object({
     playerId: z.uuid(),
     isHost: z.boolean(),

@@ -1,6 +1,6 @@
 import type { GamePhase } from '@warewolf/domain';
 import { CountdownTimer } from './CountdownTimer';
-import { PHASE_LABEL, roundLabel } from './phaseCopy';
+import { PHASE_LABEL, phaseGuide, roundLabel } from './phaseCopy';
 import './table-screen.css';
 
 export interface GameStatusBarProps {
@@ -14,17 +14,32 @@ export interface GameStatusBarProps {
   readonly onElapsed?: () => void;
 }
 
-/** Phase, round, and the countdown or "Waiting for host". Phase changes are announced. */
+const NIGHT_PHASES: ReadonlySet<GamePhase> = new Set(['NIGHT_SUBMIT', 'NIGHT_HOST_CONFIRM', 'NIGHT_REACTION']);
+
+/** Phase, round, what the phase is for, and the countdown or "Waiting for host". Phase changes are announced. */
 export function GameStatusBar({ phase, roundNumber, seconds, showClock, onElapsed }: GameStatusBarProps) {
   const phaseName = PHASE_LABEL[phase];
   const round = roundLabel(roundNumber);
+  const guide = phaseGuide(phase);
+  const night = NIGHT_PHASES.has(phase);
   return (
-    <div className="ww-status">
-      <h1 className="ww-status-title">{phaseName}</h1>
-      <p className="ww-status-copy">{round}</p>
-      {showClock ? <CountdownTimer seconds={seconds} {...(onElapsed ? { onElapsed } : {})} /> : null}
+    <div className="ww-status" data-phase={phase}>
+      <div className="ww-status-pack">
+        <h1 className="ww-status-title">{phaseName}</h1>
+        {night ? <p className="ww-status-guide">{guide}</p> : <p className="ww-status-copy">{round}</p>}
+        {!night && showClock ? <CountdownTimer seconds={seconds} {...(onElapsed ? { onElapsed } : {})} /> : null}
+        {!night ? <p className="ww-status-guide">{guide}</p> : null}
+      </div>
+      {night ? (
+        <div className="ww-status-trail">
+          <span className="ww-pill ww-status-phase" data-tone="waiting">
+            {phaseName} · In progress
+          </span>
+          {showClock ? <CountdownTimer seconds={seconds} {...(onElapsed ? { onElapsed } : {})} /> : null}
+        </div>
+      ) : null}
       <p className="ww-sr" aria-live="polite">
-        {phaseName}. {round}.
+        {phaseName}. {round}. {guide}
       </p>
     </div>
   );

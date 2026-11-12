@@ -67,11 +67,16 @@ export const theme = createTheme({
             backgroundColor: 'var(--danger)',
             color: 'var(--accent-ink)',
           },
+          '&.Mui-disabled': {
+            backgroundColor: 'var(--surface-raised)',
+            color: 'var(--text-muted)',
+          },
         },
         outlined: {
           color: 'var(--text)',
           borderColor: 'var(--primary)',
           '&:hover': { borderColor: 'var(--primary-hover)', backgroundColor: 'transparent' },
+          '&.Mui-disabled': { borderColor: 'var(--border)', color: 'var(--text-muted)' },
         },
       },
     },

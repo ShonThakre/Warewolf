@@ -86,15 +86,19 @@ describe('night action panel', () => {
     expect(screen.getByText('Eliminated')).toBeTruthy();
 
     fireEvent.click(seatButton('Rafi'));
-    expect(within(actions).getByText('Rafi')).toBeTruthy();
+    expect(within(actions).getByText('Selected: Rafi. Not sent yet.')).toBeTruthy();
+    expect(within(actions).getByText('Not sent yet')).toBeTruthy();
+    expect(seatButton('Rafi').textContent).toContain('Selected');
     expect((within(actions).getByRole('button', { name: 'Submit' }) as HTMLButtonElement).disabled).toBe(false);
     fireEvent.click(within(actions).getByRole('button', { name: 'Submit' }));
     expect(await within(actions).findByText('Submitted')).toBeTruthy();
     expect(posts).toEqual([{ abilityInstanceId: role.abilities[0]!.abilityInstanceId, targetPlayerIds: [fixturePlayerId(2)], payload: {} }]);
 
+    expect(within(actions).getByRole('button', { name: 'Choice sent' })).toBeTruthy();
+
     fireEvent.click(seatButton('Asha'));
-    expect(within(actions).getByText('Asha')).toBeTruthy();
-    expect((within(actions).getByRole('button', { name: 'Submit' }) as HTMLButtonElement).disabled).toBe(false);
+    expect(within(actions).getByText('Selected: Asha. Not sent yet.')).toBeTruthy();
+    expect((within(actions).getByRole('button', { name: /^(Submit|Update choice)$/ }) as HTMLButtonElement).disabled).toBe(false);
 
     fireEvent.click(screen.getByRole('button', { name: 'Hide role' }));
     expect(screen.queryByText('Seeker')).toBeNull();
@@ -120,10 +124,10 @@ describe('night action panel', () => {
     expect(seatButton('Ines').disabled).toBe(false);
 
     fireEvent.click(seatButton('Ines'));
-    fireEvent.click(within(actions).getByRole('button', { name: 'Submit' }));
+    fireEvent.click(within(actions).getByRole('button', { name: /^(Submit|Update choice)$/ }));
     await waitFor(() => expect(posts).toEqual([{ targetPlayerIds: [fixturePlayerId(5)], payload: {} }]));
     expect(within(actions).getByText('Submitted')).toBeTruthy();
-    expect((within(actions).getByRole('button', { name: 'Submit' }) as HTMLButtonElement).disabled).toBe(true);
+    expect((within(actions).getByRole('button', { name: 'Choice sent' }) as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('gives the Witch two controls because the projection has two abilities', async () => {

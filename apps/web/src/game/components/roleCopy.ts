@@ -1,6 +1,89 @@
 import type { MyRole, OwnAbility, RoleRef } from '@warewolf/contracts';
-import { DEFAULT_CATALOG, type Faction } from '@warewolf/domain';
+import { DEFAULT_CATALOG, type AbilityDefinition, type Faction, type IndividualTrigger, type RoleDefinition, type VictoryDefinition } from '@warewolf/domain';
 import { nightAbilitiesForRound } from '../state/role';
+
+/** Team key for portrait frames and chips. Color always sits beside the team word. */
+export const TEAM_KEY: Record<Faction, 'wolf' | 'village' | 'neutral' | 'independent'> = {
+  WOLF_PACK: 'wolf',
+  VILLAGE: 'village',
+  NEUTRAL: 'neutral',
+  INDEPENDENT: 'independent',
+};
+
+export interface RoleAvailability {
+  /** Can be added to a setup and dealt at the start. */
+  readonly seatable: boolean;
+  /** Short badge. Null for an ordinary seatable role. */
+  readonly badge: string | null;
+  /** Plain sentence under the badge. */
+  readonly explanation: string | null;
+}
+
+/** Why a catalog role is or is not in play. Decision ids are a reference, never the only explanation. */
+export function roleAvailability(role: Pick<RoleDefinition, 'implementationStatus' | 'seatable' | 'decisionIds'>): RoleAvailability {
+  if (role.implementationStatus === 'UNRESOLVED') {
+    const reference = role.decisionIds.length > 0 ? ` Decision ${role.decisionIds.join(', ')}.` : '';
+    return {
+      seatable: false,
+      badge: 'Not in version 1',
+      explanation: `This role has no defined power in the app yet, so it cannot be seated.${reference}`,
+    };
+  }
+  if (!role.seatable) {
+    return {
+      seatable: false,
+      badge: 'Gained in play',
+      explanation: 'Never dealt at the start. A player becomes this role during the game.',
+    };
+  }
+  return { seatable: true, badge: null, explanation: null };
+}
+
+/** Limits for a catalog ability, as one short sentence. Empty when the ability has none. */
+export function catalogLimitLine(ability: AbilityDefinition): string {
+  const parts: string[] = [];
+  if (ability.onlyRound != null) parts.push(`Only in round ${ability.onlyRound}.`);
+  else if (ability.availableFromRound > 1) parts.push(`From round ${ability.availableFromRound}.`);
+  if (ability.usesPerPhase === 1) parts.push(ability.timing === 'DAY' ? 'Once each day.' : 'Once each night.');
+  else if (ability.usesPerPhase != null) parts.push(`${ability.usesPerPhase} times each phase.`);
+  if (ability.usesPerGame === 1) parts.push('Once per game.');
+  else if (ability.usesPerGame != null) parts.push(`${ability.usesPerGame} times per game.`);
+  if (ability.cooldownNights > 0) parts.push(`Rests ${ability.cooldownNights} ${ability.cooldownNights === 1 ? 'night' : 'nights'} after a use.`);
+  return parts.join(' ');
+}
+
+export function abilityTimingWord(timing: AbilityDefinition['timing']): string {
+  switch (timing) {
+    case 'NIGHT':
+      return 'Night';
+    case 'NIGHT_REACTION':
+      return 'Night reaction';
+    case 'DAY':
+      return 'Day';
+    case 'PASSIVE':
+      return 'Always on';
+  }
+}
+
+const TRIGGER_LINE: Record<IndividualTrigger, string> = {
+  ELIMINATED_BY_DAY_VOTE: 'Wins when the day vote eliminates them.',
+  MARKED_TARGET_ELIMINATED: 'Wins when their marked player is eliminated.',
+  SOLE_SURVIVOR: 'Wins as the last player standing.',
+  ALIVE_AT_GAME_END: 'Wins by being alive when the game ends.',
+  ALIVE_WITH_SERVANT: 'Wins when alive with a living Servant at the end, or when the Vampire team outlasts the Village and the Wolves.',
+  WITH_VAMPIRE: 'Shares the Vampire team’s win while alive.',
+  ALL_WOLVES_ELIMINATED_WHILE_ALIVE: 'Wins by being alive when no wolf is left.',
+  ALIVE_AFTER_REVIVE: 'Wins after returning at least one player and being alive at the end.',
+  CHAOS_THREE_AND_FINAL_FIVE: 'Wins after three Chaos events change the game, while alive with five or fewer players left.',
+};
+
+/** How a catalog profile wins, in one or two sentences. */
+export function victoryLine(victory: VictoryDefinition, teamName: string): string {
+  if (victory.type === 'NONE') return 'No win condition is defined for this role.';
+  if (victory.type === 'TEAM') return `Wins with the ${teamName} team.`;
+  const line = TRIGGER_LINE[victory.trigger];
+  return victory.endGameOnWin ? line : `${line} The game goes on after this win.`;
+}
 
 const TEAM: Record<Faction, { word: string; className: string }> = {
   VILLAGE: { word: 'Village', className: 'ww-team ww-team-village' },
@@ -83,7 +166,7 @@ export function abilityDetail(ability: OwnAbility): string {
     parts.push(ability.target.count === 1 ? 'chooses one player' : `chooses ${ability.target.count} players`);
   }
   if (ability.target.kind === 'FINAL_WOLF_TARGET') parts.push('answers the announced wolf target');
-  return `${parts.join('. ')}.`;
+  return `${parts.map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join('. ')}.`;
 }
 
 export function abilityTitle(ability: OwnAbility): string {

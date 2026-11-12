@@ -1,105 +1,265 @@
-/* Private reveal. Landscape keeps the picture and the card together. Portrait stacks them. */
+/* Private reveal at 1586×992, matched to the centered card in 04-role-reveal.png. */
 
-.ww-reveal {
-  height: 100%;
-  min-height: 0;
-  min-width: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(16rem, 28rem);
+.ww-app:has(.ww-reveal) .ww-app-nav {
+  height: var(--bar-home);
+  min-height: var(--bar-home);
+  box-sizing: border-box;
+  background: var(--bg);
+  border-bottom-color: transparent;
+}
+
+.ww-app:has(.ww-reveal) .ww-app-main {
   overflow: hidden;
   background: var(--bg);
 }
 
-.ww-reveal-art {
-  min-width: 0;
+.ww-reveal {
+  position: relative;
+  height: 100%;
   min-height: 0;
+  min-width: 0;
   display: grid;
   place-items: center;
+  overflow: auto;
+  background: var(--bg);
   padding: var(--space);
-  background: var(--bg-night);
 }
 
-.ww-reveal-art img {
-  width: min(100%, 36rem);
+.ww-reveal-scene {
+  position: absolute;
+  inset: 0;
+  background: var(--bg);
+}
+
+.ww-reveal-scene img {
+  width: 100%;
   height: 100%;
-  max-height: 100%;
+  object-fit: cover;
+  object-position: center 22%;
+  display: block;
+}
+
+.ww-reveal[data-faction='WOLF_PACK'] .ww-reveal-scene img {
+  object-position: 72% 18%;
+}
+
+.ww-reveal[data-covered] .ww-reveal-scene img {
   object-fit: contain;
+  object-position: center;
+  width: min(18rem, 70%);
+  height: min(26rem, 80%);
+  margin: auto;
+}
+
+.ww-reveal-wash {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, transparent 42%, rgb(20 11 34 / 0.38) 100%);
+  pointer-events: none;
+}
+
+.ww-reveal[data-covered] .ww-reveal-wash {
+  background: rgb(20 11 34 / 0.72);
 }
 
 .ww-reveal-art-fallback {
-  width: min(100%, 16rem);
-  aspect-ratio: 1;
-  border-radius: var(--radius);
-  background: var(--surface-raised);
+  width: 100%;
+  height: 100%;
+  background: var(--bg-night);
 }
 
 .ww-reveal-panel {
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  background: var(--surface);
-  border-left: 1px solid var(--border);
+  position: relative;
+  z-index: 1;
+  width: min(908px, calc(100% - 1rem));
+  margin: auto;
 }
 
-.ww-reveal-scroll {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  padding: var(--space);
-}
-
-.ww-reveal-action {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+.ww-reveal-pending {
+  display: grid;
+  justify-items: start;
   gap: var(--space);
   padding: var(--space);
-  padding-bottom: max(var(--space), env(safe-area-inset-bottom));
-  border-top: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
 }
 
 .ww-role-card {
   display: grid;
-  gap: var(--space);
+  gap: 1.35rem;
+  padding: 2.5rem 2rem 1.75rem;
+  border-radius: calc(var(--radius) + 0.35rem);
+  background: var(--surface);
+  box-shadow: var(--shadow);
   animation: ww-reveal-in 280ms ease;
 }
 
-.ww-role-heading {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: calc(var(--space) / 2) var(--space);
+.ww-role-body {
+  display: grid;
+  grid-template-columns: 18.5rem minmax(0, 1fr);
+  column-gap: 3.25rem;
+  align-items: start;
+}
+
+.ww-reveal .ww-portrait[data-size='card'] {
+  width: 100%;
+  aspect-ratio: 296 / 401;
+  border: 1px solid color-mix(in srgb, var(--text) 16%, transparent);
+  border-radius: 1.15rem;
+  box-shadow: none;
+  background: var(--bg);
+}
+
+.ww-reveal .ww-portrait[data-size='card'] img {
+  object-position: center 18%;
+}
+
+.ww-role-main {
+  display: grid;
+  align-content: start;
+  gap: 0.85rem;
+  min-width: 0;
+  padding-top: 0.35rem;
 }
 
 .ww-role-badge {
   margin: 0;
-  font-size: var(--text-title);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 2.6vw, 2.75rem);
   font-weight: 800;
+  line-height: 1.05;
+  overflow-wrap: anywhere;
 }
 
-.ww-role-ability {
-  margin: 0;
+.ww-reveal .ww-team-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: fit-content;
+  min-height: 2rem;
+  padding: 0.15rem 0.9rem 0.15rem 0.55rem;
+  border: 2px solid currentColor;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  font-size: var(--text-body);
   font-weight: 800;
+  line-height: 1;
+}
+
+.ww-role-glyph {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .ww-role-copy,
 .ww-role-tonight,
 .ww-role-covered,
+.ww-role-note,
 .ww-reveal-status {
   margin: 0;
 }
 
-.ww-role-tonight {
-  font-weight: 700;
+.ww-role-copy {
+  color: var(--text);
+  font-size: var(--text-body);
+  line-height: 1.45;
+}
+
+.ww-role-rule {
+  width: 100%;
+  height: 0;
+  margin: 0.35rem 0 0.15rem;
+  border: 0;
+  border-top: 1px solid var(--border);
 }
 
 .ww-role-abilities {
   display: grid;
-  gap: var(--space);
+  gap: 0.85rem;
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+.ww-role-abilities li,
+.ww-role-fact {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+  color: var(--text-muted);
+}
+
+.ww-role-ability {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.ww-role-tonight {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.ww-role-note,
+.ww-reveal-status {
+  color: var(--text-muted);
+  font-size: var(--text-label);
+}
+
+.ww-role-team {
+  padding-top: 0.15rem;
+}
+
+.ww-role-foot {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.ww-role-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  gap: 1.15rem;
+}
+
+.ww-reveal-hide.MuiButton-root.MuiButton-outlined {
+  min-height: 4.25rem;
+  color: var(--text);
+  background: var(--surface-raised);
+  border-color: color-mix(in srgb, var(--text) 22%, transparent);
+  border-radius: var(--radius);
+}
+
+.ww-reveal-hide.MuiButton-root.MuiButton-outlined:hover {
+  background: var(--surface-raised);
+  border-color: color-mix(in srgb, var(--text) 40%, transparent);
+}
+
+.ww-reveal-go.MuiButton-root {
+  min-height: 4.25rem;
+  border-radius: var(--radius);
+}
+
+.ww-role-actions .MuiButton-root,
+.ww-reveal-close .MuiButton-root {
+  width: 100%;
+}
+
+.ww-role-card.is-covered {
+  justify-items: center;
+  text-align: center;
+}
+
+.ww-role-back {
+  width: min(100%, 14rem);
+  aspect-ratio: 2 / 3;
+  object-fit: contain;
 }
 
 .ww-role-covered {
@@ -118,20 +278,68 @@
   }
 }
 
-@media (orientation: portrait) and (max-width: 767px) {
+@media (max-width: 767px) {
+  .ww-app:has(.ww-reveal) .ww-app-main {
+    overflow: auto;
+  }
+
   .ww-reveal {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: minmax(5rem, 34dvh) minmax(0, 1fr);
+    align-items: stretch;
+    padding-bottom: 0;
   }
 
   .ww-reveal-panel {
-    border-left: 0;
-    border-top: 1px solid var(--border);
+    width: min(100%, 36rem);
+    margin-top: auto;
+  }
+
+  .ww-role-body {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--space);
+  }
+
+  .ww-reveal .ww-portrait[data-size='card'] {
+    width: min(100%, 16rem);
+    justify-self: center;
+  }
+
+  .ww-role-actions {
+    position: sticky;
+    bottom: 0;
+    grid-template-columns: minmax(0, 1fr);
+    padding-bottom: max(var(--space), env(safe-area-inset-bottom));
+    background: var(--surface);
   }
 }
 
 @media (max-height: 499px) and (orientation: landscape) {
-  .ww-reveal {
-    grid-template-columns: minmax(0, 0.8fr) minmax(14rem, 1fr);
+  .ww-role-card {
+    padding: 0.75rem 1rem;
+    gap: 0.6rem;
+  }
+
+  .ww-role-body {
+    grid-template-columns: 7.5rem minmax(0, 1fr);
+    column-gap: var(--space);
+  }
+
+  .ww-reveal .ww-portrait[data-size='card'] {
+    max-height: 9.5rem;
+    aspect-ratio: 3 / 4;
+  }
+
+  .ww-role-badge {
+    font-size: var(--text-title);
+  }
+
+  .ww-reveal-hide.MuiButton-root.MuiButton-outlined,
+  .ww-reveal-go.MuiButton-root {
+    min-height: var(--hit);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ww-role-card {
+    animation: none;
   }
 }

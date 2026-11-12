@@ -1,29 +1,22 @@
 import type { AbilityDefinition, Faction, GameConfiguration, RoleDefinition } from '@warewolf/domain';
 import { DEFAULT_CATALOG } from '@warewolf/domain';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, MenuItem, Switch, TextField, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle, FormControlLabel, IconButton, MenuItem, Switch, TextField, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import { useMemo, useState } from 'react';
-import { roleArtUrl } from '../../assets/art';
-import { FACTION_CLASS, teamWord } from '../components/lobbyCopy';
-import { capabilityTitle } from '../components/roleCopy';
+import { teamWord } from '../components/lobbyCopy';
+import { capabilityTitle, roleAvailability } from '../components/roleCopy';
+import { filterRoles, TEAM_FILTERS, type TeamFilter } from '../components/roleFilters';
+import { RoleDetails, RoleTile } from '../components/RoleTile';
 import { configLabel, lockedModeCopy } from './setupCopy';
 import { modeLocked, roleCount, setAbilityCharge, setAbilityConfig, setAbilityCooldown, setAbilityProfile, setRoleCount, setRoleFaction } from './setupDraft';
 
-type TeamFilter = 'all' | 'wolf' | 'village' | 'neutral' | 'special';
-
-const FILTERS: { value: TeamFilter; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'wolf', label: 'Wolf' },
-  { value: 'village', label: 'Village' },
-  { value: 'neutral', label: 'Neutral' },
-  { value: 'special', label: 'Special' },
-];
-
-function matchesTeam(role: RoleDefinition, filter: TeamFilter): boolean {
-  if (filter === 'all') return true;
-  if (filter === 'wolf') return role.defaultFaction === 'WOLF_PACK';
-  if (filter === 'village') return role.defaultFaction === 'VILLAGE';
-  if (filter === 'neutral') return role.defaultFaction === 'NEUTRAL';
-  return role.defaultFaction === 'INDEPENDENT';
+/** Why the stepper cannot add, in words beside the control. Null when adding is allowed. */
+function addBlocked(role: RoleDefinition, count: number, editable: boolean, locked: boolean): string | null {
+  if (!editable) return 'Only the host edits.';
+  if (locked) return 'Locked by this mode.';
+  const availability = roleAvailability(role);
+  if (!availability.seatable) return availability.badge;
+  if (role.uniqueInGame && count >= 1) return 'One per game.';
+  return null;
 }
 
 export function SetupRoles({
@@ -39,68 +32,84 @@ export function SetupRoles({
   const lockedCopy = lockedModeCopy(draft.mode);
   const [filter, setFilter] = useState<TeamFilter>('all');
   const [query, setQuery] = useState('');
+  const [onlyPicked, setOnlyPicked] = useState(false);
   const [openId, setOpenId] = useState<string | null>(null);
   const open = openId ? DEFAULT_CATALOG.byId.get(openId) ?? null : null;
 
   const roles = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    return DEFAULT_CATALOG.roles.filter((role) => {
-      if (!matchesTeam(role, filter)) return false;
-      if (!needle) return true;
-      return role.displayName.toLowerCase().includes(needle) || role.description.toLowerCase().includes(needle);
-    });
-  }, [filter, query]);
+    const found = filterRoles(DEFAULT_CATALOG.roles, filter, query);
+    return onlyPicked ? found.filter((role) => roleCount(draft, role.id) > 0) : found;
+  }, [filter, query, onlyPicked, draft]);
 
   return (
     <>
       {lockedCopy ? <p className="ww-setup-copy">{lockedCopy}</p> : null}
-      <div className="ww-setup-tools">
+      {!lockedCopy && editable ? <p className="ww-setup-copy">Open a card to read the role and to change its limits.</p> : null}
+      <div className="ww-setup-tools ww-catalog-tools">
         <ToggleButtonGroup exclusive value={filter} onChange={(_event, value: TeamFilter | null) => value && setFilter(value)} aria-label="Teams">
-          {FILTERS.map((item) => (
+          {TEAM_FILTERS.map((item) => (
             <ToggleButton key={item.value} value={item.value}>
-              {item.label}
+              {item.value === 'all' ? item.label : teamWord(draft.mode, item.value)}
             </ToggleButton>
           ))}
         </ToggleButtonGroup>
-        <TextField label="Search roles" value={query} onChange={(event) => setQuery(event.target.value)} size="small" />
+        <TextField label="Search roles" value={query} onChange={(event) => setQuery(event.target.value)} size="small" type="search" />
+        <FormControlLabel control={<Switch checked={onlyPicked} onChange={(_event, checked) => setOnlyPicked(checked)} />} label="Only roles in this setup" />
       </div>
-      <div className="ww-setup-grid">
-        {roles.map((role) => {
-          const count = roleCount(draft, role.id);
-          const unavailable = role.implementationStatus === 'UNRESOLVED' || !role.seatable;
-          const portrait = roleArtUrl(role.id);
-          const team = teamWord(draft.mode, role.defaultFaction);
-          return (
-            <article key={role.id} className="ww-setup-role">
-              <Button className="ww-setup-role-open" onClick={() => setOpenId(role.id)} disabled={unavailable && count === 0}>
-                <span className={`ww-role-portrait ${FACTION_CLASS[role.defaultFaction]}`} aria-hidden="true">
-                  {portrait ? <img src={portrait} alt="" /> : team}
-                </span>
-                <span className="ww-catalog-name">{role.displayName}</span>
-                <span className={FACTION_CLASS[role.defaultFaction]}>{team}</span>
-                <span className="ww-catalog-power">Seated {count}</span>
-                {unavailable ? <span className="ww-catalog-power">Not available yet. {role.decisionIds.join(', ')}</span> : null}
-              </Button>
-              <div className="ww-setup-role-actions">
-                <Button
-                  aria-label={`Remove one ${role.displayName}`}
-                  disabled={!editable || locked || unavailable || count === 0}
-                  onClick={() => onDraft(setRoleCount(draft, role.id, count - 1))}
-                >
-                  Remove
-                </Button>
-                <Button
-                  aria-label={`Add one ${role.displayName}`}
-                  disabled={!editable || locked || unavailable || (role.uniqueInGame && count >= 1)}
-                  onClick={() => onDraft(setRoleCount(draft, role.id, count + 1))}
-                >
-                  Add
-                </Button>
-              </div>
-            </article>
-          );
-        })}
-      </div>
+      {roles.length === 0 ? (
+        <div className="ww-catalog-empty">
+          <p>{onlyPicked ? 'No role in this setup matches.' : 'No role matches this search.'}</p>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setQuery('');
+              setFilter('all');
+              setOnlyPicked(false);
+            }}
+          >
+            Show every role
+          </Button>
+        </div>
+      ) : (
+        <ul className="ww-role-grid" aria-label="Roles">
+          {roles.map((role) => {
+            const count = roleCount(draft, role.id);
+            const team = teamWord(draft.mode, role.defaultFaction);
+            const blocked = addBlocked(role, count, editable, locked);
+            const canRemove = editable && !locked && count > 0;
+            return (
+              <li key={role.id}>
+                <RoleTile
+                  role={role}
+                  teamName={team}
+                  picked={count}
+                  onOpen={() => setOpenId(role.id)}
+                  footer={
+                    editable ? (
+                      <>
+                        <span className="ww-stepper" role="group" aria-label={`${role.displayName} seats`}>
+                          <IconButton aria-label={`Remove one ${role.displayName}`} disabled={!canRemove} onClick={() => onDraft(setRoleCount(draft, role.id, count - 1))}>
+                            <StepGlyph kind="minus" />
+                          </IconButton>
+                          <span className="ww-stepper-count" aria-live="polite">
+                            {count}
+                          </span>
+                          <IconButton aria-label={`Add one ${role.displayName}`} disabled={blocked != null} onClick={() => onDraft(setRoleCount(draft, role.id, count + 1))}>
+                            <StepGlyph kind="plus" />
+                          </IconButton>
+                        </span>
+                        {blocked ? <span className="ww-role-tile-note">{blocked}</span> : null}
+                      </>
+                    ) : (
+                      <span className="ww-role-tile-note">{count > 0 ? `${count} ${count === 1 ? 'seat' : 'seats'}` : 'Not in this setup'}</span>
+                    )
+                  }
+                />
+              </li>
+            );
+          })}
+        </ul>
+      )}
       <Dialog open={open != null} onClose={() => setOpenId(null)} fullWidth maxWidth="xs" aria-labelledby="setup-role-title">
         {open ? (
           <RoleEditor role={open} draft={draft} editable={editable && !locked && roleCount(draft, open.id) > 0} onDraft={onDraft} onClose={() => setOpenId(null)} />
@@ -133,8 +142,7 @@ function RoleEditor({
     <>
       <DialogTitle id="setup-role-title">{role.displayName}</DialogTitle>
       <DialogContent className="ww-setup-fields">
-        <p className={FACTION_CLASS[role.defaultFaction]}>Team: {teamWord(draft.mode, faction)}</p>
-        {profile ? <p className="ww-setup-copy">{profile.description}</p> : null}
+        <RoleDetails role={role} teamName={teamWord(draft.mode, faction)} profileId={profileId} />
         {editable && profiles.length > 1 ? (
           <TextField select label="Way to play this role" value={profileId} onChange={(event) => onDraft(setAbilityProfile(draft, role.id, event.target.value))}>
             {profiles.map((item) => (
@@ -156,7 +164,7 @@ function RoleEditor({
         {profile?.abilities.map((ability) => (
           <AbilityEditor key={ability.id} ability={ability} draft={draft} roleId={role.id} editable={editable} chargePolicy={profile.chargePolicy} onDraft={onDraft} />
         ))}
-        {!editable ? <p className="ww-setup-copy">Seat this role to edit its limits.</p> : null}
+        {!editable ? <p className="ww-setup-copy">The host can change these limits after adding this role to the setup.</p> : null}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Close</Button>
@@ -184,7 +192,7 @@ function AbilityEditor({
   const override = entry?.overrides?.[ability.id];
   const usesPerGame = override?.usesPerGame === undefined ? ability.usesPerGame : override.usesPerGame;
   const cooldown = override?.cooldownNights ?? ability.cooldownNights;
-  const title = ability.capability ? capabilityTitle(ability.capability) : ability.id;
+  const title = capabilityTitle(ability.capability);
 
   return (
     <fieldset className="ww-setup-fields">
@@ -246,5 +254,14 @@ function AbilityEditor({
         return null;
       })}
     </fieldset>
+  );
+}
+
+function StepGlyph({ kind }: { kind: 'plus' | 'minus' }) {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" aria-hidden="true" focusable="false">
+      <path d="M5 12h14" />
+      {kind === 'plus' ? <path d="M12 5v14" /> : null}
+    </svg>
   );
 }

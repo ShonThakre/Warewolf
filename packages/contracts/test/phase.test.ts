@@ -12,6 +12,7 @@ const state: GameState = {
   phaseEndsAt: '2026-11-11T20:01:30.000Z',
   serverNow: '2026-11-11T20:00:05.000Z',
   close: { next: null, resolves: 'NIGHT' },
+  voting: { abstain: true, changeUntilClose: true },
   players: [
     {
       playerId: '1a2b3c4d-5e6f-4a1b-8c2d-3e4f5a6b7c8d',
@@ -44,6 +45,13 @@ describe('game state', () => {
 
   it('requires ISO timestamps', () => {
     expect(gameStateSchema.safeParse({ ...state, phaseEndsAt: 'in 90 seconds' }).success).toBe(false);
+  });
+
+  it('publishes only the two ballot booleans', () => {
+    const parsed = gameStateSchema.parse({ ...state, voting: { abstain: false, changeUntilClose: false, enabled: true, deadMayVote: true } });
+    expect(parsed.voting).toEqual({ abstain: false, changeUntilClose: false });
+    expect(gameStateSchema.safeParse({ ...state, voting: { abstain: false } }).success).toBe(false);
+    expect(gameStateSchema.safeParse({ ...state, voting: undefined }).success).toBe(false);
   });
 });
 

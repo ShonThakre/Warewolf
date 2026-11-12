@@ -6,18 +6,6 @@
   color: var(--text);
 }
 
-.ww-sr {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
 .ww-seat-life {
   font-size: var(--text-label);
   font-weight: 700;
@@ -67,6 +55,20 @@
   width: 100%;
   margin: 0;
   font-weight: 700;
+  color: var(--danger);
+}
+
+.ww-action-alert-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--space) / 2);
+  width: 100%;
+}
+
+.ww-action-alert-row .ww-action-alert {
+  width: auto;
+  flex: 1 1 12rem;
 }
 
 .ww-seat .ww-target.MuiButton-root {
@@ -80,10 +82,81 @@
   color: var(--text);
 }
 
-.ww-target[aria-pressed='true'],
-.ww-abstain[aria-pressed='true'] {
-  outline: 2px solid var(--accent);
+.ww-seat .ww-target.MuiButton-root {
+  min-height: var(--hit-grid, var(--hit));
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+}
+
+.ww-seats[data-picking='true'] .ww-seat[data-legal='true'] .ww-target.MuiButton-root {
+  border-color: var(--primary);
+}
+
+.ww-seats[data-picking='true'] .ww-seat[data-legal='false'] .ww-target.MuiButton-root {
+  opacity: 0.55;
+}
+
+.ww-target[aria-pressed='true'].MuiButton-root,
+.ww-abstain[aria-pressed='true'].MuiButton-root {
+  outline: 3px solid var(--accent);
   outline-offset: 2px;
+  border-color: var(--accent);
+  background: var(--surface-raised);
+}
+
+.ww-target-avatar {
+  position: relative;
+  display: inline-grid;
+}
+
+.ww-target-check {
+  position: absolute;
+  right: -0.35em;
+  bottom: -0.2em;
+  display: grid;
+  place-items: center;
+  min-width: 1.5em;
+  height: 1.5em;
+  padding: 0 0.25em;
+  border-radius: var(--radius-pill);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: var(--text-label);
+  font-weight: 800;
+  box-shadow: 0 0 0 2px var(--bg);
+}
+
+.ww-seat-picked {
+  font-size: var(--text-label);
+  font-weight: 800;
+  color: var(--accent);
+}
+
+.ww-action-head {
+  flex: 1 1 14rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--space) / 4) calc(var(--space) / 2);
+  min-width: 0;
+}
+
+.ww-action-head .ww-action-copy {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.ww-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--space) / 2);
+}
+
+.ww-status-guide {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-label);
 }
 
 .ww-morning h2 {
@@ -301,4 +374,324 @@
 .ww-report li {
   overflow-wrap: anywhere;
   font-size: var(--text-body);
+}
+
+.ww-discussion-title {
+  margin: 0;
+  padding: var(--space) var(--space) 0;
+  font-size: var(--text-title);
+  font-weight: 800;
+}
+
+/* Night seats and the private action bar. Public cards stay name, seat, and life. */
+.ww-game-layout[data-stage='night'] .ww-status-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: clamp(1.35rem, 2vw, 1.75rem);
+}
+
+.ww-game-layout[data-stage='night'] .ww-status-title::before {
+  content: '';
+  width: 1.35rem;
+  height: 1.35rem;
+  flex: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 68% 42%, transparent 0 42%, var(--text) 44% 100%);
+}
+
+.ww-game-layout[data-stage='night'] .ww-seats {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  align-content: start;
+  justify-content: stretch;
+  gap: 0.75rem;
+  padding: 0.85rem;
+}
+
+.ww-game-layout[data-stage='night'][data-layout='tablet'] .ww-seats,
+.ww-game-layout[data-stage='night'][data-layout='phone-landscape'] .ww-seats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ww-game-layout[data-stage='night'][data-layout='portrait'] .ww-seats,
+.ww-game-layout[data-stage='night'][data-layout='narrow-landscape'] .ww-seats {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ww-game-layout[data-stage='night'] .ww-seat {
+  width: auto;
+}
+
+.ww-game-layout[data-stage='night'] .ww-seat .ww-target.MuiButton-root {
+  position: relative;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.75rem 0.4rem 0.65rem;
+  border-radius: 0.9rem;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  border-color: color-mix(in srgb, var(--text) 14%, transparent);
+}
+
+.ww-game-layout[data-stage='night'] .ww-seats[data-picking='true'] .ww-seat[data-legal='true'] .ww-target.MuiButton-root {
+  border-color: color-mix(in srgb, var(--text) 14%, transparent);
+}
+
+.ww-game-layout[data-stage='night'] .ww-target[aria-pressed='true'].MuiButton-root {
+  outline: 2px solid var(--primary);
+  outline-offset: 0;
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 18%, var(--surface));
+}
+
+.ww-game-layout[data-stage='night'] .ww-target-check {
+  top: 0.35rem;
+  right: 0.35rem;
+  left: auto;
+  bottom: auto;
+  background: var(--primary);
+  color: var(--primary-ink);
+}
+
+.ww-game-layout[data-stage='night'] .ww-seat-picked {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+}
+
+.ww-game-layout[data-stage='night'] .ww-seat .ww-avatar {
+  width: 4.6rem;
+  height: 4.6rem;
+  border-radius: 0.75rem;
+}
+
+.ww-game-layout[data-stage='night'] .ww-seat[data-life='DEAD'] .ww-avatar {
+  filter: grayscale(1);
+  opacity: 0.72;
+}
+
+.ww-game-layout[data-stage='night'] .ww-seat-name {
+  font-size: var(--text-body);
+  font-weight: 800;
+}
+
+.ww-game-layout[data-stage='night'] .ww-seat-life {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.35rem;
+  padding: 0 0.55rem;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--village) 18%, transparent);
+  color: var(--village);
+}
+
+.ww-game-layout[data-stage='night'] .ww-seat-life[data-life='DEAD'] {
+  background: color-mix(in srgb, var(--text-muted) 16%, transparent);
+  color: var(--text-muted);
+}
+
+.ww-game-layout[data-stage='night'] .ww-seat-tag.is-you {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: var(--radius-pill);
+  background: var(--primary);
+  color: var(--primary-ink);
+}
+
+.ww-game-layout[data-stage='night'] .ww-action.is-night {
+  display: grid;
+  grid-template-columns: minmax(14rem, 1.2fr) minmax(12rem, 1fr) auto;
+  align-items: center;
+  column-gap: 1.25rem;
+  row-gap: 0.55rem;
+}
+
+.ww-game-layout[data-stage='night'] .ww-night-panel {
+  flex: none;
+  width: auto;
+  padding: 0;
+  min-width: 0;
+}
+
+.ww-game-layout[data-stage='night'] .ww-night-role {
+  width: auto;
+  flex-wrap: nowrap;
+  gap: 0.75rem;
+}
+
+.ww-game-layout[data-stage='night'] .ww-night-role-copy {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.ww-game-layout[data-stage='night'] .ww-night-role .ww-status-title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 800;
+}
+
+.ww-game-layout[data-stage='night'] .ww-night-role-line {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-label);
+}
+
+.ww-game-layout[data-stage='night'] .ww-night-hide.MuiButton-root {
+  margin-left: auto;
+  min-height: var(--hit);
+  color: var(--text-muted);
+  flex: none;
+}
+
+.ww-game-layout[data-stage='night'] .ww-night-panel .ww-portrait[data-size='thumb'] {
+  width: 4rem;
+  height: 4rem;
+  border-radius: 0.8rem;
+  flex: none;
+}
+
+.ww-game-layout[data-stage='night'] .ww-night-pick {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.ww-game-layout[data-stage='night'] .ww-night-pick-label {
+  color: var(--text-muted);
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+
+.ww-game-layout[data-stage='night'] .ww-night-pick-value {
+  margin: 0;
+  min-height: 3rem;
+  display: flex;
+  align-items: center;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
+  font-weight: 800;
+}
+
+.ww-game-layout[data-stage='night'] .ww-action-head {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ww-game-layout[data-stage='night'] .ww-action-alert-row {
+  grid-column: 1 / -1;
+}
+
+.ww-game-layout[data-stage='night'] .ww-host-controls {
+  grid-column: 1 / -1;
+}
+
+.ww-game-layout[data-stage='night'] .ww-action-buttons .MuiButton-contained,
+.ww-game-layout[data-stage='night'] .ww-night-submit.MuiButton-root {
+  min-width: 8.5rem;
+  min-height: 3.25rem;
+  border-radius: var(--radius);
+}
+
+.ww-game-layout[data-stage='night'] .ww-status {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 0;
+}
+
+.ww-game-layout[data-stage='night'] .ww-status-pack {
+  display: inline-flex;
+  flex: 0 1 auto;
+  flex-wrap: nowrap;
+  align-items: baseline;
+  gap: 0.55rem 0.75rem;
+  width: auto;
+  max-width: calc(100% - 14rem);
+  min-width: 0;
+}
+
+.ww-game-layout[data-stage='night'] .ww-status-title {
+  font-size: clamp(1.25rem, 1.8vw, 1.6rem);
+}
+
+.ww-game-layout[data-stage='night'] .ww-status-guide {
+  white-space: nowrap;
+}
+
+.ww-game-layout[data-stage='night'] .ww-status-trail {
+  display: inline-flex;
+  flex: none;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.55rem;
+  margin-left: auto;
+}
+
+.ww-game-layout[data-stage='night'] .ww-status-trail .ww-status-copy {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-label);
+  white-space: nowrap;
+}
+
+.ww-discussion-closed {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.65rem;
+  margin: var(--space);
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface-raised) 70%, transparent);
+  color: var(--text-muted);
+  font-size: var(--text-body);
+}
+
+.ww-discussion-closed-mark {
+  display: grid;
+  place-items: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex: none;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  font-weight: 800;
+  font-style: italic;
+  line-height: 1;
+}
+
+.ww-game-layout[data-stage='night'] .ww-discussion-title {
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--border);
+}
+
+@media (max-width: 899px) {
+  .ww-game-layout[data-stage='night'] .ww-action.is-night {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ww-game-layout[data-stage='night'] .ww-action-buttons {
+    width: 100%;
+  }
+
+  .ww-game-layout[data-stage='night'] .ww-action-buttons .MuiButton-root {
+    flex: 1 1 auto;
+  }
 }

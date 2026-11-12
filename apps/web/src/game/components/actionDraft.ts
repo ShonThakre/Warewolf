@@ -4,13 +4,22 @@ import type { ActionPrompt } from '../state/actions';
 /**
  * The player's draft for each ability. A stored choice fills an empty draft
  * once. Later edits stay local until Submit, so a refetch cannot wipe a
- * change the player just made.
+ * change the player just made. A new `windowKey` (round and phase) starts an
+ * empty draft, so last night's pick is never offered as tonight's.
  */
-export function useActionDraft(prompts: readonly ActionPrompt[]) {
+export function useActionDraft(prompts: readonly ActionPrompt[], windowKey = '') {
   const [selected, setSelected] = useState<Readonly<Record<string, readonly string[]>>>({});
   const [questions, setQuestions] = useState<Readonly<Record<string, string>>>({});
   const [hints, setHints] = useState<Readonly<Record<string, string>>>({});
+  const [draftKey, setDraftKey] = useState(windowKey);
   const seeded = useRef(new Set<string>());
+  if (draftKey !== windowKey) {
+    setDraftKey(windowKey);
+    setSelected({});
+    setQuestions({});
+    setHints({});
+    seeded.current = new Set();
+  }
   const promptsRef = useRef(prompts);
   promptsRef.current = prompts;
   const signature = prompts
@@ -33,7 +42,7 @@ export function useActionDraft(prompts: readonly ActionPrompt[]) {
         setHints((current) => (current[id] ? current : { ...current, [id]: hint }));
       }
     }
-  }, [signature]);
+  }, [signature, draftKey]);
 
   const toggle = useCallback((id: string, playerId: string, count: number) => {
     setSelected((current) => {

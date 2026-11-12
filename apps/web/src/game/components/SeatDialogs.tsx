@@ -44,7 +44,7 @@ export function CreateGameDialog({ open, onClose }: { open: boolean; onClose: ()
     const result = await createGame({ displayName: parsed.data, mode: 'INFECTION' });
     if ('data' in result && result.data) {
       onClose();
-      navigate(`/lobby/${result.data.gameId}`);
+      navigate(`/lobby/${result.data.gameId}/setup`);
       return;
     }
     const info = apiErrorOf('error' in result ? result.error : null);
@@ -65,7 +65,8 @@ export function CreateGameDialog({ open, onClose }: { open: boolean; onClose: ()
       >
         <DialogTitle id="create-game-title">Create a game</DialogTitle>
         <DialogContent sx={{ display: 'grid', gap: 'var(--space)' }}>
-          <p className="ww-dialog-copy">You will host an Infection Edition table for 20 players.</p>
+          <p className="ww-dialog-copy">You will host the room. It opens as Infection Edition for 20 players, then Game setup so you can change the mode before the game starts.</p>
+          <p className="ww-dialog-copy">Other players join with the room code shown in the lobby.</p>
           {seat ? <p className="ww-dialog-copy">Creating a game replaces the seat already stored in this tab.</p> : null}
           {banner ? <Alert severity="error">{banner}</Alert> : null}
           <TextField
@@ -90,7 +91,7 @@ export function CreateGameDialog({ open, onClose }: { open: boolean; onClose: ()
             Cancel
           </Button>
           <Button type="submit" variant="contained" disabled={isLoading}>
-            Create Game
+            {isLoading ? 'Creating…' : 'Create Game'}
           </Button>
         </DialogActions>
       </form>
@@ -153,6 +154,7 @@ export function JoinGameDialog({ open, onClose }: { open: boolean; onClose: () =
       >
         <DialogTitle id="join-game-title">Join a game</DialogTitle>
         <DialogContent sx={{ display: 'grid', gap: 'var(--space)' }}>
+          <p className="ww-dialog-copy">Ask the host for the room code on their lobby screen.</p>
           {seat ? <p className="ww-dialog-copy">Joining replaces the seat already stored in this tab.</p> : null}
           {banner ? <Alert severity="error">{banner}</Alert> : null}
           <TextField
@@ -160,7 +162,7 @@ export function JoinGameDialog({ open, onClose }: { open: boolean; onClose: () =
             name="roomCode"
             value={code}
             onChange={(event) => {
-              setCode(event.target.value.toUpperCase());
+              setCode(cleanRoomCode(event.target.value));
               setCodeError(undefined);
               setError(null);
             }}
@@ -169,7 +171,8 @@ export function JoinGameDialog({ open, onClose }: { open: boolean; onClose: () =
             fullWidth
             disabled={isLoading}
             autoFocus
-            slotProps={{ htmlInput: { maxLength: 6, autoCapitalize: 'characters', autoComplete: 'off', spellCheck: 'false' } }}
+            placeholder="For example K7MXPQ"
+            slotProps={{ htmlInput: { maxLength: 12, autoCapitalize: 'characters', autoComplete: 'off', spellCheck: 'false', inputMode: 'text' } }}
           />
           <TextField
             label="Display name"
@@ -192,12 +195,17 @@ export function JoinGameDialog({ open, onClose }: { open: boolean; onClose: () =
             Cancel
           </Button>
           <Button type="submit" variant="contained" disabled={isLoading}>
-            Join Game
+            {isLoading ? 'Joining…' : 'Join Game'}
           </Button>
         </DialogActions>
       </form>
     </Dialog>
   );
+}
+
+/** Uppercase, with spaces and dashes from a pasted invite dropped. */
+export function cleanRoomCode(value: string): string {
+  return value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
 }
 
 function goToLobby(seat: SeatCredentials, navigate: ReturnType<typeof useNavigate>) {

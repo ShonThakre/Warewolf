@@ -53,12 +53,22 @@ export function DiscussionPanel({
   } | null;
 }) {
   const closed = chatRefusalCopy(canPost ? null : refusal);
-  const helper = canPost ? chatRemainingCopy(remaining) : (closed ?? (isLoading ? 'Opening chat…' : null));
+  const nightClosed = !canPost && refusal === 'CLOSED';
+  const helper = canPost ? chatRemainingCopy(remaining) : nightClosed ? null : (closed ?? (isLoading ? 'Opening chat…' : null));
 
   return (
-    <div className="ww-discussion">
+    <div className="ww-discussion" data-closed={nightClosed ? 'true' : undefined}>
+      <h2 className="ww-discussion-title">Discussion</h2>
+      {nightClosed && closed ? (
+        <p className="ww-discussion-closed" role="status">
+          <span className="ww-discussion-closed-mark" aria-hidden="true">
+            i
+          </span>
+          {closed}
+        </p>
+      ) : null}
       <ul className="ww-discussion-log" aria-label="Messages">
-        {messages.length === 0 ? <li className="ww-log-empty">{isLoading ? 'Opening chat…' : 'No messages yet.'}</li> : null}
+        {messages.length === 0 && !nightClosed ? <li className="ww-log-empty">{isLoading ? 'Opening chat…' : 'No messages yet.'}</li> : null}
         {messages.map((message) => {
           const seat = players.find((player) => player.playerId === message.playerId);
           const name = chatSeatName(players, message.playerId);
@@ -100,32 +110,34 @@ export function DiscussionPanel({
           {moderation.error}
         </p>
       ) : null}
-      <form
-        className="ww-discussion-composer"
-        onSubmit={(event) => {
-          event.preventDefault();
-          if (canPost && sendable && !sending) onSend();
-        }}
-      >
-        <TextField
-          className="ww-chat-field"
-          size="small"
-          label="Message"
-          value={draft}
-          disabled={!canPost || sending}
-          onChange={(event) => onDraft(event.target.value)}
-          helperText={helper}
-          slotProps={{ htmlInput: { 'aria-label': 'Message' } }}
-        />
-        {sendError ? (
-          <p className="ww-action-alert" role="alert">
-            {sendError}
-          </p>
-        ) : null}
-        <Button type="submit" variant="contained" color="secondary" disabled={!canPost || !sendable || sending}>
-          Send
-        </Button>
-      </form>
+      {nightClosed ? null : (
+        <form
+          className="ww-discussion-composer"
+          onSubmit={(event) => {
+            event.preventDefault();
+            if (canPost && sendable && !sending) onSend();
+          }}
+        >
+          <TextField
+            className="ww-chat-field"
+            size="small"
+            label="Message"
+            value={draft}
+            disabled={!canPost || sending}
+            onChange={(event) => onDraft(event.target.value)}
+            helperText={helper}
+            slotProps={{ htmlInput: { 'aria-label': 'Message' } }}
+          />
+          {sendError ? (
+            <p className="ww-action-alert" role="alert">
+              {sendError}
+            </p>
+          ) : null}
+          <Button type="submit" variant="contained" color="secondary" disabled={!canPost || !sendable || sending}>
+            Send
+          </Button>
+        </form>
+      )}
     </div>
   );
 }

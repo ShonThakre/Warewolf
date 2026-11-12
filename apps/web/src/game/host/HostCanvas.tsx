@@ -1,7 +1,8 @@
 import type { GameEvent, HostDashboard } from '@warewolf/contracts';
+import { PlayerAvatar } from '../components/PlayerAvatar';
 import { PHASE_LABEL, lifeLabel } from '../components/phaseCopy';
 import { eventSentence } from '../state/hostEvents';
-import { openBallot, wolfSubmissions } from '../state/hostDashboard';
+import { dashboardSeat, openBallot } from '../state/hostDashboard';
 import { abilityWord, causeWord, factionWord, failureWord, roleWord, seatName, submissionWord, victoryWord, type HostSection } from './dashboardCopy';
 
 /** One secret section. Nothing here is rendered on a player route. */
@@ -87,22 +88,52 @@ function Infections({ dashboard }: { dashboard: HostDashboard }) {
 }
 
 function Actions({ dashboard }: { dashboard: HostDashboard }) {
-  const pack = new Set(wolfSubmissions(dashboard).map((row) => row.actionId));
-  if (dashboard.submissions.length === 0) return <p className="ww-host-copy">No submissions this round.</p>;
+  if (dashboard.submissions.length === 0) {
+    return (
+      <section className="ww-host-panel" aria-label="Submitted night actions">
+        <h3 className="ww-host-panel-title">Submitted night actions (host-only)</h3>
+        <p className="ww-host-copy">No submissions this round.</p>
+      </section>
+    );
+  }
   return (
-    <ul className="ww-host-list" aria-label="Night actions">
-      {dashboard.submissions.map((row) => (
-        <li key={row.actionId}>
-          <strong>
-            {seatName(dashboard, row.playerId)} · {abilityWord(row.abilityId)}
-            {pack.has(row.actionId) ? ' · Pack' : ''}
-          </strong>
-          <span>
-            {row.targetPlayerIds.length === 0 ? 'No target' : row.targetPlayerIds.map((id) => seatName(dashboard, id)).join(', ')}. {submissionWord(row.status)}.
-          </span>
-        </li>
-      ))}
-    </ul>
+    <section className="ww-host-panel" aria-label="Submitted night actions">
+      <h3 className="ww-host-panel-title">Submitted night actions (host-only)</h3>
+      <div className="ww-host-table-wrap">
+        <table className="ww-host-table">
+          <thead>
+            <tr>
+              <th scope="col">Player</th>
+              <th scope="col">Ability</th>
+              <th scope="col">Target(s)</th>
+              <th scope="col">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {dashboard.submissions.map((row) => {
+              const seat = dashboardSeat(dashboard, row.playerId);
+              const name = seat?.displayName ?? 'A player';
+              const targets = row.targetPlayerIds.length === 0 ? '—' : row.targetPlayerIds.map((id) => seatName(dashboard, id)).join(', ');
+              return (
+                <tr key={row.actionId}>
+                  <td>
+                    <span className="ww-host-player">
+                      <PlayerAvatar name={name} avatarId={seat?.avatarId ?? null} />
+                      {name}
+                    </span>
+                  </td>
+                  <td>{abilityWord(row.abilityId)}</td>
+                  <td>{targets}</td>
+                  <td>
+                    <span className="ww-host-status">{submissionWord(row.status)}</span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </section>
   );
 }
 

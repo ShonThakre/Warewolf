@@ -34,6 +34,8 @@ export interface GameStateFixtureOptions {
   readonly dead?: readonly number[];
   /** Makes the phase timed, ending this many seconds after `FIXTURE_SERVER_NOW`. */
   readonly secondsLeft?: number;
+  /** Ballot rules. Both default to allowed, matching the preset packs. */
+  readonly voting?: { readonly abstain?: boolean; readonly changeUntilClose?: boolean };
 }
 
 /** A 20-seat Infection Edition game. Host-paced unless `secondsLeft` is given. */
@@ -56,6 +58,10 @@ export function gameStateFixture(options: GameStateFixtureOptions = {}): GameSta
     phaseEndsAt: timed ? new Date(Date.parse(FIXTURE_SERVER_NOW) + options.secondsLeft! * 1000).toISOString() : null,
     serverNow: FIXTURE_SERVER_NOW,
     close: INFECTION_CLOSES[phase],
+    voting: {
+      abstain: options.voting?.abstain ?? true,
+      changeUntilClose: options.voting?.changeUntilClose ?? true,
+    },
     players: Array.from({ length: 20 }, (_, i) => ({
       playerId: fixturePlayerId(i + 1),
       displayName: fixtureName(i + 1),

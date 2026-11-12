@@ -30,7 +30,7 @@ export function SetupMode({
       )}
       <div className="ww-setup-tools" role="group" aria-label="Game mode">
         {GAME_MODES.map((mode) => (
-          <Button key={mode} variant={draft.mode === mode ? 'contained' : 'outlined'} disabled={!editable} onClick={() => onDraft(applyMode(draft, mode))}>
+          <Button key={mode} variant={draft.mode === mode ? 'contained' : 'outlined'} aria-pressed={draft.mode === mode} disabled={!editable} onClick={() => onDraft(applyMode(draft, mode))}>
             {MODE_LABEL[mode]}
           </Button>
         ))}

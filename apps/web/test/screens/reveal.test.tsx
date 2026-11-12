@@ -58,7 +58,7 @@ describe('reveal screen', () => {
   it('covers the role name', async () => {
     renderApp(`/game/${GAME}/reveal`, { seat, fetchFn: roleFetch(ROLE_FIXTURES.villager) });
     fireEvent.click(await screen.findByRole('button', { name: 'Hide role' }));
-    expect(screen.getByRole('heading', { name: 'Your role' })).toBeTruthy();
+    expect(screen.getByRole('heading', { name: 'Your role is hidden' })).toBeTruthy();
     expect(screen.queryByRole('heading', { name: 'Villager' })).toBeNull();
     fireEvent.click(screen.getByRole('button', { name: 'Show role' }));
     expect(screen.getByRole('heading', { name: 'Villager' })).toBeTruthy();

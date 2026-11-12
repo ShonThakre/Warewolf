@@ -80,6 +80,25 @@ export function setRoleCount(draft: GameConfiguration, roleId: string, count: nu
   return customize({ ...draft, roles: [...kept, entry] });
 }
 
+/** Wolves dealt at the start. The wolf cap cannot sit below this. */
+export function startingPackSize(draft: GameConfiguration): number {
+  return draft.roles.reduce((sum, entry) => {
+    if (entry.count <= 0) return sum;
+    const role = DEFAULT_CATALOG.byId.get(entry.roleId);
+    if (!role) return sum;
+    const faction = entry.faction ?? role.defaultFaction;
+    return faction === 'WOLF_PACK' ? sum + entry.count : sum;
+  }, 0);
+}
+
+/** Raises a low wolf cap to the starting pack. A higher cap is left alone. */
+export function coverStartingPack(draft: GameConfiguration): GameConfiguration {
+  if (modeLocked(draft)) return draft;
+  const pack = startingPackSize(draft);
+  if (draft.teams.wolfCap >= pack) return draft;
+  return { ...draft, teams: { ...draft.teams, wolfCap: pack } };
+}
+
 export function setRoleFaction(draft: GameConfiguration, roleId: string, faction: Faction): GameConfiguration {
   if (modeLocked(draft)) return draft;
   const role = DEFAULT_CATALOG.byId.get(roleId);
@@ -175,8 +194,10 @@ export function setRoundCap(draft: GameConfiguration, roundCap: number): GameCon
 
 export function setWolfCap(draft: GameConfiguration, wolfCap: number): GameConfiguration {
   return editSettings(draft, (current) => {
-    if (!isWhole(wolfCap) || wolfCap > 30 || current.teams.wolfCap === wolfCap) return current;
-    return { ...current, teams: { ...current.teams, wolfCap } };
+    if (!isWhole(wolfCap) || wolfCap > 30) return current;
+    const nextCap = Math.max(startingPackSize(current), wolfCap);
+    if (current.teams.wolfCap === nextCap) return current;
+    return { ...current, teams: { ...current.teams, wolfCap: nextCap } };
   });
 }
 
@@ -273,8 +294,8 @@ function cloneConfiguration(draft: GameConfiguration): GameConfiguration {
 
 /** A hand edit leaves the preset. Infection Edition never reaches this. */
 function customize(draft: GameConfiguration): GameConfiguration {
-  if (draft.rolePackId === 'custom') return draft;
-  return { ...draft, rolePackId: 'custom' };
+  const custom = draft.rolePackId === 'custom' ? draft : { ...draft, rolePackId: 'custom' };
+  return coverStartingPack(custom);
 }
 
 function editSettings(draft: GameConfiguration, recipe: (draft: GameConfiguration) => GameConfiguration): GameConfiguration {

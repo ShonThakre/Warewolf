@@ -96,6 +96,8 @@ export interface ClosePhaseControl {
   readonly canClose: boolean;
   /** What the close does, for the button label. Null when it cannot close. */
   readonly close: GameState['close'];
+  /** The phase this close belongs to. A shot resolves during day discussion. */
+  readonly phase: GameState['phase'] | null;
   readonly isClosing: boolean;
   /** PHASE_CONFLICT means the screen was stale; the state has already refetched. */
   readonly error: ApiErrorInfo | null;
@@ -121,6 +123,7 @@ export function useClosePhase(state: GameState | null): ClosePhaseControl {
   return {
     canClose,
     close: canClose ? (state?.close ?? null) : null,
+    phase: state?.phase ?? null,
     isClosing: result.isLoading,
     error: apiErrorOf(result.error),
     closePhase,

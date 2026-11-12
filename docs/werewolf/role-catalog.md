@@ -243,7 +243,7 @@ No abilities. Votes with weight 1. Eligible infection target. Fills unused seats
 | id | `pack_wolf` |
 | Category | Core |
 | Faction | WOLF_PACK |
-| Status | RECOMMENDED addition (OD-36) |
+| Status | CONFIRMED (OD-36) |
 
 Basic Classic wolf. Kill submission only. Learns other Pack Wolves when `knowsTeammates` is true. No infection. Not used by the Infection Edition preset. Friendly fire defaults off, so the target list excludes fellow pack members unless the flag is on.
 
@@ -259,7 +259,7 @@ Basic Classic wolf. Kill submission only. Learns other Pack Wolves when `knowsTe
 | Category | Neutral |
 | Default faction | NEUTRAL |
 | Allowed factions | NEUTRAL |
-| Status | CONFIRMED win trigger, RECOMMENDED continuation (OD-08) |
+| Status | CONFIRMED (OD-08) |
 
 No night power. Individual victory: eliminated by day vote. Night death, infection, poison, and sniper do not award the win. `endGameOnIndividualWin` defaults false. Recommended reveal on that win: current role public.
 
@@ -275,7 +275,7 @@ No night power. Individual victory: eliminated by day vote. Night death, infecti
 
 | Profile | Status | Behavior |
 |---|---|---|
-| `assassin_mark` | Recommended playable default | Night 1, mark one living player. Individual win if that player is later eliminated by anyone. Does not itself kill |
+| `assassin_mark` | CONFIRMED | Night 1, mark one living player. Individual win if that player is later eliminated by anyone. Does not itself kill |
 | `assassin_execute` | UNRESOLVED detail | One special elimination associated with a day vote. Leave disabled until the extra rule in OD-09 is chosen |
 
 If faction is set to Village or Wolf Pack, the recommended rule is that the Assassin still uses the individual mark and does not also receive the team win. Team contribution requires `victory.type: BOTH`, which no preset sets.
@@ -287,7 +287,7 @@ If faction is set to Village or Wolf Pack, the recommended rule is that the Assa
 | id | `cursed_villager` |
 | Category | Transformation |
 | Start faction | VILLAGE |
-| Status | RECOMMENDED trigger (OD-06) |
+| Status | CONFIRMED (OD-06) |
 
 Starts with no active ability beyond a passive `cursed.onSurvivedWolfAttack`. A survived wolf attack converts the player into `infected_wolf` if the wolf cap allows. Death does not convert. Alpha infection converts through the normal infection path. After conversion the player is an Infected Wolf for victory and anonymity purposes.
 
@@ -299,7 +299,7 @@ Starts with no active ability beyond a passive `cursed.onSurvivedWolfAttack`. A 
 | Category | Independent |
 | Faction | INDEPENDENT |
 | wolfAligned | true |
-| Status | RECOMMENDED victory (OD-10) |
+| Status | CONFIRMED (OD-10) |
 
 Does not know pack wolves and is not shown to them. Ability `lone_kill`: one `WOLF_KILL` per night that is resolved as its own attack, not as part of the pack's final target. Default individual victory: sole living player. Kill-count victory is a disabled alternative profile.
 
@@ -311,7 +311,7 @@ Does not know pack wolves and is not shown to them. Ability `lone_kill`: one `WO
 | Category | Defensive |
 | Default faction | VILLAGE |
 | Allowed factions | VILLAGE, NEUTRAL, WOLF_PACK, INDEPENDENT |
-| Status | RECOMMENDED timing (OD-12) |
+| Status | CONFIRMED (OD-12) |
 
 Passive `SURVIVE_DEATH`, one charge. Faction is configurable because the brief says so. No infinite loop: the charge cannot refresh.
 
@@ -323,7 +323,7 @@ Passive `SURVIVE_DEATH`, one charge. Faction is configurable because the brief s
 | Category | Reactive |
 | Default faction | VILLAGE |
 | Allowed factions | VILLAGE, NEUTRAL, WOLF_PACK |
-| Status | RECOMMENDED partial rule (OD-13) |
+| Status | CONFIRMED (OD-13) |
 
 Passive revenge. Named killers and day-vote plurality leaders can be queued. Anonymous pack kills do not produce a revenge target under the recommended rule. The elimination record still stores every contributor for a future rule.
 
@@ -346,13 +346,13 @@ All of these are Village, secret, lost on infection, and distinct ids. None of t
 
 | Role | id | Status | Recommended ability |
 |---|---|---|---|
-| 15 Detective | `detective` | RECOMMENDED | INVESTIGATE alignment, 2 uses per game, 1 per night |
-| 16 Oracle | `oracle` | RECOMMENDED | INVESTIGATE category every 2 nights. Future-event mode is not defined |
-| 17 Tracker | `tracker` | RECOMMENDED | TRACK target ids only, 1 per night, multiple visits returned |
-| 18 Psychic | `psychic` | RECOMMENDED | INVESTIGATE two players, result SAME or DIFFERENT faction, 1 per night |
-| 19 Medium | `medium` | RECOMMENDED | INVESTIGATE one dead player's role at death, 1 per night. No dead chat |
-| 20 Prophet | `prophet` | RECOMMENDED | DETECT via whitelist question `WOLF_PACK_SIZE_AT_LEAST`, every 3 nights |
-| 21 Seer | `seer` | RECOMMENDED | INVESTIGATE current role id every other night, accuracy default 100 |
+| 15 Detective | `detective` | CONFIRMED | INVESTIGATE alignment, 2 uses per game, 1 per night |
+| 16 Oracle | `oracle` | CONFIRMED | INVESTIGATE category every 2 nights. Future-event mode is not defined |
+| 17 Tracker | `tracker` | CONFIRMED | TRACK target ids only, 1 per night, multiple visits returned |
+| 18 Psychic | `psychic` | CONFIRMED | INVESTIGATE two players, result SAME or DIFFERENT faction, 1 per night |
+| 19 Medium | `medium` | CONFIRMED | INVESTIGATE one dead player's role at death, 1 per night. No dead chat |
+| 20 Prophet | `prophet` | CONFIRMED | DETECT via whitelist question `WOLF_PACK_SIZE_AT_LEAST`, every 3 nights |
+| 21 Seer | `seer` | CONFIRMED | INVESTIGATE current role id every other night, accuracy default 100 |
 
 Detective does not return the role id. Seer does. Oracle returns a category. Seeker returns alignment every night with a public-reveal ability the others do not have unless configured.
 
@@ -364,9 +364,9 @@ Information audience is the actor and the host. Public release requires an expli
 
 | Role | id | Status | Recommended ability |
 |---|---|---|---|
-| 22 Bodyguard | `bodyguard` | RECOMMENDED | PROTECT. Redirects wolf kill onto the Bodyguard. See OD-14 |
-| 23 Shieldbearer | `shieldbearer` | RECOMMENDED | PROTECT against `WOLF_KILL`, no consecutive repeat, configurable charges, default unlimited nights |
-| 24 Trapper | `trapper` | RECOMMENDED | DETECT plus optional cancel. Two traps per game. Private reveal. Consumed on trigger. OD-15 |
+| 22 Bodyguard | `bodyguard` | CONFIRMED | PROTECT. Redirects wolf kill onto the Bodyguard. See OD-14 |
+| 23 Shieldbearer | `shieldbearer` | CONFIRMED | PROTECT against `WOLF_KILL`, no consecutive repeat, configurable charges, default unlimited nights |
+| 24 Trapper | `trapper` | CONFIRMED | DETECT plus optional cancel. Two traps per game. Private reveal. Consumed on trigger. OD-15 |
 
 Guard remains the Infection Edition protector and is not replaced by these roles.
 
@@ -377,8 +377,8 @@ Guard remains the Infection Edition protector and is not replaced by these roles
 | Role | id | Default faction | Status | Recommended ability |
 |---|---|---|---|---|
 | 25 Sniper | `sniper` | VILLAGE | CONFIRMED | KILL `SNIPER`, 1 per game, day discussion window. Resolves when discussion closes, before voting. Last night's Guard, Doctor, or Shieldbearer protection, or an Immortal, stops it. OD-29 (accepted 12 November 2026) |
-| 26 Poisoner | `poisoner` | Configurable, default NEUTRAL | RECOMMENDED | POISON, 1 per game, delay per OD-28 |
-| 27 Disruptor | `disruptor` | Configurable, default NEUTRAL | RECOMMENDED | BLOCK_ACTION, 1 per game. OD-30 |
+| 26 Poisoner | `poisoner` | Configurable, default NEUTRAL | CONFIRMED | POISON, 1 per game, delay per OD-28 |
+| 27 Disruptor | `disruptor` | Configurable, default NEUTRAL | CONFIRMED | BLOCK_ACTION, 1 per game. OD-30 |
 
 Poisoner and Disruptor must declare a faction in the configuration. Validation fails if faction is missing.
 
@@ -392,7 +392,7 @@ Poisoner and Disruptor must declare a faction in the configuration. Validation f
 |---|---|
 | id | `shapeshifter` |
 | Default faction | Configurable, preset NEUTRAL |
-| Status | RECOMMENDED (OD-31) |
+| Status | CONFIRMED (OD-31) |
 | Capability | ROLE_COPY |
 
 Copies for a later night, uses a fresh charge pool, cannot copy infection or another Shapeshifter, and does not change faction. Permanent steal defaults off. Seated as Neutral, which is the preset, it wins by surviving to the end of the game.
@@ -412,7 +412,7 @@ No mechanic. Seating the role fails validation.
 |---|---|
 | id | `spy` |
 | Default faction | Configurable, preset VILLAGE |
-| Status | RECOMMENDED narrow info (OD-19) |
+| Status | CONFIRMED (OD-19) |
 | Capability | DETECT |
 
 Learns the count of wolf-kill submissions and nothing else. Full identity feeds are forbidden by the default profile.
@@ -425,10 +425,10 @@ Learns the count of wolf-kill submissions and nothing else. Full identity feeds 
 |---|---|---|---|
 | 31 Blacksmith | `blacksmith` | Two variants (OD-16) | Presets use ITEM: one shield that blocks wolf kill. AURA remains a separate disabled-by-default profile |
 | 32 Priest | `priest` | UNRESOLVED (OD-17) | No ability. Cannot be seated |
-| 33 Elder | `elder` | RECOMMENDED | VOTE_MODIFIER weight 2, and a one-day village penalty if killed by wolves. OD-33 |
-| 34 Mayor | `mayor` | RECOMMENDED | VOTE_MODIFIER weight 2 from the start. Public label optional. OD-34 |
+| 33 Elder | `elder` | CONFIRMED | VOTE_MODIFIER weight 2, and a one-day village penalty if killed by wolves. OD-33 |
+| 34 Mayor | `mayor` | CONFIRMED | VOTE_MODIFIER weight 2 from the start. Public label optional. OD-34 |
 | 35 Bard | `bard` | UNRESOLVED digital power (OD-20) | No ability. Cannot be seated |
-| 36 Healer Assistant | `healer_assistant` | RECOMMENDED | TEAM_SUPPORT inherit Doctor on Doctor death or conversion. OD-32 |
+| 36 Healer Assistant | `healer_assistant` | CONFIRMED | TEAM_SUPPORT inherit Doctor on Doctor death or conversion. OD-32 |
 
 ---
 

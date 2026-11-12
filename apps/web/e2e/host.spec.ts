@@ -68,7 +68,7 @@ test.describe('host dashboard', () => {
       await expect(page.getByRole('heading', { level: 2, name })).toBeVisible();
     }
     await page.getByRole('button', { name: 'Night actions' }).click();
-    await expect(page.getByRole('list', { name: 'Night actions' })).toContainText('Pack');
+    await expect(page.getByRole('region', { name: 'Submitted night actions' })).toContainText('Wolf kill');
     expect(await page.locator('body').innerText()).not.toContain('alpha_wolf');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
     await inView(page, close);

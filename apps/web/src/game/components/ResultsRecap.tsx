@@ -1,7 +1,7 @@
 import type { CancelledResults, FinishedResults } from '@warewolf/contracts';
 import { lifeLabel } from './phaseCopy';
 import { PlayerAvatar } from './PlayerAvatar';
-import { deathLine, infectionLine, seatRoles, teamClass, teamWord, usesLine } from './resultsCopy';
+import { deathLine, individualWinnerNames, infectionLine, seatRoles, teamClass, teamWord, usesLine } from './resultsCopy';
 import { VoteTally } from './VoteTally';
 import { recapOrder } from '../state/results';
 
@@ -14,6 +14,7 @@ export function ResultsRecap({ finished, cancelled }: { readonly finished: Finis
     return (
       <div className="ww-recap">
         <h2 className="ww-recap-title">Seats</h2>
+        <p className="ww-recap-detail">Roles stay hidden for a cancelled game.</p>
         <ul className="ww-recap-list" aria-label="Seats">
           {cancelled.seats.map((seat) => (
             <li key={seat.playerId} className="ww-recap-seat">
@@ -33,9 +34,20 @@ export function ResultsRecap({ finished, cancelled }: { readonly finished: Finis
 
   if (!finished) return null;
   const seats = recapOrder(finished.seats);
+  const alone = individualWinnerNames(finished);
   return (
     <div className="ww-recap">
       <h2 className="ww-recap-title">Recap</h2>
+      {alone.length > 0 ? (
+        <section className="ww-recap-winners" aria-label="Individual wins">
+          <h3 className="ww-recap-subtitle">Won alone</h3>
+          <ul className="ww-recap-notes">
+            {alone.map((name) => (
+              <li key={name}>{name}</li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       {finished.infections.length > 0 ? (
         <ul className="ww-recap-notes" aria-label="Infections">
           {finished.infections.map((infection) => (

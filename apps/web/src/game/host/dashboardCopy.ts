@@ -31,8 +31,8 @@ const CAUSE_WORD: Record<string, string> = {
 };
 
 const STATUS_WORD: Record<string, string> = {
-  PENDING: 'Waiting',
-  LOCKED: 'Locked',
+  PENDING: 'Submitted',
+  LOCKED: 'Submitted',
   RESOLVED: 'Resolved',
   REJECTED: 'Rejected',
   CANCELLED: 'Cancelled',
@@ -72,9 +72,9 @@ export function seatName(dashboard: HostDashboard, playerId: string | null): str
 
 /** A word for an ability. The id never reaches the screen. */
 export function abilityWord(abilityId: string): string {
-  if (abilityId === 'doctor_save') return 'Doctor save';
+  if (abilityId === 'doctor_save') return 'Doctor';
   if (abilityId.includes('infect')) return 'Infection';
-  if (abilityId.endsWith('_kill') || abilityId.includes('kill')) return 'Kill';
+  if (abilityId.endsWith('_kill') || abilityId.includes('kill')) return 'Wolf kill';
   if (abilityId.includes('protect') || abilityId.includes('save')) return 'Protect';
   if (abilityId.includes('poison')) return 'Poison';
   if (abilityId.includes('investigate') || abilityId.includes('see')) return 'Investigate';

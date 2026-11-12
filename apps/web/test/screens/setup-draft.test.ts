@@ -10,6 +10,7 @@ import {
   setAbilityConfig,
   setPlayerCount,
   setRoleCount,
+  setWolfCap,
 } from '../../src/game/setup/setupDraft';
 
 const infection = configurationFromPack('infection-core');
@@ -55,5 +56,18 @@ describe('setup drafts', () => {
     expect(setAbilityConfig(toggled, 'bodyguard', 'bodyguard_protect', 'freeText', true)).toBe(toggled);
     const charged = setAbilityCharge(classic!, 'doctor', 'doctor_save', 1);
     expect(charged.roles.find((entry) => entry.roleId === 'doctor')?.overrides?.['doctor_save']?.usesPerGame).toBe(1);
+  });
+
+  it('raises the wolf cap to the wolves dealt at the start', () => {
+    const custom = configurationFromPack('custom');
+    expect(custom?.teams.wolfCap).toBe(0);
+    const one = setRoleCount(custom!, 'pack_wolf', 1);
+    expect(one.teams.wolfCap).toBe(1);
+    const two = setRoleCount(one, 'pack_wolf', 2);
+    expect(two.teams.wolfCap).toBe(2);
+    const back = setRoleCount(two, 'pack_wolf', 1);
+    expect(back.teams.wolfCap).toBe(2);
+    expect(setWolfCap(one, 0).teams.wolfCap).toBe(1);
+    expect(setWolfCap(one, 4).teams.wolfCap).toBe(4);
   });
 });

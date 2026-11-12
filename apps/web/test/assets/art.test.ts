@@ -62,7 +62,7 @@ describe('art lookups', () => {
     expect(avatarArtUrl(0)).toBeNull();
     expect(avatarArtUrl(37)).toBeNull();
     expect(avatarArtUrl(1.5)).toBeNull();
-    expect(roleArtUrl('vampire')).toBeNull();
+    expect(roleArtUrl('not_a_role')).toBeNull();
   });
 
   it('serves converted WebP, not the PNG originals', () => {

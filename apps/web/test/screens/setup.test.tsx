@@ -80,17 +80,19 @@ describe('configuration browser', () => {
     const root = document.querySelector('.ww-setup');
     expect(root?.getAttribute('data-steps')).toBe('rail');
     const strip = document.querySelector('.ww-setup-strip');
-    expect(strip?.textContent).toContain('Village 19');
-    expect(strip?.textContent).toContain('Wolf 1');
-    expect(strip?.textContent).toContain('Remaining 0');
-    expect(strip?.textContent).toContain('Infection cap 4');
+    expect(strip?.textContent).toContain('Village roles');
+    expect(strip?.textContent).toContain('19');
+    expect(strip?.textContent).toContain('Wolf roles');
+    expect(strip?.textContent).toContain('Remaining seats');
+    expect(strip?.textContent).toContain('Infection cap');
+    expect(strip?.textContent).toContain('4');
     expect(screen.getByText(/Infection Edition is locked at 20 players/)).toBeTruthy();
     expect((screen.getByRole('spinbutton', { name: 'Players' }) as HTMLInputElement).disabled).toBe(true);
     const steps = screen.getByRole('navigation', { name: 'Setup steps' });
-    fireEvent.click(within(steps).getByRole('button', { name: 'Roles' }));
+    fireEvent.click(within(steps).getByRole('button', { name: '2. Roles' }));
     expect((screen.getByRole('button', { name: 'Add one Villager' }) as HTMLButtonElement).disabled).toBe(true);
     expect((screen.getByRole('button', { name: 'Start game' }) as HTMLButtonElement).disabled).toBe(true);
-    expect(screen.getByText(/1 of 20 seats are filled/)).toBeTruthy();
+    expect(screen.getByText(/19 more seats are needed to start \(1 \/ 20\)/)).toBeTruthy();
   });
 
   it('uses one step and keeps the counts pinned at 390×844', async () => {
@@ -99,26 +101,26 @@ describe('configuration browser', () => {
     expect(await screen.findByRole('navigation', { name: 'Setup steps' })).toBeTruthy();
     expect(document.querySelector('.ww-setup')?.getAttribute('data-steps')).toBe('one');
     const strip = document.querySelector('.ww-setup-strip');
-    expect(strip?.textContent).toContain('Village 19');
-    expect(strip?.textContent).toContain('Wolf 1');
-    expect(strip?.textContent).toContain('Remaining 0');
+    expect(strip?.textContent).toContain('Village roles');
+    expect(strip?.textContent).toContain('Wolf roles');
+    expect(strip?.textContent).toContain('Remaining seats');
   });
 
-  it('names the validator code and keeps Start disabled when the setup is invalid', async () => {
+  it('names what to fix and keeps Start disabled when the setup is invalid', async () => {
     setViewport(1024, 768);
     renderApp(`/lobby/${GAME}/setup`, { seat: hostSeat, fetchFn: fetchSetup('custom', true, undefined, true) });
     expect(await screen.findByRole('navigation', { name: 'Setup steps' })).toBeTruthy();
-    expect(screen.getByText(/ROLE_COUNT_MISMATCH/)).toBeTruthy();
+    expect(screen.getAllByText(/The roles fill 0 of 10 seats. Add 10 more role seats./).length).toBeGreaterThan(0);
     expect((screen.getByRole('button', { name: 'Start game' }) as HTMLButtonElement).disabled).toBe(true);
-    fireEvent.click(within(screen.getByRole('navigation', { name: 'Setup steps' })).getByRole('button', { name: 'Review' }));
-    expect(screen.getAllByText(/Roles fill 0 seats but the game has 10 players/).length).toBeGreaterThan(0);
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Setup steps' })).getByRole('button', { name: '4. Review' }));
+    expect(screen.getAllByText(/The roles fill 0 of 10 seats/).length).toBeGreaterThan(0);
   });
 
   it('shows a guest the summary and no host controls', async () => {
     setViewport(1024, 768);
     renderApp(`/lobby/${GAME}/setup`, { seat: guestSeat, fetchFn: fetchSetup('infection-core', false) });
     expect(await screen.findByText('Waiting for the host.')).toBeTruthy();
-    expect(document.querySelector('.ww-setup-strip')?.textContent).toContain('Village 19');
+    expect(document.querySelector('.ww-setup-strip')?.textContent).toContain('Village roles');
     expect(screen.queryByRole('button', { name: 'Save setup' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Start game' })).toBeNull();
     expect((screen.getByRole('spinbutton', { name: 'Players' }) as HTMLInputElement).disabled).toBe(true);

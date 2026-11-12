@@ -22,7 +22,7 @@ import { PackSummary } from '../game/components/PackSummary';
 import { PlayerAvatar } from '../game/components/PlayerAvatar';
 import { PlayerCard } from '../game/components/PlayerCard';
 import { VillageScene } from '../game/components/VillageScene';
-import { MODE_LABEL, startSentences } from '../game/components/lobbyCopy';
+import { explainIssue, MODE_LABEL, startSentences } from '../game/components/lobbyCopy';
 import { useLobby, useSeat } from '../game/state/lobby';
 import { gamePath } from '../game/state/role';
 import { GameLayout } from '../game/layout';
@@ -97,6 +97,8 @@ function LobbyScreen() {
   }
 
   const packName = packs.data?.find((pack) => pack.id === lobby.rolePackId)?.name ?? MODE_LABEL[lobby.mode];
+  const problems = configuration.data?.validation.errors.map(explainIssue) ?? [];
+  const warningLines = configuration.data?.validation.warnings.map(explainIssue) ?? [];
   const sentences = startSentences({
     status: lobby.status,
     ready: lobby.start.ready,
@@ -104,10 +106,17 @@ function LobbyScreen() {
     requiresWarningAcknowledgement: lobby.start.requiresWarningAcknowledgement,
     seated: lobby.players.length,
     seats: lobby.playerCount,
+    problems,
+    warnings: warningLines,
   });
   const inLobby = lobby.status === 'LOBBY';
+  const hostName = lobby.players.find((player) => player.isHost)?.displayName ?? 'the host';
+  const canShare = typeof navigator !== 'undefined' && typeof navigator.share === 'function';
   const others = lobby.players.filter((player) => player.playerId !== lobby.you.playerId);
-  const warnings = configuration.data?.validation.warnings.map((warning) => warning.message) ?? [];
+  const seated = lobby.players.length;
+  const seats = lobby.playerCount;
+  const openSeats = Math.max(0, seats - seated);
+  const seatedPlayers = [...lobby.players].sort((a, b) => a.seatNumber - b.seatNumber);
 
   async function begin(acknowledgeWarnings: boolean) {
     const result = await startGame({ gameId: lobby!.gameId, acknowledgeWarnings });
@@ -131,9 +140,18 @@ function LobbyScreen() {
       await navigator.clipboard.writeText(lobby!.roomCode);
       setCopied(true);
       setCopyFailed(false);
+      window.setTimeout(() => setCopied(false), 2500);
     } catch {
       setCopied(false);
       setCopyFailed(true);
+    }
+  }
+
+  async function shareCode() {
+    try {
+      await navigator.share({ title: 'Werewolf', text: `Join my Werewolf game. Room code: ${lobby!.roomCode}`, url: window.location.origin });
+    } catch {
+      // A dismissed share sheet is not an error.
     }
   }
 
@@ -162,79 +180,110 @@ function LobbyScreen() {
       <GameLayout
         stage="lobby"
         scene={<VillageScene scene="lobby_campfire" />}
-        status={
-          <div className="ww-status">
-            <h1 className="ww-status-title">Lobby</h1>
-            <p className="ww-status-copy" aria-live="polite">
-              {lobby.players.length} of {lobby.playerCount} seated
-            </p>
-            <p className="ww-code">{lobby.roomCode}</p>
-            <Button onClick={() => void copyCode()}>Copy code</Button>
-            {copied ? <span className="ww-status-copy">Copied</span> : null}
-            {copyFailed ? <span className="ww-status-copy">Select the code to copy it.</span> : null}
-            <p className="ww-status-copy">{MODE_LABEL[lobby.mode]}</p>
-            {inLobby && lobby.you.isHost ? <p className="ww-status-copy">You are the host</p> : null}
-            {inLobby && !lobby.you.isHost ? <p className="ww-status-copy">Waiting for the host</p> : null}
-            {lobby.status === 'CANCELLED' ? <p className="ww-status-copy">Cancelled</p> : null}
-            <div className="ww-status-pack">
-              <PackSummary summary={lobby.configuration.summary} packName={packName} modeLabel={MODE_LABEL[lobby.mode]} layout="strip" />
-            </div>
-          </div>
-        }
+        status={<p className="ww-sr">Lobby</p>}
         foreground={
-          <div className="ww-scene">
-            <p className="ww-scene-count">
-              {lobby.players.length} of {lobby.playerCount} seated
-            </p>
-            <ul className="ww-seats" aria-label="Seated players">
-              {lobby.players.map((player) => (
-                <li key={player.playerId} className="ww-seat">
-                  <PlayerAvatar name={player.displayName} avatarId={player.avatarId} />
-                  <span className="ww-seat-name">{player.displayName}</span>
-                  {player.isHost ? <span className="ww-seat-tag">Host</span> : null}
-                  {player.playerId === lobby.you.playerId ? <span className="ww-seat-tag">You</span> : null}
-                </li>
-              ))}
-            </ul>
+          <div className="ww-lobby-board">
+            <header className="ww-lobby-head">
+              <div className="ww-lobby-title">
+                <h1>Moonlit Village</h1>
+                <div className="ww-code-row">
+                  <p className="ww-code-line">
+                    <span className="ww-code-label">Room code:</span> <span className="ww-code">{lobby.roomCode}</span>
+                  </p>
+                  <Button className="ww-code-copy" variant="outlined" onClick={() => void copyCode()} aria-label={`Copy room code ${lobby.roomCode.split('').join(' ')}`}>
+                    {copyFailed ? 'Copy failed' : copied ? '✓ Copied' : 'Copy code'}
+                  </Button>
+                  {canShare ? (
+                    <Button variant="outlined" onClick={() => void shareCode()}>
+                      Share
+                    </Button>
+                  ) : null}
+                  <span className="ww-sr" aria-live="polite">
+                    {copied ? 'Room code copied.' : copyFailed ? 'Copy failed. Select the code to copy it.' : ''}
+                  </span>
+                </div>
+              </div>
+            </header>
+            <div className="ww-lobby-mode">
+              <p>
+                <ModeMark /> Mode: {MODE_LABEL[lobby.mode]}
+              </p>
+              <span className="ww-lobby-mode-rule" aria-hidden="true" />
+              <p>
+                <PackMark /> Pack: <span>{packName}</span>
+              </p>
+              <span className="ww-lobby-mode-rule" aria-hidden="true" />
+              <p>
+                <SeatMark /> {seated} / {seats} seats
+              </p>
+            </div>
+            <PackSummary summary={lobby.configuration.summary} packName={packName} modeLabel={MODE_LABEL[lobby.mode]} layout="strip" />
+            {lobby.status === 'CANCELLED' ? <p className="ww-status-copy">Cancelled</p> : null}
+            <div className="ww-lobby-seats">
+              <ul className="ww-seat-grid" aria-label="Seated players">
+                {seatedPlayers.map((player) => {
+                  const you = player.playerId === lobby.you.playerId;
+                  return (
+                    <li key={player.playerId} className="ww-seat-card">
+                      <PlayerAvatar name={player.displayName} avatarId={player.avatarId} />
+                      <span className="ww-seat-badges">
+                        {player.isHost ? <span className="ww-seat-badge">Host</span> : null}
+                        {you ? <span className="ww-seat-badge is-you">You</span> : null}
+                      </span>
+                      <p className="ww-seat-card-name">
+                        <span className="ww-seat-dot" aria-hidden="true" />
+                        <span className="ww-sr">Alive. </span>
+                        {player.displayName}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ul>
+              {openSeats > 0 ? (
+                <ul className="ww-open-grid" aria-label="Open seats">
+                  {Array.from({ length: openSeats }, (_, index) => (
+                    <li key={index} className="ww-open-seat">
+                      <span aria-hidden="true">+</span>
+                      Open seat
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
           </div>
         }
         action={
           <div className="ww-action">
-            <p className="ww-action-copy" id="start-reasons">
-              {inLobby && !lobby.you.isHost ? 'Waiting for the host. ' : null}
-              {sentences.join(' ')}
-            </p>
+            <div className="ww-action-copy" id="start-reasons">
+              {inLobby && !lobby.you.isHost ? <p>Waiting for {hostName} to start the game.</p> : null}
+              {inLobby && lobby.you.isHost && lobby.start.ready && sentences.length === 0 ? <p>The room is ready to start.</p> : null}
+              {sentences.map((line, index) => (
+                <p key={`${index}-${line}`}>{line}</p>
+              ))}
+            </div>
             {inLobby ? (
               <>
-                <Button component={Link} to={`/lobby/${lobby.gameId}/setup`}>
-                  Game setup
+                <Button className="ww-lobby-setup" component={Link} to={`/lobby/${lobby.gameId}/setup`} variant="outlined" startIcon={<GearMark />}>
+                  {lobby.you.isHost ? 'Game setup' : 'View setup'}
                 </Button>
                 {lobby.you.isHost ? (
                   <Button
+                    className="ww-lobby-start"
                     color="secondary"
                     variant="contained"
                     disabled={!lobby.start.ready || busy}
                     aria-describedby="start-reasons"
+                    startIcon={startState.isLoading ? undefined : <PlayMark />}
                     onClick={() => {
                       setStartError(null);
                       if (lobby.start.requiresWarningAcknowledgement) setWarnOpen(true);
                       else void begin(false);
                     }}
                   >
-                    Start game
+                    {startState.isLoading ? 'Starting…' : 'Start game'}
                   </Button>
                 ) : null}
                 {startError ? <Alert severity="error">{startError.message}</Alert> : null}
-                <Button
-                  onClick={() => {
-                    setSuccessor('');
-                    setActionError(null);
-                    setDialog({ type: 'leave' });
-                  }}
-                  disabled={busy}
-                >
-                  Leave
-                </Button>
               </>
             ) : (
               <Button component={Link} to="/" variant="contained">
@@ -246,21 +295,29 @@ function LobbyScreen() {
         rail={
           <>
             {error ? <Alert severity="error">{error.message}</Alert> : null}
-            <PackSummary
-              summary={lobby.configuration.summary}
-              packName={packName}
-              modeLabel={MODE_LABEL[lobby.mode]}
-              layout="card"
-              warningCount={lobby.configuration.warningCount}
-              errorCount={lobby.configuration.errorCount}
-            />
             <Tabs value={tab} onChange={(_event, value: RoomTab) => setTab(value)} variant="scrollable" scrollButtons="auto" aria-label="Room sections">
               <Tab label="Players" value="players" />
               <Tab label="Log" value="log" />
-              <Tab label="Info" value="info" />
+              <Tab label="Room info" value="info" />
             </Tabs>
             <div className="ww-room-body" role="tabpanel">
               {tab === 'players' ? (
+                <>
+                <div className="ww-rail-count">
+                  <h2>
+                    Players ({seated} / {seats})
+                  </h2>
+                  <Button
+                    onClick={() => {
+                      setSuccessor('');
+                      setActionError(null);
+                      setDialog({ type: 'leave' });
+                    }}
+                    disabled={busy || !inLobby}
+                  >
+                    Leave
+                  </Button>
+                </div>
                 <ul className="ww-player-list" aria-label="Players">
                   {lobby.players.map((player) => (
                     <li key={player.playerId}>
@@ -270,6 +327,7 @@ function LobbyScreen() {
                         host={player.isHost}
                         you={player.playerId === lobby.you.playerId}
                         avatarId={player.avatarId}
+                        connectionStatus={player.connectionStatus}
                         actions={
                           <>
                             {inLobby && player.playerId === lobby.you.playerId ? (
@@ -308,6 +366,7 @@ function LobbyScreen() {
                     </li>
                   ))}
                 </ul>
+                </>
               ) : null}
               {tab === 'log' ? (
                 <>
@@ -315,7 +374,19 @@ function LobbyScreen() {
                   <TextField label="Table chat" placeholder="Chat is not open in this version." disabled fullWidth helperText="The table talks out loud. A written log arrives with the game." />
                 </>
               ) : null}
-              {tab === 'info' ? <RoomInfo /> : null}
+              {tab === 'info' ? (
+                <>
+                  <PackSummary
+                    summary={lobby.configuration.summary}
+                    packName={packName}
+                    modeLabel={MODE_LABEL[lobby.mode]}
+                    layout="card"
+                    warningCount={lobby.configuration.warningCount}
+                    errorCount={lobby.configuration.errorCount}
+                  />
+                  <RoomInfo />
+                </>
+              ) : null}
             </div>
           </>
         }
@@ -333,7 +404,7 @@ function LobbyScreen() {
         <DialogTitle id="warn-title">Acknowledge warnings</DialogTitle>
         <DialogContent sx={{ display: 'grid', gap: 'var(--space)' }}>
           {configuration.isLoading ? <p className="ww-info-copy">Loading the warnings…</p> : null}
-          {warnings.map((message) => (
+          {warningLines.map((message) => (
             <p key={message} className="ww-info-copy">
               {message}
             </p>
@@ -391,6 +462,46 @@ function LobbyScreen() {
         </DialogActions>
       </Dialog>
     </>
+  );
+}
+
+function ModeMark() {
+  return (
+    <svg className="ww-lobby-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm8-1a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5ZM4 18.5c0-2.2 2-4 4.5-4h.2c.9.6 2 1 3.3 1 1.2 0 2.3-.4 3.2-1h.3c2.4 0 4.5 1.8 4.5 4v.5H4v-.5Zm12.2-3.2c.5-.2 1.1-.3 1.6-.3 1.8 0 3.2 1.2 3.2 2.8V19h-3.2c.1-.3.2-.6.2-1 0-1.2-.6-2.3-1.8-2.7Z" />
+    </svg>
+  );
+}
+
+function PackMark() {
+  return (
+    <svg className="ww-lobby-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M4 7.5 12 4l8 3.5v9L12 20l-8-3.5v-9Zm8 1.2L7.2 6.8 12 4.7l4.8 2.1L12 8.7Zm-6 1.4 5 2.2v5.9l-5-2.2V10.1Zm7 8.1v-5.9l5-2.2v5.9l-5 2.2Z" />
+    </svg>
+  );
+}
+
+function SeatMark() {
+  return (
+    <svg className="ww-lobby-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0 2c-3.3 0-8 1.7-8 5v1h16v-1c0-3.3-4.7-5-8-5Z" />
+    </svg>
+  );
+}
+
+function GearMark() {
+  return (
+    <svg className="ww-lobby-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M19.1 12.9c.1-.3.1-.6.1-.9s0-.6-.1-.9l2-1.6-2-3.4-2.4 1a7.4 7.4 0 0 0-1.6-.9l-.4-2.6h-4l-.4 2.6c-.6.2-1.1.5-1.6.9l-2.4-1-2 3.4 2 1.6c-.1.3-.1.6-.1.9s0 .6.1.9l-2 1.6 2 3.4 2.4-1c.5.4 1 .7 1.6.9l.4 2.6h4l.4-2.6c.6-.2 1.1-.5 1.6-.9l2.4 1 2-3.4-2-1.6ZM12 15.5A3.5 3.5 0 1 1 12 8a3.5 3.5 0 0 1 0 7.5Z" />
+    </svg>
+  );
+}
+
+function PlayMark() {
+  return (
+    <svg className="ww-lobby-icon" viewBox="0 0 24 24" aria-hidden="true">
+      <path fill="currentColor" d="M8 5.5v13l11-6.5L8 5.5Z" />
+    </svg>
   );
 }
 

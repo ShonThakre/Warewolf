@@ -1,5 +1,5 @@
 import { Box, Button, Typography } from '@mui/material';
-import { NavLink, Outlet } from 'react-router';
+import { NavLink, Outlet, useMatch } from 'react-router';
 import { uiArtUrl } from '../assets/art';
 import { PlayerAvatar } from '../game/components/PlayerAvatar';
 import { useLobby, useSeat } from '../game/state/lobby';
@@ -11,6 +11,7 @@ import { useLobby, useSeat } from '../game/state/lobby';
 export function AppShell() {
   const seat = useSeat();
   const { lobby } = useLobby();
+  const home = useMatch({ path: '/', end: true });
   const playTo = seat ? `/lobby/${seat.gameId}` : '/';
   const nav = [
     { to: playTo, label: 'Play', end: !seat },
@@ -22,7 +23,7 @@ export function AppShell() {
   const seatedName = me?.displayName ?? 'You';
 
   return (
-    <Box className="ww-app" sx={{ height: '100dvh', minHeight: '100dvh', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', overflow: 'hidden' }}>
+    <Box className={home ? 'ww-app is-home' : 'ww-app'} sx={{ height: '100dvh', minHeight: '100dvh', display: 'grid', gridTemplateRows: 'auto minmax(0, 1fr)', overflow: 'hidden' }}>
       <Box
         component="header"
         className="ww-app-nav flex flex-wrap items-center gap-2"
@@ -40,6 +41,7 @@ export function AppShell() {
           {emblem ? <img className="ww-emblem" src={emblem} alt="" /> : null}
           Werewolf
         </Typography>
+        <span className="ww-nav-rule" aria-hidden="true" />
         <Box component="nav" aria-label="Main" className="flex flex-wrap gap-1">
           {nav.map((item) => (
             <Button
@@ -48,6 +50,7 @@ export function AppShell() {
               to={item.to}
               end={item.end}
               color="inherit"
+              className={home && item.label === 'Play' ? 'active' : undefined}
               sx={{ '&.active': { color: 'var(--accent)' } }}
             >
               {item.label}

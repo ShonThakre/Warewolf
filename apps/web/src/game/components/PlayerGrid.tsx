@@ -9,6 +9,7 @@ type Seat = GameState['players'][number];
 /**
  * Public seats. A PLAYERS rule turns legal seats into toggle buttons.
  * Dead seats stay visible and are not selectable when the rule asks for the living.
+ * A chosen seat shows a check and the word "Selected", not only a color.
  */
 export function PlayerGrid({
   players,
@@ -16,33 +17,48 @@ export function PlayerGrid({
   rule,
   selected,
   onToggle,
+  allowedIds = null,
 }: {
   readonly players: readonly Seat[];
   readonly youId: string;
   readonly rule: TargetRuleDto | null;
   readonly selected: readonly string[];
   readonly onToggle: (playerId: string) => void;
+  /** Narrows the legal seats further, such as the tied players in a revote. */
+  readonly allowedIds?: ReadonlySet<string> | null;
 }) {
   const picking = rule?.kind === 'PLAYERS';
   const count = picking ? rule.count : 0;
   const capped = picking && count > 1 && selected.length >= count;
+  const label = picking ? (count === 2 ? 'Choose two players' : 'Choose a player') : 'Players';
 
   return (
-    <ul className="ww-seats" aria-label={picking ? (count === 2 ? 'Choose two players' : 'Choose a player') : 'Players'}>
+    <ul className="ww-seats" aria-label={picking ? `${label}. ${selected.length} of ${count} chosen` : label} data-picking={picking}>
       {players.map((player) => {
-        const legal = picking && seatSelectable(player, youId, rule);
-        const pressed = selected.includes(player.playerId);
+        const legal = picking && seatSelectable(player, youId, rule) && (allowedIds == null || allowedIds.has(player.playerId));
+        const order = selected.indexOf(player.playerId);
+        const pressed = order !== -1;
         const enabled = legal && (pressed || !capped);
         return (
-          <li key={player.playerId} className="ww-seat" data-life={player.lifeStatus}>
+          <li key={player.playerId} className="ww-seat" data-life={player.lifeStatus} data-legal={picking ? legal : undefined}>
             <Button className="ww-target" variant="outlined" aria-pressed={pressed} disabled={!enabled} onClick={() => onToggle(player.playerId)}>
-              <PlayerAvatar name={player.displayName} avatarId={player.avatarId} dead={player.lifeStatus === 'DEAD'} />
-              <span className="ww-seat-name">{player.displayName}</span>
+              <span className="ww-target-avatar">
+                <PlayerAvatar name={player.displayName} avatarId={player.avatarId} dead={player.lifeStatus === 'DEAD'} />
+                {pressed ? (
+                  <span className="ww-target-check" aria-hidden="true">
+                    {count > 1 ? order + 1 : '✓'}
+                  </span>
+                ) : null}
+              </span>
+              <span className="ww-seat-name">
+                {player.seatNumber}. {player.displayName}
+              </span>
               <span className="ww-seat-life" data-life={player.lifeStatus}>
                 {lifeLabel(player.lifeStatus)}
               </span>
+              {pressed ? <span className="ww-seat-picked">Selected</span> : null}
               {player.isHost ? <span className="ww-seat-tag">Host</span> : null}
-              {player.playerId === youId ? <span className="ww-seat-tag">You</span> : null}
+              {player.playerId === youId ? <span className="ww-seat-tag is-you">You</span> : null}
             </Button>
           </li>
         );

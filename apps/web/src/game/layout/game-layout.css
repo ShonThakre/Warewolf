@@ -158,10 +158,66 @@
   min-width: 0;
 }
 
+.ww-game-layout[data-status-row='false'] .ww-status-guide {
+  display: none;
+}
+
+.ww-game-layout[data-status-row='true'] .ww-status-guide {
+  flex-basis: 100%;
+}
+
+/* Portrait has height to spare: the strip wraps instead of clipping, and keeps the phase guide. */
+.ww-game-layout[data-layout='portrait'] .ww-status {
+  flex-wrap: wrap;
+  overflow: visible;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-status-guide {
+  display: block;
+  flex-basis: 100%;
+  white-space: normal;
+}
+
+/* A one-line strip keeps the room code readable but compact. */
+.ww-game-layout[data-status-row='false'] .ww-code-label {
+  display: none;
+}
+
+.ww-game-layout[data-status-row='false'] .ww-code-block {
+  padding: 0 0 0 calc(var(--space) / 2);
+}
+
+.ww-game-layout[data-status-row='false'] .ww-code-block .ww-code {
+  font-size: var(--text-body);
+  letter-spacing: 0.1em;
+}
+
 .ww-game-layout[data-status-row='false'] .ww-action-copy {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.ww-action .MuiButton-root {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Portrait: the action bar may take two rows so the sentence about the choice is read in full. */
+.ww-game-layout[data-layout='portrait'] .ww-action {
+  flex-wrap: wrap;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-action-head {
+  flex-basis: 100%;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-action-copy {
+  white-space: normal;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
 }
 
 /* Portrait. Lobby keeps the seats on the scene and the room underneath. A target grid uses the switch. */
@@ -211,9 +267,177 @@
   border-left: 0;
 }
 
+/* Lobby reference: the rail stops above a full-width action bar. The header lives on the stage. */
+.ww-app:has(.ww-game-layout[data-stage='lobby']) .ww-app-nav {
+  height: var(--bar-lobby);
+  min-height: var(--bar-lobby);
+  box-sizing: border-box;
+}
+
+.ww-game-layout[data-stage='lobby']:not([data-layout='narrow-landscape']) .ww-game-status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.ww-game-layout[data-stage='lobby'][data-layout='full'],
+.ww-game-layout[data-stage='lobby'][data-layout='compact'],
+.ww-game-layout[data-stage='lobby'][data-layout='tablet'],
+.ww-game-layout[data-stage='lobby'][data-layout='phone-landscape'] {
+  grid-template-columns: minmax(0, calc(1130 / 1586 * 100%)) minmax(16rem, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'stage rail'
+    'action action';
+  column-gap: calc(14 / 1586 * 100%);
+}
+
+.ww-game-layout[data-stage='lobby'][data-layout='full'] {
+  box-sizing: border-box;
+  padding-bottom: 1.1875rem;
+  grid-template-rows: minmax(0, 1fr) 7.75rem;
+  grid-template-columns: 1130fr 0.875rem 430fr 12fr;
+  grid-template-areas:
+    'stage . rail .'
+    'action action action action';
+  column-gap: 0;
+  justify-content: stretch;
+}
+
+.ww-game-layout[data-stage='lobby'][data-layout='full'] .ww-game-rail:not([hidden]),
+.ww-game-layout[data-stage='lobby'][data-layout='compact'] .ww-game-rail:not([hidden]),
+.ww-game-layout[data-stage='lobby'][data-layout='tablet'] .ww-game-rail:not([hidden]) {
+  align-self: stretch;
+  margin-top: 1rem;
+  margin-bottom: 1.25rem;
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+}
+
+.ww-game-layout[data-stage='lobby'] .ww-game-foreground {
+  height: 100%;
+  overflow: hidden;
+}
+
+.ww-game-layout[data-stage='lobby']:not([data-layout='full']) .ww-game-foreground {
+  overflow: auto;
+}
+
+.ww-game-layout[data-stage='lobby'] .ww-game-scene {
+  aspect-ratio: auto;
+  position: absolute;
+  inset: 0;
+  max-height: none;
+  align-self: stretch;
+  justify-self: stretch;
+}
+
+.ww-game-layout[data-stage='lobby'] .ww-game-scene::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--bg) 48%, transparent) 0%, color-mix(in srgb, var(--bg) 78%, transparent) 42%, var(--bg) 78%),
+    linear-gradient(90deg, color-mix(in srgb, var(--bg) 22%, transparent), transparent 34%);
+}
+
+.ww-game-layout[data-stage='lobby'] .ww-village img {
+  object-position: 50% 46%;
+}
+
+.ww-game-layout[data-stage='lobby'][data-layout='full'] .ww-game-action,
+.ww-game-layout[data-stage='lobby'][data-layout='compact'] .ww-game-action,
+.ww-game-layout[data-stage='lobby'][data-layout='tablet'] .ww-game-action {
+  background: transparent;
+  border-top: 0;
+  padding: 0 0.9375rem;
+}
+
+.ww-game-layout[data-stage='lobby'][data-layout='full'] .ww-game-action {
+  padding: 0 1.125rem 0 0.9375rem;
+}
+
+.ww-game-layout[data-stage='lobby'][data-layout='portrait'] {
+  grid-template-rows: minmax(0, 1.1fr) minmax(12rem, 0.9fr) auto;
+  grid-template-areas:
+    'stage'
+    'rail'
+    'action';
+}
+
 .ww-game-layout[data-layout='narrow-landscape']:not([data-rail-open='true']) .ww-status-pack {
   display: flex;
   flex-basis: auto;
   min-width: 0;
   overflow: hidden;
+}
+
+/* Night at 1586×992: the rail runs the full height. Status, seats, and the action bar share the left column. */
+.ww-game-layout[data-stage='night'][data-layout='full'],
+.ww-game-layout[data-stage='night'][data-layout='compact'],
+.ww-game-layout[data-stage='night'][data-layout='tablet'] {
+  box-sizing: border-box;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  background: var(--bg);
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 26rem);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'status rail'
+    'stage rail'
+    'action rail';
+}
+
+.ww-app:has(.ww-game-layout[data-stage='night']) .ww-app-nav {
+  height: 4.5rem;
+  min-height: 4.5rem;
+  box-sizing: border-box;
+  background: var(--bg);
+  border-bottom-color: transparent;
+}
+
+.ww-app:has(.ww-game-layout[data-stage='night']) .ww-app-nav nav .MuiButton-root:first-of-type {
+  border-radius: 0;
+  box-shadow: inset 0 -2px 0 var(--primary);
+}
+
+.ww-game-layout[data-stage='night'] .ww-game-status,
+.ww-game-layout[data-stage='night'] .ww-game-action,
+.ww-game-layout[data-stage='night'] .ww-game-rail:not([hidden]) {
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.ww-game-layout[data-stage='night'] .ww-game-stage {
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.ww-game-layout[data-stage='night'] .ww-game-scene {
+  position: absolute;
+  inset: 0;
+  aspect-ratio: auto;
+  max-height: none;
+  align-self: stretch;
+}
+
+.ww-game-layout[data-stage='night'] .ww-game-scene::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: rgb(20 11 34 / 0.42);
+}
+
+.ww-game-layout[data-stage='night'] .ww-village img {
+  object-position: center 28%;
+}
+
+.ww-game-layout[data-stage='night'] .ww-game-foreground {
+  overflow: auto;
 }

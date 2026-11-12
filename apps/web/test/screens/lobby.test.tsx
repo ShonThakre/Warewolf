@@ -81,12 +81,12 @@ describe('lobby screen', () => {
 
   it('shows the room, the pack, and a closed start for the host', async () => {
     renderApp(`/lobby/${GAME}`, { seat: hostSeat, fetchFn: fetchRoute(projection(true)) });
-    expect(await screen.findByRole('heading', { name: 'Lobby' })).toBeTruthy();
+    expect(await screen.findByRole('heading', { name: 'Moonlit Village' })).toBeTruthy();
     expect(screen.getByText('K7QMPR')).toBeTruthy();
     expect(screen.getByText('Classic 10')).toBeTruthy();
     expect(screen.getAllByText('Village 8').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Wolf 2').length).toBeGreaterThan(0);
-    expect(screen.getByText(/2 of 10 seats are filled/)).toBeTruthy();
+    expect(screen.getByText(/8 more seats are needed to start \(2 \/ 10\)/)).toBeTruthy();
     const start = screen.getByRole('button', { name: 'Start game' });
     expect(start.hasAttribute('disabled')).toBe(true);
     expect(screen.getByRole('button', { name: 'Remove Rafi' })).toBeTruthy();
@@ -95,7 +95,8 @@ describe('lobby screen', () => {
 
   it('shows a waiting line for a guest and hides host controls', async () => {
     renderApp(`/lobby/${GAME}`, { seat: guestSeat, fetchFn: fetchRoute(projection(false)) });
-    expect(await screen.findByText('Waiting for the host')).toBeTruthy();
+    expect(await screen.findByText(/^Waiting for .+ to start the game\.$/)).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'View setup' })).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Start game' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Remove Rafi' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Remove Asha' })).toBeNull();
@@ -104,9 +105,10 @@ describe('lobby screen', () => {
   it('copies the room code', async () => {
     const writeText = vi.spyOn(navigator.clipboard, 'writeText').mockResolvedValue(undefined);
     renderApp(`/lobby/${GAME}`, { seat: hostSeat, fetchFn: fetchRoute(projection(true)) });
-    fireEvent.click(await screen.findByRole('button', { name: 'Copy code' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Copy room code K 7 Q M P R' }));
     expect(writeText).toHaveBeenCalledWith('K7QMPR');
-    expect(await screen.findByText('Copied')).toBeTruthy();
+    expect(await screen.findByText('Room code copied.')).toBeTruthy();
+    expect(screen.getByText('✓ Copied')).toBeTruthy();
   });
 
   it('starts a ready room and opens the reveal', async () => {
@@ -149,7 +151,7 @@ describe('lobby screen', () => {
     fireEvent.click(await screen.findByRole('button', { name: 'Remove Rafi' }));
     const dialog = await screen.findByRole('dialog', { name: 'Remove Rafi?' });
     fireEvent.click(within(dialog).getByRole('button', { name: 'Remove' }));
-    await screen.findByRole('heading', { name: 'Lobby' });
+    await screen.findByRole('heading', { name: 'Moonlit Village' });
     expect(posts.some((line) => line.endsWith(`/players/${GUEST}/kick`))).toBe(true);
   });
 

@@ -1,6 +1,6 @@
 import type { OwnAbility } from '@warewolf/contracts';
 import { describe, expect, it } from 'vitest';
-import { actionRowText, availabilitySentence, choiceReady, promptLabel, seatSelectable } from '../../src/game/components/actionCopy';
+import { actionRowText, actionStatus, availabilitySentence, choiceReady, promptLabel, seatSelectable, submitLabel } from '../../src/game/components/actionCopy';
 import { fixturePlayerId } from '../../src/game/fixtures/role';
 
 const players = { kind: 'PLAYERS' as const, count: 1, life: 'ALIVE' as const, self: false, notSameAsLastRound: false };
@@ -53,5 +53,15 @@ describe('action copy', () => {
     expect(actionRowText(true, null, '', false, false)).toBe('Waiting for night to end');
     expect(actionRowText(false, null, '', false, false)).toBeNull();
     expect(actionRowText(true, null, '', false, true)).toBe('Submitted');
+  });
+
+  it('says whether a choice is picked, sent, or still open', () => {
+    expect(actionStatus({ active: true, ready: false, stored: false, anyStored: false })).toEqual({ tone: 'choose', label: 'Your move' });
+    expect(actionStatus({ active: true, ready: true, stored: false, anyStored: false })).toEqual({ tone: 'pending', label: 'Not sent yet' });
+    expect(actionStatus({ active: true, ready: true, stored: true, anyStored: true })).toEqual({ tone: 'done', label: 'Submitted' });
+    expect(actionStatus({ active: false, ready: false, stored: false, anyStored: true }).label).toBe('Done');
+    expect(submitLabel({ hasStored: false, stored: false, submitting: false })).toBe('Submit');
+    expect(submitLabel({ hasStored: true, stored: false, submitting: false })).toBe('Update choice');
+    expect(submitLabel({ hasStored: true, stored: true, submitting: false })).toBe('Choice sent');
   });
 });

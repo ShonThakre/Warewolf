@@ -25,6 +25,7 @@ export function HostShell({ section, onSection, oneStep, canvas, action }: HostS
             key={id}
             className="ww-host-section"
             variant={id === section ? 'contained' : 'text'}
+            color={id === section ? 'primary' : 'inherit'}
             aria-current={id === section ? 'true' : undefined}
             onClick={() => onSection(id)}
           >

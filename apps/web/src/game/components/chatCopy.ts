@@ -8,7 +8,7 @@ import type { ChatRefusal } from '@warewolf/domain';
 export function chatRefusalCopy(refusal: ChatRefusal | null): string | null {
   switch (refusal) {
     case 'CLOSED':
-      return 'Chat opens in day discussion and voting.';
+      return 'Discussion is closed at night.';
     case 'DEAD':
       return 'The dead read only.';
     case 'MUTED':

@@ -71,15 +71,15 @@ Then send each line below as its own message, as "Role: <description>". Save eac
 | ✅ `vampire_servant` | A villager with glassy eyes and a thin lavender ribbon at the throat, posture slightly turned toward someone off-frame, as if listening. Lavender accent. |
 | ✅ `joker` | A grinning figure in a lavender coat and a tilted playing-card collar, one eye winked, holding a single blank card. Lavender accent. |
 | ✅ `time_wizard` | An elderly village mage in an emerald robe, holding a small brass hourglass that glows warm gold, white hair lifted as if by a breeze. Emerald accent. |
-| `guardian` | A broad-shouldered village protector in an emerald cloak and a round shield held across the chest, calm and immovable. Emerald accent. |
-| `alchemist` | A village scholar in an emerald apron, three small potion bottles on a bandolier: one green, one violet, one silver. Focused expression. Emerald accent. |
-| `fox` | A clever human figure with fox-orange hair and a silver-blue scarf, a small fox mask pushed up onto the forehead, knowing half-smile. Silver-blue accent. |
-| `mimic` | A village performer in an emerald coat, one half of the costume echoing another role's silhouette, holding a blank mask at their side. Emerald accent. |
-| `ghost` | A translucent village figure in an emerald shawl, soft edges, a finger raised as if about to whisper, no harsh skull. Emerald accent. |
-| `mind_controller` | A composed figure in a silver-blue coat, one hand extended, a faint ring of light around the fingertips, expression intent and quiet. Silver-blue accent. |
-| `necromancer` | A solitary figure in a lavender hood, one hand open above a small circle of dim candles, the other holding a closed book. Lavender accent. |
-| `double_agent` | A villager in an emerald neckerchief worn over a hidden crimson lining, glance over one shoulder, expression unreadable. Split emerald and crimson accent. |
-| `chaos_demon` | A playful, non-gory trickster in a silver-blue coat with mismatched buttons, tossing a blank six-sided die, mischievous grin. Silver-blue accent. |
+| ✅ `guardian` | A broad-shouldered village protector in an emerald cloak and a round shield held across the chest, calm and immovable. Emerald accent. |
+| ✅ `alchemist` | A village scholar in an emerald apron, three small potion bottles on a bandolier: one green, one violet, one silver. Focused expression. Emerald accent. |
+| ✅ `fox` | A clever human figure with fox-orange hair and a silver-blue scarf, a small fox mask pushed up onto the forehead, knowing half-smile. Silver-blue accent. |
+| ✅ `mimic` | A village performer in an emerald coat, one half of the costume echoing another role's silhouette, holding a blank mask at their side. Emerald accent. |
+| ✅ `ghost` | A translucent village figure in an emerald shawl, soft edges, a finger raised as if about to whisper, no harsh skull. Emerald accent. |
+| ✅ `mind_controller` | A composed figure in a silver-blue coat, one hand extended, a faint ring of light around the fingertips, expression intent and quiet. Silver-blue accent. |
+| ✅ `necromancer` | A solitary figure in a lavender hood, one hand open above a small circle of dim candles, the other holding a closed book. Lavender accent. |
+| ✅ `double_agent` | A villager in an emerald neckerchief worn over a hidden crimson lining, glance over one shoulder, expression unreadable. Split emerald and crimson accent. |
+| ✅ `chaos_demon` | A playful, non-gory trickster in a silver-blue coat with mismatched buttons, tossing a blank six-sided die, mischievous grin. Silver-blue accent. |
 
 ---
 
@@ -186,4 +186,4 @@ The ribbons are optional because CSS can draw a plain banner if you skip them.
 - **Text and the title wordmark.** These are set in a web font, so they stay sharp and can be translated.
 - **Dead and selected avatar states.** These are done with CSS (greyscale, a ring) on the same image.
 
-**Total:** 51 roles, 36 avatars, 14 scenes, 5 required UI pieces and 5 optional ribbons, which is 106 required files and 111 in all. The 14 Ultimate 20 portraits above have no check mark because the files are not generated yet.
+**Total:** 51 roles, 36 avatars, 14 scenes, 5 required UI pieces and 5 optional ribbons, which is 106 required files and 111 in all. The 14 Ultimate 20 portraits are generated.

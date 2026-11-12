@@ -4,7 +4,7 @@ The game's illustrations. Each PNG here is committed, and the web build turns it
 
 | Folder | What | Count |
 |---|---|---:|
-| `roles/` | Role portraits, named by role id, for example `alpha_wolf.png` | 37 |
+| `roles/` | Role portraits, named by role id, for example `alpha_wolf.png` | 51 |
 | `avatars/` | Player portraits, `avatar_01.png` to `avatar_36.png` | 36 |
 | `scenes/` | Backgrounds, for example `square_night.png` | 14 |
 | `ui/` | Emblem, app icon, card back, parchment, empty-seat silhouette, optional ribbons | 10 |

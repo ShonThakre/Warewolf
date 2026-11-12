@@ -243,7 +243,7 @@ Both role responses are parsed through their contract schema before they leave t
 
 Auth: member. Returns the projection for that token: public fields always, player appendix only for the caller, host appendix only for the host.
 
-Public fields: phase, round, timers, seats with name and life status, public events, whether voting is open.
+Public fields: phase, round, timers, seats with name and life status, public events, whether voting is open, and the two ballot booleans `voting.abstain` and `voting.changeUntilClose`.
 
 Implemented in WW-501 with the phase fields and the caller's own seat. Public events arrive with `game_events` in Phase 11, and the host appendix with the dashboard (WW-1202). Works in every status, including the lobby.
 
@@ -259,6 +259,7 @@ Implemented in WW-501 with the phase fields and the caller's own seat. Public ev
   "phaseEndsAt": "2026-11-11T20:01:30.000Z",
   "serverNow": "2026-11-11T20:00:05.000Z",
   "close": { "next": null, "resolves": "NIGHT" },
+  "voting": { "abstain": true, "changeUntilClose": true },
   "players": [{ "playerId": "…", "displayName": "Rafi", "seatNumber": 1, "avatarId": 4, "isHost": true, "lifeStatus": "ALIVE" }],
   "you": { "playerId": "…", "isHost": true, "lifeStatus": "ALIVE" }
 }
@@ -267,6 +268,7 @@ Implemented in WW-501 with the phase fields and the caller's own seat. Public ev
 - `phaseEndsAt` is null when the host closes the phase. Only timed games set it, and only for night submission, day discussion, and each ballot (OD-43). Role reveal, the day announcement, host confirm, and the reaction window always wait for the host.
 - `serverNow` lets a client count down on the server's clock: remaining time is `phaseEndsAt - serverNow`, adjusted for the time since the response arrived.
 - `close` says what closing the current phase does: `next` is the phase it moves to, or null when a resolution decides (`resolves` is `NIGHT` or `DAY`). It is null when the phase cannot close. Which night windows open is fixed by the configuration (OD-74), so `close` reveals nothing the configuration did not.
+- `voting` is `{ abstain, changeUntilClose }`, both booleans, copied from the saved configuration. Every seat can read them. Configuration GET stays lobby-only, so this is how the table knows whether to offer abstain and whether a ballot can change until the poll closes.
 
 ### GET `/games/:gameId/events?afterSeq=120`
 

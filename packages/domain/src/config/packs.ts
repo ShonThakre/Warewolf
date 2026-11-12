@@ -305,7 +305,7 @@ const packs: RolePack[] = [
     id: 'ultimate-20',
     name: 'Ultimate 20',
     status: 'CONFIRMED',
-    description: 'Twenty seats: fifteen special roles and five Villagers. Infection stays on. The host acknowledges the unconfirmed preset before start.',
+    description: 'Twenty seats: fifteen special roles and five Villagers. Infection stays on.',
     blockedBy: [],
     config: base({
       mode: 'ULTIMATE_20',

@@ -4,7 +4,8 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { KillTargetPanel } from '../game/components/KillTargetPanel';
 import { PhaseCloseButton } from '../game/components/PhaseCloseButton';
-import { killPickOf, playerName, sameKillPick, type KillPick } from '../game/components/killCopy';
+import { closeConsequence, phaseActionNote } from '../game/components/phaseCopy';
+import { killPickOf, sameKillPick, type KillPick } from '../game/components/killCopy';
 import { HostCanvas } from '../game/host/HostCanvas';
 import { HostShell } from '../game/host/HostShell';
 import type { HostSection } from '../game/host/dashboardCopy';
@@ -59,6 +60,13 @@ function HostScreen() {
     if (dashboard.error?.status === 409) refetch();
   }, [dashboard.error, refetch]);
 
+  useEffect(() => {
+    if (!state) return;
+    if (state.phase === 'NIGHT_HOST_CONFIRM' || state.phase === 'NIGHT_REACTION' || state.phase === 'NIGHT_SUBMIT') {
+      setSection((current) => (current === 'overview' ? 'actions' : current));
+    }
+  }, [state?.phase]);
+
   if (!seat) return null;
 
   if (!seat.isHost) {
@@ -67,7 +75,7 @@ function HostScreen() {
         <h1 className="ww-status-title">Host dashboard</h1>
         <p className="ww-status-copy">The host dashboard is only for the host.</p>
         <Button component={Link} to={`/game/${seat.gameId}`} variant="contained">
-          Back to the table
+          Back to game
         </Button>
       </div>
     );
@@ -105,14 +113,19 @@ function HostScreen() {
 
   const storedKill = kill.view ? killPickOf(kill.view.decision) : null;
   const showingKill = killPick ?? storedKill;
-  const killSaved = showingKill != null && (sameKillPick(showingKill, storedKill) || killAck === (showingKill.kind === 'NO_KILL' ? 'NO_KILL' : showingKill.playerId));
+  const killSaved =
+    showingKill != null && (sameKillPick(showingKill, storedKill) || killAck === (showingKill.kind === 'NO_KILL' ? 'NO_KILL' : showingKill.playerId));
   const killIssue = setKill.error?.issues[0]?.message ?? setKill.error?.message ?? null;
 
-  async function onConfirmKill() {
-    if (!showingKill || !kill.view?.editable) return;
-    const result = showingKill.kind === 'NO_KILL' ? await setKill.choose({ noKill: true }) : await setKill.choose({ targetPlayerId: showingKill.playerId });
-    if (result) setKillAck(showingKill.kind === 'NO_KILL' ? 'NO_KILL' : showingKill.playerId);
+  async function onPickKill(pick: KillPick) {
+    setKillPick(pick);
+    if (!kill.view?.editable) return;
+    if (sameKillPick(pick, storedKill) || killAck === (pick.kind === 'NO_KILL' ? 'NO_KILL' : pick.playerId)) return;
+    const result = pick.kind === 'NO_KILL' ? await setKill.choose({ noKill: true }) : await setKill.choose({ targetPlayerId: pick.playerId });
+    if (result) setKillAck(pick.kind === 'NO_KILL' ? 'NO_KILL' : pick.playerId);
   }
+
+  const consequence = close.canClose && close.close ? closeConsequence(close.close, close.phase) : null;
 
   return (
     <HostShell
@@ -122,31 +135,47 @@ function HostScreen() {
       canvas={
         <>
           <HostCanvas section={section} dashboard={dashboard.dashboard} events={events.events} eventsError={events.error?.message ?? null} />
-          {section === 'actions' && kill.view ? <KillChoices players={state.players} view={kill.view} pick={killPick} onPick={setKillPick} /> : null}
+          {section === 'actions' && kill.view ? (
+            <KillChoices players={state.players} view={kill.view} pick={killPick} onPick={(pick) => void onPickKill(pick)} />
+          ) : null}
         </>
       }
       action={
         <>
-          {close.error ? <p className="ww-host-copy">{close.error.message}</p> : null}
+          {close.error ? (
+            <p className="ww-host-action-copy" role="alert">
+              {phaseActionNote(close.error)}{' '}
+              <Button variant="text" onClick={() => refetch()}>
+                Refresh
+              </Button>
+            </p>
+          ) : consequence ? (
+            <p className="ww-host-action-copy">
+              <strong>Consequence:</strong> {consequence}
+            </p>
+          ) : (
+            <p className="ww-host-action-copy">Host-only records for this room.</p>
+          )}
           {killIssue ? (
-            <p className="ww-host-copy" role="alert">
+            <p className="ww-host-action-copy" role="alert">
               {killIssue}
             </p>
           ) : null}
-          <PhaseCloseButton control={close} />
-          {kill.view?.editable ? (
-            <Button variant="outlined" aria-pressed={showingKill?.kind === 'NO_KILL'} onClick={() => setKillPick({ kind: 'NO_KILL' })}>
-              No kill
+          <div className="ww-host-action-buttons">
+            <Button component={Link} to={`/game/${state.gameId}`} variant="contained" color="primary">
+              Back to game
             </Button>
-          ) : null}
-          {kill.view?.editable ? (
-            <Button variant="contained" color="secondary" disabled={!showingKill || killSaved || setKill.isChoosing} onClick={() => void onConfirmKill()}>
-              Confirm target
-            </Button>
-          ) : null}
-          <Button component={Link} to={`/game/${state.gameId}`} variant="text">
-            Table
-          </Button>
+            {kill.view?.editable && showingKill && !killSaved ? (
+              <Button variant="outlined" disabled={setKill.isChoosing} onClick={() => showingKill && void onPickKill(showingKill)}>
+                {setKill.isChoosing ? 'Sending…' : 'Confirm target'}
+              </Button>
+            ) : null}
+            {close.canClose && close.close ? (
+              <div className="ww-host-controls" role="group" aria-label="Close this phase">
+                <PhaseCloseButton control={close} tone="secondary" />
+              </div>
+            ) : null}
+          </div>
         </>
       }
     />
@@ -159,16 +188,14 @@ function KillChoices({
   pick,
   onPick,
 }: {
-  players: readonly { playerId: string; displayName: string }[];
+  players: readonly { playerId: string; displayName: string; avatarId?: number | null }[];
   view: KillTargetView;
   pick: KillPick | null;
   onPick: (pick: KillPick) => void;
 }) {
-  const name = pick?.kind === 'TARGET' ? playerName(players, pick.playerId) : null;
   return (
-    <div className="ww-host-stack">
-      <KillTargetPanel players={players} view={view} pick={pick} onPick={onPick} />
-      {name ? <p className="ww-host-copy">Chosen: {name}</p> : null}
+    <div className="ww-host-panel">
+      <KillTargetPanel players={players} view={view} pick={pick} onPick={onPick} includeNoKill />
     </div>
   );
 }

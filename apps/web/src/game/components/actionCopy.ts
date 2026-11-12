@@ -137,6 +137,20 @@ export function choiceNames(players: readonly { readonly playerId: string; reado
   return `${names.slice(0, -1).join(', ')}, and ${names[names.length - 1]}`;
 }
 
+/** Seat labels for the night "Selected target" field, matching the public seat cards. */
+export function choiceSeatLine(
+  players: readonly { readonly playerId: string; readonly displayName: string; readonly seatNumber: number }[],
+  ids: readonly string[],
+): string {
+  const labels = ids
+    .map((id) => players.find((player) => player.playerId === id))
+    .filter((player): player is { readonly playerId: string; readonly displayName: string; readonly seatNumber: number } => player != null)
+    .map((player) => `${player.seatNumber}. ${player.displayName}`);
+  if (labels.length <= 1) return labels[0] ?? '';
+  if (labels.length === 2) return `${labels[0]} and ${labels[1]}`;
+  return `${labels.slice(0, -1).join(', ')}, and ${labels[labels.length - 1]}`;
+}
+
 function sameMembers(left: readonly string[], right: readonly string[]): boolean {
   if (left.length !== right.length) return false;
   const seen = new Set(left);
@@ -160,10 +174,29 @@ export function matchesChoice(prompt: ActionPrompt, selected: readonly string[],
  */
 export function actionRowText(night: boolean, active: ActionPrompt | null, names: string, stored: boolean, anyStored: boolean): string | null {
   if (active) {
-    if (stored) return 'Submitted';
-    if (names) return names;
+    if (stored) return names ? `Your choice: ${names}. You can change it until this phase closes.` : 'Sent. You can change it until this phase closes.';
+    if (names) return `Selected: ${names}. Not sent yet.`;
     return promptLabel(active.ability);
   }
   if (!night) return null;
   return anyStored ? 'Submitted' : 'Waiting for night to end';
+}
+
+export type ActionTone = 'choose' | 'pending' | 'done' | 'waiting';
+
+/** The pill beside the action line. Words carry the state; the tone only adds color. */
+export function actionStatus(input: { readonly active: boolean; readonly ready: boolean; readonly stored: boolean; readonly anyStored: boolean }): { tone: ActionTone; label: string } {
+  if (input.active) {
+    if (input.stored) return { tone: 'done', label: 'Submitted' };
+    if (input.ready) return { tone: 'pending', label: 'Not sent yet' };
+    return { tone: 'choose', label: 'Your move' };
+  }
+  return input.anyStored ? { tone: 'done', label: 'Done' } : { tone: 'waiting', label: 'Waiting' };
+}
+
+/** The submit button: send, change a stored choice, or confirm it is stored. */
+export function submitLabel(input: { readonly hasStored: boolean; readonly stored: boolean; readonly submitting: boolean }): string {
+  if (input.submitting) return 'Sending…';
+  if (input.stored) return 'Choice sent';
+  return input.hasStored ? 'Update choice' : 'Submit';
 }

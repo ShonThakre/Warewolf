@@ -1,15 +1,16 @@
-/* Setup shell. The grid is keyed by data-steps and data-summary, which follow layoutMode. */
+/* Setup shell. Wide screens keep the configuration card beside the canvas. Portrait stacks it. */
 
 .ww-setup {
   height: 100%;
   min-height: 0;
   min-width: 0;
   display: grid;
-  grid-template-columns: clamp(14rem, 22vw, 18rem) minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 26rem);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
   grid-template-areas:
-    'strip strip'
-    'rail canvas'
+    'rail rail'
+    'head summary'
+    'canvas summary'
     'action action';
   overflow: hidden;
   background: var(--bg);
@@ -17,28 +18,33 @@
 
 .ww-setup[data-steps='one'] {
   grid-template-columns: minmax(0, 1fr);
-  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
   grid-template-areas:
-    'strip'
     'rail'
+    'head'
+    'summary'
     'canvas'
     'action';
 }
 
 .ww-setup-strip {
-  grid-area: strip;
+  display: contents;
+}
+
+.ww-setup-head {
+  grid-area: head;
   min-width: 0;
   display: grid;
-  gap: calc(var(--space) / 2);
-  padding: calc(var(--space) / 2) var(--space);
-  background: var(--surface-raised);
-  border-bottom: 1px solid var(--border);
+  align-content: end;
+  gap: calc(var(--space) / 4);
+  padding: 0.35rem var(--space) 0.15rem;
 }
 
 .ww-setup-title {
   margin: 0;
-  font-size: var(--text-body);
+  font-size: var(--text-title);
   font-weight: 800;
+  line-height: 1.1;
 }
 
 .ww-setup-counts {
@@ -75,32 +81,69 @@
   grid-area: rail;
   min-width: 0;
   min-height: 0;
-  overflow: auto;
+  overflow-x: auto;
   display: flex;
-  flex-direction: column;
-  gap: calc(var(--space) / 2);
-  padding: var(--space);
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-}
-
-.ww-setup[data-steps='one'] .ww-setup-rail {
   flex-direction: row;
-  border-right: 0;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.85rem var(--space) 0.35rem;
+  background: transparent;
   border-bottom: 1px solid var(--border);
 }
 
-.ww-setup-step.MuiButton-root {
-  min-height: var(--hit);
-  justify-content: flex-start;
-  gap: calc(var(--space) / 2);
-  white-space: nowrap;
+.ww-setup-step-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex: 1 1 0;
+  min-width: max-content;
 }
 
-.ww-setup-step svg {
-  width: 1.5rem;
-  height: 1.5rem;
+.ww-setup-step-join {
+  width: 1.25rem;
+  height: 2px;
   flex: none;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+}
+
+.ww-setup-step.MuiButton-root {
+  flex: 1 1 auto;
+  min-height: 3rem;
+  justify-content: center;
+  gap: 0.55rem;
+  padding-inline: 0.9rem;
+  white-space: nowrap;
+  color: var(--text);
+  background: var(--surface-raised);
+  border-radius: var(--radius-pill);
+}
+
+.ww-setup-step.MuiButton-contained {
+  background: var(--primary);
+  color: var(--primary-ink);
+}
+
+.ww-setup-step.MuiButton-text:hover {
+  background: color-mix(in srgb, var(--surface-raised) 80%, var(--text));
+}
+
+.ww-setup-step-num {
+  width: 1.7rem;
+  height: 1.7rem;
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--text) 14%, transparent);
+  font-size: var(--text-label);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.ww-setup-step.MuiButton-contained .ww-setup-step-num {
+  background: var(--text);
+  color: var(--primary);
 }
 
 .ww-setup-canvas {
@@ -117,7 +160,7 @@
 
 .ww-setup-heading {
   margin: 0;
-  font-size: var(--text-title);
+  font-size: var(--text-body);
   font-weight: 800;
 }
 
@@ -125,6 +168,17 @@
   margin: 0;
   color: var(--text-muted);
   font-size: var(--text-body);
+}
+
+.ww-setup-reasons {
+  display: grid;
+  gap: calc(var(--space) / 4);
+  min-width: 0;
+  text-align: right;
+}
+
+.ww-setup-reasons .ww-setup-copy {
+  font-size: var(--text-label);
 }
 
 .ww-setup-tools,
@@ -167,6 +221,7 @@
   text-align: left;
   white-space: normal;
   gap: calc(var(--space) / 4);
+  border-radius: calc(var(--radius) * 0.75);
 }
 
 .ww-setup-fields {
@@ -197,30 +252,193 @@ fieldset.ww-setup-fields {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
   gap: var(--space);
-  padding: var(--space);
-  padding-bottom: max(var(--space), env(safe-area-inset-bottom));
+  padding: 0.75rem var(--space);
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   padding-left: max(var(--space), env(safe-area-inset-left));
   padding-right: max(var(--space), env(safe-area-inset-right));
-  background: var(--surface);
+  background: var(--bg);
   border-top: 1px solid var(--border);
 }
 
-@media (max-width: 599px) {
+.ww-setup-action-cluster {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space);
+  min-width: 0;
+}
+
+.ww-setup-start {
+  display: grid;
+  justify-items: end;
+  gap: 0.2rem;
+  min-width: 0;
+  max-width: 24rem;
+}
+
+.ww-setup-back.MuiButton-root {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--text) 28%, var(--border));
+  background: var(--surface);
+  white-space: nowrap;
+  flex: none;
+}
+
+.ww-setup-summary {
+  grid-area: summary;
+  position: relative;
+  isolation: isolate;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  margin: 0.35rem var(--space) var(--space) 0;
+  padding: var(--space);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.ww-setup[data-steps='one'] .ww-setup-summary {
+  margin: 0 var(--space);
+}
+
+.ww-setup-parchment {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.07;
+  pointer-events: none;
+}
+
+.ww-setup-summary-body {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.ww-setup-summary-title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 800;
+}
+
+.ww-setup-stats {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.ww-setup-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space);
+  margin: 0;
+  min-height: 1.7rem;
+  font-size: var(--text-label);
+  font-weight: 800;
+}
+
+.ww-setup-stat-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.ww-setup-stat-icon {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: none;
+}
+
+.ww-setup-stat-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+}
+
+.ww-setup-valid {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+}
+
+.ww-setup-valid[data-tone='ready'] {
+  border-color: color-mix(in srgb, var(--village) 55%, transparent);
+  background: color-mix(in srgb, var(--village) 14%, var(--surface));
+}
+
+.ww-setup-valid[data-tone='waiting'] {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+}
+
+.ww-setup-valid[data-tone='problem'] {
+  border-color: color-mix(in srgb, var(--danger) 55%, transparent);
+}
+
+.ww-setup-valid strong {
+  display: block;
+}
+
+.ww-setup-valid[data-tone='ready'] strong,
+.ww-setup-valid[data-tone='ready'] .ww-setup-valid-mark {
+  color: var(--village);
+}
+
+.ww-setup-valid[data-tone='problem'] strong,
+.ww-setup-valid[data-tone='problem'] .ww-setup-valid-mark {
+  color: var(--danger);
+}
+
+.ww-setup-valid-mark {
+  width: 1.4rem;
+  height: 1.4rem;
+  display: grid;
+  place-items: center;
+  flex: none;
+  border-radius: 50%;
+  background: color-mix(in srgb, currentColor 16%, transparent);
+  font-weight: 800;
+}
+
+.ww-setup-valid-line {
+  display: block;
+  margin-top: 0.15rem;
+  color: var(--text-muted);
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+
+@media (max-width: 899px) {
   .ww-setup:not([data-steps='one']) {
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'rail'
+      'head'
+      'summary'
+      'canvas'
+      'action';
   }
 
-  .ww-setup-step-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
+  .ww-setup:not([data-steps='one']) .ww-setup-summary {
+    margin: 0 var(--space);
+  }
+
+  .ww-setup .ww-role-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -232,5 +450,139 @@ fieldset.ww-setup-fields {
 
   .ww-setup-role {
     flex: 0 0 clamp(7rem, 18vw, 11rem);
+  }
+}
+
+.ww-setup-progress {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-label);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ww-setup-step-number {
+  font-variant-numeric: tabular-nums;
+  opacity: 0.8;
+}
+
+.ww-setup-pager {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space);
+  flex-wrap: wrap;
+  margin-top: var(--space);
+  padding-top: var(--space);
+  border-top: 1px solid var(--border);
+}
+
+/* Role cards on the Roles step: portrait, team, and the seat stepper. */
+.ww-setup .ww-role-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.85rem;
+}
+
+.ww-setup .ww-role-tile {
+  position: relative;
+  min-height: 7.5rem;
+}
+
+.ww-setup .ww-role-tile-badge {
+  display: none;
+}
+
+.ww-setup .ww-role-tile-open.MuiButtonBase-root {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.7rem 0.75rem 0.8rem;
+}
+
+.ww-setup .ww-portrait {
+  width: 4.75rem;
+  height: 4.75rem;
+  aspect-ratio: auto;
+  flex: none;
+  border-radius: calc(var(--radius) * 0.65);
+  border-bottom-width: 0;
+  border: 1px solid color-mix(in srgb, var(--team) 70%, transparent);
+}
+
+.ww-setup .ww-portrait img {
+  object-fit: cover;
+}
+
+.ww-setup .ww-role-tile-body {
+  padding: 0;
+  gap: 0.35rem;
+}
+
+.ww-setup .ww-role-tile-name {
+  font-size: var(--text-body);
+}
+
+.ww-setup .ww-team-chip {
+  border: 0;
+  padding: 0.05em 0.6em;
+  color: var(--accent-ink);
+}
+
+.ww-setup .ww-team-chip::before {
+  display: none;
+}
+
+.ww-setup .ww-team-chip.ww-team-village {
+  background: var(--village);
+}
+
+.ww-setup .ww-team-chip.ww-team-wolf {
+  background: var(--wolf);
+}
+
+.ww-setup .ww-team-chip.ww-team-neutral,
+.ww-setup .ww-team-chip.ww-team-independent {
+  background: var(--neutral);
+}
+
+.ww-setup .ww-role-tile-summary {
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+}
+
+.ww-setup .ww-role-tile-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.35rem 0.6rem;
+  width: auto;
+  border: 0;
+  background: transparent;
+  padding: 0 0.65rem 0.6rem;
+}
+
+.ww-setup .ww-stepper .MuiIconButton-root {
+  width: var(--hit);
+  height: var(--hit);
+  background: var(--bg);
+}
+
+.ww-setup .ww-role-tile-note {
+  flex: 1 1 8rem;
+  max-width: none;
+  margin: 0;
+  text-align: left;
+}
+
+@media (max-width: 1180px) {
+  .ww-setup .ww-role-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 899px) {
+  .ww-setup .ww-role-grid {
+    grid-template-columns: 1fr;
   }
 }

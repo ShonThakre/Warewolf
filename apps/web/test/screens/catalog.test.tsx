@@ -9,21 +9,25 @@ describe('role catalog', () => {
     renderApp('/roles');
     expect(await screen.findByRole('heading', { name: 'Role catalog' })).toBeTruthy();
     const teams = screen.getByRole('group', { name: 'Teams' });
-    fireEvent.click(within(teams).getByRole('button', { name: 'Wolf' }));
+    fireEvent.click(within(teams).getByRole('button', { name: /^Wolf \(\d+\)$/ }));
     expect(screen.getByRole('button', { name: /Alpha Wolf/ })).toBeTruthy();
     expect(screen.queryByRole('button', { name: /^Villager/ })).toBeNull();
 
-    fireEvent.click(within(teams).getByRole('button', { name: 'All' }));
-    fireEvent.change(screen.getByRole('textbox', { name: 'Search roles' }), { target: { value: 'Alpha Wolf' } });
+    fireEvent.click(within(teams).getByRole('button', { name: /^All \(\d+\)$/ }));
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search roles' }), { target: { value: 'Alpha Wolf' } });
     expect(screen.getByRole('button', { name: /Alpha Wolf/ })).toBeTruthy();
     expect(screen.queryByRole('button', { name: /^Villager/ })).toBeNull();
 
-    fireEvent.change(screen.getByRole('textbox', { name: 'Search roles' }), { target: { value: '' } });
+    fireEvent.change(screen.getByRole('searchbox', { name: 'Search roles' }), { target: { value: '' } });
     const locked = screen.getByRole('button', { name: /Confuser/ });
-    expect(locked.hasAttribute('disabled')).toBe(true);
-    expect(locked.textContent).toContain('OD-18');
+    expect(locked.getAttribute('aria-label')).toContain('Not in version 1');
+    fireEvent.click(locked);
+    const lockedDialog = await screen.findByRole('dialog', { name: 'Confuser' });
+    expect(lockedDialog.textContent).toContain('OD-18');
+    expect(lockedDialog.textContent).toContain('cannot be seated');
+    fireEvent.click(within(lockedDialog).getByRole('button', { name: 'Close' }));
 
-    fireEvent.click(screen.getByRole('button', { name: /Alpha Wolf/ }));
+    fireEvent.click(await screen.findByRole('button', { name: /Alpha Wolf/ }));
     const dialog = await screen.findByRole('dialog', { name: 'Alpha Wolf' });
     expect(within(dialog).getByText('Team: Wolf')).toBeTruthy();
     expect(dialog.textContent).not.toContain('alpha_wolf');

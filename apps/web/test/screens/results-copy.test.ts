@@ -19,8 +19,8 @@ describe('results copy', () => {
   });
 
   it('keeps a cancelled game to a reason, with no role', () => {
-    expect(cancelReasonCopy('HOST')).toBe('The host cancelled the game.');
-    expect(cancelReasonCopy('SURRENDER')).toBe('The table surrendered.');
+    expect(cancelReasonCopy('HOST')).toBe('The host cancelled the game. Roles stay hidden.');
+    expect(cancelReasonCopy('SURRENDER')).toBe('The table surrendered. Roles stay hidden.');
     expect(JSON.stringify(cancelledResultsFixture())).not.toMatch(/RoleId|alpha_wolf|Villager/);
   });
 });

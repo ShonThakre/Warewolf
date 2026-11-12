@@ -13,7 +13,7 @@ Statuses: `BACKLOG` (dependencies open), `READY` (can start), `IN_PROGRESS`, `BL
 
 Ids starting with `WW-` match [werewolf/implementation-checklist.md](./werewolf/implementation-checklist.md). A checklist task split between agents gets a letter suffix. `WEB-` ids are client foundation tasks added by this board.
 
-Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-ALL): all presets except the Pack 2 reconstruction are CONFIRMED; Hermit, Priest, Confuser, and Bard stay out of version 1. Claude: WW-1303 and the decision passes complete. Cursor: role-catalog status column and the art test need a pass.
+Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-ALL): all presets except the Pack 2 reconstruction are CONFIRMED; Hermit, Priest, Confuser, and Bard stay out of version 1. The role catalog status column matches that, and the art test checks a fake role id.
 
 ---
 
@@ -54,6 +54,9 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 | WW-1206 | Live composer in the discussion rail, with the host moderation controls | Cursor |
 | WW-903 | Public results screen: original and final roles, cancelled seats and reason, no tally | Cursor |
 | WW-1403 | Deal-count tests for the five presets | Cursor |
+| UX-03 | Home screen matched to `01-home.png` | Cursor |
+| VOTE-CFG | Voting flags on public game state, wired into the table ballot | Cursor |
+| CREATE-SETUP | Create Game opens Game setup | Cursor |
 
 ---
 
@@ -139,10 +142,113 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 | WW-1302 | Boot recovery after night resolution | Cursor | COMPLETED | WW-502, WW-802 |
 | WW-1403 | Deal tests for 10, 15, 20, 24, and 30 seats | Cursor | COMPLETED | WW-402 |
 | WW-1401 | Seeded simulator, 1,000 Infection games | Cursor | COMPLETED | WW-902 |
+| SETUP-CAP | Custom setup raises the wolf cap to the starting pack | Cursor | COMPLETED | — |
+| UX-01 | End-to-end UX pass: role portraits and fallback, catalog cards, home, lobby, setup, reveal, table action states, host, results | Cursor | COMPLETED | — |
+| UX-02 | Address UX-01 leftovers: restart stale Vite, honest vote copy + handoff for voting flags on state, Results polish; note OD-75–84 accepted as built | Cursor | COMPLETED | UX-01 |
+| UX-03 | Home screen matched to `01-home.png` at 1586×992 | Cursor | COMPLETED | UX-02 |
+| UX-04 | Lobby screen matched to `02-lobby.png` at 1586×992 | Cursor | COMPLETED | UX-03 |
+| VOTE-CFG | Expose `voting.abstain` and `voting.changeUntilClose` on GameState (or a public seat projection) so the table can hide abstain and lock changes | Cursor | COMPLETED | UX-02 |
+| UX-05 | Game setup matched to `03-setup.png` at 1586×992 | Cursor | COMPLETED | UX-04 |
+| CREATE-SETUP | After Create Game, open Game setup instead of the lobby | Cursor | COMPLETED | UX-05 |
+| UX-06 | Role reveal matched to `04-role-reveal.png` at 1586×992 | Cursor | COMPLETED | UX-05 |
+| UX-07 | Night action matched to `05-night.png` at 1586×992 | Cursor | COMPLETED | UX-06 |
+| UX-08 | Night resolution / host reaction matched to `06-night-resolution.png` at 1586×992 | Cursor | COMPLETED | UX-07 |
+| HOST-01 | Host on Render (free plans): one Docker web service where the API serves the built client (`WEB_DIST_DIR`), plus Render Postgres. Merged to `main` (PR #2, then 0fb9894 for the free plans). Blueprint applied; Render redeploys on every push to `main`, so `main` must pass `pnpm typecheck`. Files: `Dockerfile`, `render.yaml`, `apps/api/src/{app,config}.ts`, `apps/api/src/http/web-client.ts`, `apps/api/test/static-web.test.ts`, `README.md`, `.env.example` | Claude | IN_PROGRESS | WW-1501 |
 
 ---
 
 ## Task details
+
+### UX-08 — Night resolution pixel match
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Host dashboard Night actions matches `06-night-resolution.png` at 1586×992. Night actions opens during night phases. Submitted actions are a host-only table with player avatars. The kill panel includes No kill and saves on pick. The bottom bar shows Consequence, Back to game, and the phase close (Resolve night when the close resolves night).
+- **Checked:** Host, phase-copy, and table tests (29). Typecheck clean (ConfigSummary `errors[0]` guard). Browser at 1586×992 on a live Infection host confirm: rail 279px, strip 61px, action bar 91px, Night actions selected, kill picker with No kill, Back to game + Open reactions. Portrait 390×844 uses the one-step rail with no horizontal overflow.
+- **Files:** `apps/web/src/routes/Host.tsx`, `apps/web/src/game/host/{HostShell,HostCanvas,host-screen.css,dashboardCopy}`, `apps/web/src/game/components/{KillTargetPanel,phaseCopy}`, `apps/web/src/game/setup/ConfigSummary.tsx`, `apps/web/test/screens/{host,phase-copy,table}.test.*`, `apps/web/e2e/{host,table}.spec.ts`, `docs/AI-TASK-BOARD.md`.
+- **Depends on:** UX-07
+
+### UX-07 — Night action pixel match
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Night on the table matches `05-night.png` at 1586×992. Status reads Night · Take your action with an In progress pill. The stage uses `square_night` behind a five-column public seat grid with purple selected outline and check. The action bar shows the private role portrait, ability line, Selected target field, and gold Submit. Discussion shows “Discussion is closed at night.” and hides the composer. Hide role still covers the private name and portrait.
+- **Checked:** Action panel, table, chat copy, and phase copy tests. Browser at 1586×992 on a live Pack Wolf night: five seat columns, selected target “1. Host”, closed discussion rail, Submit in the bottom bar. Portrait 390×844 keeps Submit on screen with no horizontal overflow.
+- **Files:** `apps/web/src/routes/Table.tsx`, `apps/web/src/game/components/{NightActionPanel,GameStatusBar,DiscussionPanel,PlayerGrid,actionCopy,phaseCopy,chatCopy,table-screen.css}`, `apps/web/src/game/layout/game-layout.css`, `apps/web/test/screens/{action-panel,table,chat-copy}.test.*`, `docs/AI-TASK-BOARD.md`.
+
+### UX-06 — Role reveal pixel match
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Role reveal matches the centered card in `04-role-reveal.png` at 1586×992. The faction scene fills the page. The card shows the private portrait, role name, team, description, abilities, and tonight line. Teammates stay hidden unless the projection includes them. Hide role covers the portrait, the copy, and the faction scene. I understand still opens the table. The host close control stays when the game state loads.
+- **Checked:** Reveal tests (7). Browser at 1586×992 on a live Classic Villager: card `(339,254,908,559)`, portrait `(371,294,296,401)`, Hide role and I understand in the card. Hide removes the name and the portrait. Portrait 390×844 stacks the portrait and keeps I understand on screen. Landscape 844×390 keeps both actions without horizontal overflow.
+- **Files:** `apps/web/src/routes/Reveal.tsx`, `apps/web/src/game/components/{RoleCard,RolePortrait,reveal-screen.css}`, `docs/AI-TASK-BOARD.md`.
+
+### CREATE-SETUP — Create Game opens setup
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** A successful Create Game navigates to `/lobby/:gameId/setup`. Join Game still opens the lobby. Create dialog copy says setup opens next and the room code stays on the lobby.
+- **Checked:** Home tests (363 web). Browser: Create Game landed on Setup Game – Mode and players; Back to the lobby showed room code YGARBY; Join Game for a guest landed on the lobby.
+- **Files:** `apps/web/src/game/components/SeatDialogs.tsx`, `apps/web/test/screens/home.test.tsx`, `docs/AI-TASK-BOARD.md`.
+
+### UX-05 — Game setup pixel match
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Setup matches `03-setup.png` at 1586×992. The four steps are a horizontal pill rail: Mode and players, Roles, Settings, Review. The Roles step shows a three-column card grid with role portraits, team chips, and the seat stepper. Current configuration sits in a side card bound to the live validation counts. Back to the lobby, Save setup, and Start game stay in the bottom bar. Ultimate 20 and Infection Edition stay locked. Search, team filters, and add/remove still work.
+- **Checked:** Setup tests (5). Browser at 1586×992 on a live Infection Edition room: three card columns, summary on the right, action bar at the bottom, role details still open. Portrait 390×844 stacks the summary and keeps the actions on screen, with no horizontal overflow.
+- **Files:** `apps/web/src/routes/Setup.tsx`, `apps/web/src/game/setup/{SetupLayout,SetupRoles,ConfigSummary,setupCopy,setup-layout.css}`, `apps/web/test/screens/setup.test.tsx`, `docs/AI-TASK-BOARD.md`.
+
+### UX-04 — Lobby screen pixel match
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Match the current `02-lobby.png` for the lobby chrome. Participants sit in a card panel on the stage, not on the painted campfire seats. The scene stays behind the title. The rail is Players / Log / Room info. There is no ready flag, so the rail shows Here or Away from connection status.
+- **Checked:** Lobby and home tests (13). Browser at 1586×992: five player cards and five open-seat tiles in a panel, no seats placed on the artwork. Portrait 390×760 uses two columns, keeps the room code and the bottom action, and does not overflow horizontally.
+- **Files:** `apps/web/src/routes/Lobby.tsx`, `apps/web/src/game/components/lobby-screen.css`, `apps/web/src/game/components/lobbyCopy.ts`, `apps/web/src/game/components/PlayerCard.tsx`, `apps/web/src/game/layout/game-layout.css`, `apps/web/src/theme/tokens.ts`, `apps/web/test/screens/lobby.test.tsx`, `apps/web/test/screens/lobby-copy.test.ts`, `apps/web/test/screens/home.test.tsx`, `apps/web/test/screens/setup.test.tsx`, `docs/AI-TASK-BOARD.md`.
+
+### UX-03 — Home screen pixel match
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Home matches the left panel in `01-home.png` at 1586×992. Navigation is 75px, with Play underlined in gold. The night village stays on the right. The panel holds the emblem, a white Werewolf title, the Infection Edition pill, the game promise, Create Game and Join Game side by side, and Game Modes / Role Library / How to Play. The resume row renders only when this tab has a seat, and it keeps the live room code and return label.
+- **Checked:** Home tests (5). Browser at 1586×992: panel `(28,107,720,852)`, title at y=332, Create and Join side by side. Create still opens the host dialog. Portrait 390×760 stacks the actions. Landscape 844×390 keeps the scene on the left and both actions on screen. No horizontal overflow.
+- **Files:** `apps/web/src/routes/Home.tsx`, `apps/web/src/game/components/home-scene.css`, `apps/web/src/theme/tokens.ts`, `docs/AI-TASK-BOARD.md`.
+
+### UX-02 — UX-01 leftovers
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Restarted stale Vite on 5173 with the art watcher. Vote copy no longer promises change-until-close when the client does not know the room rules; abstain stays visible until the server flags arrive. Results status shows the outcome, cancelled games say roles stay hidden, individual wins get a recap block, reason repeats in the action row. OD-75–OD-84 were already accepted as built (12 November 2026).
+- **Handoff to Claude (VOTE-CFG):** `GET .../configuration` refuses once the game has started. Add `voting: { abstain, changeUntilClose }` (booleans only) to the public `GameState` (or a tiny seat-readable projection). Web already accepts `VoteRules` via `UNKNOWN_VOTE_RULES` in `voteCopy.ts` / `Table.tsx` — wire those fields when present.
+- **Files:** `apps/web/src/game/components/voteCopy.ts`, `apps/web/src/routes/Table.tsx`, `apps/web/src/routes/Results.tsx`, `apps/web/src/game/components/{ResultsRecap,resultsCopy,results-screen.css}`, tests under `apps/web/test/screens/{vote-copy,table,results,results-copy}.test.*`, `docs/AI-TASK-BOARD.md`. Vite restarted on port 5173.
+
+### VOTE-CFG — Voting flags on public state
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Put `abstain` and `changeUntilClose` from the saved configuration onto the public game state so every seat can read them during VOTING/REVOTE. Configuration GET is lobby-only today.
+- **Checked:** `gameStateSchema.voting` is those two booleans and drops anything else. `GET /state` copies them from the saved configuration for every seat, including after start when configuration GET is 409. The table hides Abstain when `abstain` is false, and locks the seats after a sent vote when `changeUntilClose` is false. Preset packs still allow both. Contracts tests (105), phase integration (22), web table/vote/phase tests (47), and typecheck for contracts, API, and web. Playwright on tablet landscape: a changeable ballot, and a locked ballot with no Abstain button.
+- **Files:** `packages/contracts/src/phase.ts`, `packages/contracts/test/phase.test.ts`, `apps/api/src/phase/phase.service.ts`, `apps/api/test/phase.integration.test.ts`, `apps/web/src/routes/Table.tsx`, `apps/web/src/game/components/voteCopy.ts`, `apps/web/src/game/fixtures/phase.ts`, `apps/web/test/screens/table.test.tsx`, `apps/web/e2e/table.spec.ts`, `docs/werewolf/api-design.md`, `docs/AI-TASK-BOARD.md`.
+- **Depends on:** UX-02
+
+### UX-01 — End-to-end UX pass
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Usability, hierarchy, accessibility, and gameplay clarity across home, create/join, lobby, setup, catalog, reveal, table, host, and results. Preserve rules, hidden info, and server authority. Fix blank role portraits. Dark village direction and theme tokens stay.
+- **Handoff (12 November 2026):** Portraits load through `roleArtUrl` with a crest fallback; Vite watches `art/` so new PNGs refresh the glob. Catalog cards are even height with team filters, search, and openable locked roles. Home sits on a readable panel with a return-to-seat callout and mode seat ranges. Create and Join keep values after errors, show Creating…/Joining…, and clean pasted room codes. Lobby shows a large room code with Copy/Share, seat and ready pills, and host identity. Setup adds step numbers, Next/Back, and Unsaved/Saving/Saved. Reveal covers/hides the role, lists abilities and teammates when allowed, and tells host vs guest what to do next. Table shows a phase guide, Selected check + word, selected-vs-submitted copy, revote limited to tied ids, abstain explained, Refresh on conflict, and host closes in a labelled group with confirm. Disabled gold buttons now look muted. Confirmation is tied to the phase that asked it. Action drafts reset per round and phase.
+- **Inspected:** Live Classic 10 on `localhost:5181` (API 3000): create → lobby → Classic setup → start → reveal (Pack Wolf) → night kill (Ines) → morning → voting → night 2. Viewports: ~1024×820, phone portrait 390×760/844, landscape 844×390. `pnpm typecheck` and 361 web tests pass.
+- **Limitations (superseded by UX-02):** Stale Vite on 5173/5174; voting abstain/changeUntilClose not on GameState; Results polish deferred. OD-75–OD-84 were accepted as built on 12 November 2026 (see open-decisions.md).
+- **Files:** `apps/web/vite.config.ts`, `apps/web/src/assets` via art glob, `apps/web/src/game/components/{RolePortrait,RoleTile,RoleCard,RoleBadge,PlayerGrid,PhaseCloseButton,GameStatusBar,SeatDialogs,actionCopy,voteCopy,phaseCopy,roleCopy,roleFilters,actionDraft}.{tsx,ts}`, `apps/web/src/game/components/{scene-art,reveal-screen,table-screen,lobby-screen,home-scene}.css`, `apps/web/src/game/setup/{SetupLayout,SetupMode,SetupRoles,setup-layout.css}`, `apps/web/src/game/layout/game-layout.css`, `apps/web/src/routes/{Home,Lobby,Setup,Roles,Reveal,Table,Host}.tsx`, `apps/web/src/theme/{theme,visual}.css` and `theme.ts`, tests under `apps/web/test/screens/*`, `docs/AI-TASK-BOARD.md`.
+
+### SETUP-CAP — Wolf cap follows the starting pack
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** A custom list starts with wolf cap 0. Seating a wolf left that cap below the starting pack, so start showed `WOLF_CAP`. Editing roles now raises the cap to the wolves dealt at the start, and the settings field cannot be set lower than that. A higher cap is kept, so a Cursed Villager can still have a free slot. The lobby and setup screens say what to change, instead of a generic setup-problem line or a validator code.
+- **Files:** `apps/web/src/game/setup/setupDraft.ts`, `apps/web/src/game/setup/SetupSettings.tsx`, `apps/web/src/game/setup/ConfigSummary.tsx`, `apps/web/src/game/components/lobbyCopy.ts`, `apps/web/src/routes/Setup.tsx`, `apps/web/src/routes/Lobby.tsx`, `apps/web/test/screens/setup-draft.test.ts`, `apps/web/test/screens/lobby-copy.test.ts`, `apps/web/test/screens/setup.test.tsx`
 
 ### U20-PLAY — Playable Ultimate 20 image rules
 

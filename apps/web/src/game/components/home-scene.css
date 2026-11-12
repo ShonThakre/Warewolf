@@ -1,12 +1,54 @@
+/* Home at 1586×992, matched to the left panel in 01-home.png. */
+
+.ww-app.is-home .ww-app-nav {
+  height: var(--bar-home);
+  min-height: var(--bar-home);
+  box-sizing: border-box;
+  padding-left: max(2.5rem, env(safe-area-inset-left));
+  padding-right: max(2.5rem, env(safe-area-inset-right));
+  background: var(--bg);
+  border-bottom: 1px solid color-mix(in srgb, var(--neutral) 22%, var(--border));
+}
+
+.ww-app.is-home .ww-wordmark {
+  margin-right: calc(var(--space) / 2);
+  font-size: var(--text-nav);
+  font-weight: 800;
+}
+
+.ww-app.is-home .ww-nav-rule {
+  display: block;
+  width: 1px;
+  height: 1.6rem;
+  margin-inline: calc(var(--space) / 2);
+  background: var(--border);
+  flex: none;
+}
+
+.ww-nav-rule {
+  display: none;
+}
+
+.ww-app.is-home .ww-app-nav .MuiButton-root {
+  min-height: 2.25rem;
+  color: var(--text-muted);
+  background: transparent;
+  border-radius: 0;
+  box-shadow: inset 0 -2px 0 transparent;
+}
+
+.ww-app.is-home .ww-app-nav .MuiButton-root.active {
+  background: transparent;
+  color: var(--text);
+  border-radius: 0;
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
 .ww-home {
   position: relative;
   height: 100%;
   min-height: 0;
-  display: grid;
-  place-items: center;
-  overflow: auto;
-  padding: var(--space);
-  padding-bottom: max(var(--space), env(safe-area-inset-bottom));
+  overflow: hidden;
 }
 
 .ww-home-wash {
@@ -15,52 +57,222 @@
   background: var(--bg-night);
 }
 
+.ww-home-wash img {
+  object-position: 78% 36%;
+}
+
+.ww-home-wash::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--bg) 55%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 28%, transparent) 38%,
+    transparent 62%
+  );
+}
+
 .ww-home-card {
-  position: relative;
+  position: absolute;
   z-index: 1;
-  width: min(100%, 28rem);
+  left: calc(28 / 1586 * 100%);
+  top: calc(32 / 917 * 100%);
+  width: calc(720 / 1586 * 100%);
+  height: calc(852 / 917 * 100%);
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: var(--space);
-  text-align: center;
+  align-items: flex-start;
+  gap: clamp(0.65rem, 1.5vh, 1rem);
+  min-width: 0;
+  overflow: auto;
+  padding: 1.5rem 3.25rem 1.35rem;
+  border: 1px solid color-mix(in srgb, var(--neutral) 36%, transparent);
+  border-radius: calc(var(--radius) * 1.35);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: var(--shadow);
+  text-align: left;
+}
+
+.ww-home-mark {
+  width: 11.25rem;
+  height: 11.25rem;
+  align-self: center;
+  object-fit: contain;
+  display: block;
+  margin-top: 0.35rem;
 }
 
 .ww-home-title {
   margin: 0;
-  font-size: var(--text-title);
+  font-family: var(--font-display);
+  font-size: var(--text-home);
   font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: 0.035em;
-  text-shadow: 0 2px 0 rgb(16 8 30 / 0.7), 0 0 1.2em rgb(245 185 66 / 0.22);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  color: var(--text);
 }
 
 .ww-home-edition {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  min-height: 2.75rem;
   margin: 0;
+  padding: 0.2em 1.05em 0.2em 0.85em;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-pill);
+  background: transparent;
   color: var(--accent);
+  font-family: var(--font-display);
   font-size: var(--text-body);
-  font-weight: 700;
+  font-weight: 800;
+  line-height: 1;
 }
 
-.ww-home-tag,
-.ww-home-note,
-.ww-dialog-copy {
+.ww-home-edition-mark {
+  width: 1.15em;
+  height: 1.15em;
+  flex: none;
+}
+
+.ww-home-tag {
+  max-width: 34rem;
   margin: 0;
   color: var(--text-muted);
   font-size: var(--text-body);
+  line-height: 1.45;
+}
+
+.ww-home-note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-label);
 }
 
 .ww-home-actions {
+  width: 100%;
   display: grid;
-  gap: var(--space);
-  width: min(100%, 20rem);
+  grid-template-columns: 1.15fr 1fr;
+  gap: 1rem;
+  margin-top: 1.35rem;
+}
+
+.ww-home-actions .MuiButton-root {
+  width: 100%;
+  min-height: max(var(--hit), 4.75rem);
+  justify-content: center;
+  gap: 0.65rem;
+  font-size: var(--text-body);
+  font-weight: 800;
+}
+
+.ww-home-create {
+  background-image: linear-gradient(180deg, var(--accent), var(--accent-hover));
+}
+
+.ww-home-join.MuiButton-root.MuiButton-outlined {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--text) 62%, var(--neutral));
+  background: transparent;
+}
+
+.ww-home-join.MuiButton-root.MuiButton-outlined:hover {
+  border-color: var(--text);
+  background: color-mix(in srgb, var(--text) 6%, transparent);
+}
+
+.ww-home-icon,
+.ww-home-chevron {
+  width: 1.25em;
+  height: 1.25em;
+  flex: none;
+  display: block;
 }
 
 .ww-home-links {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: calc(var(--space) / 2);
+  align-items: center;
+  gap: 0.15rem;
+}
+
+.ww-home-links .MuiButton-root {
+  min-height: var(--hit);
+  padding-inline: 0.4rem;
+  color: var(--text);
+  background: transparent;
+  font-weight: 700;
+  gap: 0.4rem;
+}
+
+.ww-home-links .MuiButton-root:hover {
+  color: var(--text);
+  background: transparent;
+}
+
+.ww-home-links .ww-home-chevron {
+  color: var(--text-muted);
+}
+
+.ww-home-link-rule {
+  width: 1px;
+  height: 1.1rem;
+  background: var(--border);
+  flex: none;
+}
+
+.ww-home-rule {
+  width: 100%;
+  height: 0;
+  margin: 0.15rem 0 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+}
+
+.ww-home-return {
+  width: 100%;
+  margin-top: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--bg) 42%, var(--surface-raised));
+}
+
+.ww-home-return .MuiButton-root {
+  width: 100%;
+  min-height: 4.75rem;
+  justify-content: flex-start;
+  gap: var(--space);
+  padding: 0.75rem 1rem;
+  color: var(--text);
+  border: 0;
+  background: transparent;
+  text-align: left;
+  border-radius: var(--radius);
+}
+
+.ww-home-return .MuiButton-root:hover {
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+}
+
+.ww-home-return-copy {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.ww-home-return-title {
+  font-size: var(--text-body);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.ww-home-return .ww-home-chevron {
+  margin-left: auto;
+  color: var(--text-muted);
 }
 
 .ww-mode-list {
@@ -71,37 +283,129 @@
   padding: 0;
 }
 
+.ww-mode-list li {
+  display: grid;
+  gap: calc(var(--space) / 4);
+  padding: calc(var(--space) * 0.75);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+}
+
 .ww-mode-name {
   margin: 0;
   font-weight: 800;
 }
 
-/* Height under 500px: the night plate stays on the left and the actions stay on screen. */
-@media (max-height: 499px) {
+.ww-mode-meta {
+  margin: 0;
+  color: var(--accent);
+  font-size: var(--text-label);
+  font-weight: 800;
+}
+
+/* Phone portrait: panel fills the width. Both actions stay reachable. */
+@media (max-width: 899px) {
+  .ww-app.is-home .ww-app-nav {
+    height: auto;
+    min-height: var(--bar);
+    padding-left: max(var(--space), env(safe-area-inset-left));
+    padding-right: max(var(--space), env(safe-area-inset-right));
+  }
+
   .ww-home {
-    grid-template-columns: minmax(0, 1.2fr) minmax(16rem, 24rem);
-    place-items: stretch;
-    align-items: stretch;
+    overflow: auto;
+    padding: var(--space);
+    padding-bottom: max(var(--space), env(safe-area-inset-bottom));
+  }
+
+  .ww-home-wash img {
+    object-position: 70% 22%;
+  }
+
+  .ww-home-card {
+    position: relative;
+    left: auto;
+    top: auto;
+    width: min(100%, 36rem);
+    height: auto;
+    margin-inline: auto;
+    padding: 1.25rem var(--space) 1.1rem;
+    overflow: visible;
+  }
+
+  .ww-home-mark {
+    width: 7.5rem;
+    height: 7.5rem;
+  }
+
+  .ww-home-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .ww-home-actions .MuiButton-root,
+  .ww-home-return .MuiButton-root {
+    min-height: max(var(--hit), 3.25rem);
+  }
+}
+
+/* Short landscape: scene stays on the left and both actions stay on screen. */
+@media (max-height: 499px) {
+  .ww-app.is-home .ww-app-nav {
+    height: auto;
+    min-height: var(--bar);
+  }
+
+  .ww-home {
     overflow: hidden;
     padding: 0;
   }
 
-  .ww-home-wash {
-    position: relative;
+  .ww-home-wash img {
+    object-position: 30% 50%;
   }
 
   .ww-home-card {
-    width: auto;
-    justify-content: center;
-    overflow: auto;
-    background: var(--surface);
+    position: absolute;
+    left: auto;
+    right: 0;
+    top: 0;
+    width: min(48vw, 28rem);
+    height: 100%;
+    border-radius: 0;
+    border-top: 0;
+    border-bottom: 0;
+    border-right: 0;
     padding: var(--space);
     padding-bottom: max(var(--space), env(safe-area-inset-bottom));
-    text-align: left;
-    align-items: stretch;
+    overflow: auto;
+    gap: calc(var(--space) / 2);
   }
 
-  .ww-home-links {
-    justify-content: flex-start;
+  .ww-home-mark {
+    width: 3.25rem;
+    height: 3.25rem;
+    margin-top: 0;
+    align-self: flex-start;
+  }
+
+  .ww-home-title {
+    font-size: var(--text-title);
+  }
+
+  .ww-home-actions {
+    grid-template-columns: 1fr 1fr;
+    margin-top: 0;
+  }
+
+  .ww-home-actions .MuiButton-root,
+  .ww-home-return .MuiButton-root {
+    min-height: var(--hit);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ww-home-card {
+    background: var(--surface);
   }
 }

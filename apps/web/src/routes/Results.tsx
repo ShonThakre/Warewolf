@@ -86,6 +86,10 @@ function ResultsScreen() {
     );
   }
 
+  const headline = results.finished ? resultsHeadline(results.finished) : null;
+  const title = results.finished && headline ? resultsTitle(headline) : 'Cancelled';
+  const reason = results.finished ? resultsReason(results.finished) : cancelReasonCopy(results.cancelled?.cancelReason ?? 'HOST');
+
   return (
     <GameLayout
       stage="results"
@@ -94,21 +98,26 @@ function ResultsScreen() {
       status={
         <div className="ww-status">
           <h1 className="ww-status-title">Results</h1>
+          <p className="ww-status-copy">{title}</p>
           {results.finished ? <p className="ww-status-copy">Round {results.finished.roundNumber}</p> : null}
+          <p className="ww-sr" aria-live="polite">
+            {title}. {reason}
+          </p>
         </div>
       }
       foreground={
         results.finished ? (
-          <FinishedStage results={results.finished} />
+          <FinishedStage results={results.finished} title={title} reason={reason} />
         ) : (
           <div className="ww-results-stage">
-            <CancelledStage reason={results.cancelled?.cancelReason ?? 'HOST'} />
+            <VictoryBanner title="Cancelled" reason={reason} />
           </div>
         )
       }
       rail={<ResultsRecap finished={results.finished} cancelled={results.cancelled} />}
       action={
         <div className="ww-action">
+          <p className="ww-action-copy">{reason}</p>
           <Button component={Link} to="/" variant="contained" color="secondary">
             Play again
           </Button>
@@ -118,12 +127,11 @@ function ResultsScreen() {
   );
 }
 
-function FinishedStage({ results }: { results: FinishedResults }) {
+function FinishedStage({ results, title, reason }: { results: FinishedResults; title: string; reason: string }) {
   const stats = resultStats(results);
-  const headline = resultsHeadline(results);
   return (
     <div className="ww-results-stage">
-      <VictoryBanner title={resultsTitle(headline)} reason={resultsReason(results)} outcome={bannerOutcome(results)} />
+      <VictoryBanner title={title} reason={reason} outcome={bannerOutcome(results)} />
       <ul className="ww-results-stats" aria-label="Game stats">
         <li className="ww-results-stat">
           <strong>{stats.rounds}</strong>
@@ -140,10 +148,6 @@ function FinishedStage({ results }: { results: FinishedResults }) {
       </ul>
     </div>
   );
-}
-
-function CancelledStage({ reason }: { reason: 'HOST' | 'SURRENDER' }) {
-  return <VictoryBanner title="Cancelled" reason={cancelReasonCopy(reason)} />;
 }
 
 function sceneFor(results: FinishedResults): SceneId {

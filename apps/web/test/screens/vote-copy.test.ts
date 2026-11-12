@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canCastBallot, voteMatches, voteRowText, type VoteChoice } from '../../src/game/components/voteCopy';
+import { canCastBallot, revoteTargets, showAbstain, UNKNOWN_VOTE_RULES, voteButtonLabel, voteMatches, voteRowText, type VoteChoice } from '../../src/game/components/voteCopy';
 
 const rafi: VoteChoice = { kind: 'player', playerId: 'rafi' };
 const abstain: VoteChoice = { kind: 'abstain' };
@@ -28,3 +28,29 @@ describe('vote copy', () => {
     expect(voteRowText({ phase: 'VOTING', canVote: true, choice: abstain, name: null, stored: true })).toContain('You abstained');
   });
 });
+
+describe('revote and ballot buttons', () => {
+  const tally = (roundNumber: number, ballot: 1 | 2, tied: string[]) => ({ roundNumber, ballot, counts: [], abstentions: 0, votedOutPlayerId: null, tiedPlayerIds: tied });
+
+  it('limits a revote to the tied players of this round', () => {
+    const tallies = [tally(1, 1, ['a', 'b']), tally(2, 1, ['c', 'd'])];
+    expect(revoteTargets('VOTING', 2, tallies)).toBeNull();
+    expect([...(revoteTargets('REVOTE', 2, tallies) ?? [])]).toEqual(['c', 'd']);
+    expect(revoteTargets('REVOTE', 3, tallies)).toBeNull();
+  });
+
+  it('separates confirming, changing, and a sent vote', () => {
+    expect(voteButtonLabel({ hasStored: false, stored: false, casting: false })).toBe('Confirm vote');
+    expect(voteButtonLabel({ hasStored: true, stored: false, casting: false })).toBe('Change vote');
+    expect(voteButtonLabel({ hasStored: true, stored: true, casting: false })).toBe('Vote sent');
+    expect(voteButtonLabel({ hasStored: false, stored: false, casting: true })).toBe('Sending…');
+    expect(voteRowText({ phase: 'VOTING', canVote: true, choice: rafi, name: 'Rafi', stored: false })).toBe('Selected: Rafi. Not sent yet.');
+  });
+});
+
+  it('avoids promising a change when the room rules are unknown', () => {
+    expect(voteRowText({ phase: 'VOTING', canVote: true, choice: rafi, name: 'Rafi', stored: true, rules: UNKNOWN_VOTE_RULES })).toContain('host settings');
+    expect(voteRowText({ phase: 'VOTING', canVote: true, choice: rafi, name: 'Rafi', stored: true, rules: { canAbstain: true, canChange: false } })).toContain('locked');
+    expect(showAbstain({ canAbstain: false, canChange: true })).toBe(false);
+    expect(voteButtonLabel({ hasStored: true, stored: false, casting: false, canChange: false })).toBe('Vote locked');
+  });

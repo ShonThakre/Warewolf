@@ -19,6 +19,14 @@ export const STEP_LABEL: Record<SetupStep, string> = {
   review: 'Review',
 };
 
+/** One line under the setup title. The step names stay as they are. */
+export const STEP_HINT: Record<SetupStep, string> = {
+  mode: 'Choose the mode and how many players sit down.',
+  roles: 'Choose how many of each role to include in the game.',
+  settings: 'Set the night, day, and voting rules.',
+  review: 'Check the setup, then save and start.',
+};
+
 export const PACK_STATUS_LABEL = {
   CONFIRMED: 'Confirmed',
   RECOMMENDED: 'Recommended',

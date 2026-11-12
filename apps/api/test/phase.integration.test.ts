@@ -1,5 +1,5 @@
 import type { INestApplication } from '@nestjs/common';
-import { errorBodySchema, gameStateSchema, seatCredentialsSchema, type GameState, type SeatCredentials } from '@warewolf/contracts';
+import { configurationResponseSchema, errorBodySchema, gameStateSchema, seatCredentialsSchema, type GameState, type SeatCredentials } from '@warewolf/contracts';
 import { DEFAULT_CATALOG, type Ballot, type DayResolution, type NightResolution } from '@warewolf/domain';
 import request from 'supertest';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
@@ -148,7 +148,27 @@ describe('GET /games/:gameId/state', () => {
       serverNow: T0.toISOString(),
       close: null,
       you: { playerId: host!.playerId, isHost: true, lifeStatus: 'ALIVE' },
+      voting: { abstain: true, changeUntilClose: true },
     });
+  });
+
+  it('copies the saved ballot flags onto every seat after configuration is closed', async () => {
+    const seats = await fullRoom('CLASSIC', 10);
+    const host = seats[0]!;
+    const guest = seats[1]!;
+    const { draft } = configurationResponseSchema.parse((await api().get(`/api/v1/games/${host.gameId}/configuration`).set(bearer(host)).expect(200)).body);
+    await api()
+      .put(`/api/v1/games/${host.gameId}/configuration`)
+      .set(bearer(host))
+      .send({ ...draft, voting: { ...draft.voting, abstain: false, changeUntilClose: false } })
+      .expect(200);
+    await api().post(`/api/v1/games/${host.gameId}/start`).set(bearer(host)).send({ acknowledgeWarnings: true }).expect(200);
+    expect((await api().get(`/api/v1/games/${host.gameId}/configuration`).set(bearer(guest)).expect(409)).body).toMatchObject({ error: { code: 'GAME_STARTED' } });
+
+    const hostView = await state(host);
+    const guestView = await state(guest);
+    expect(hostView.voting).toEqual({ abstain: false, changeUntilClose: false });
+    expect(guestView.voting).toEqual(hostView.voting);
   });
 
   it('gives every seat the same public facts and no roles', async () => {

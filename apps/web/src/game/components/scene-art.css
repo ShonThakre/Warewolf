@@ -16,23 +16,313 @@
   display: block;
 }
 
-.ww-role-portrait {
-  width: calc(var(--avatar) * 1.6);
-  max-width: 100%;
-  aspect-ratio: 3 / 4;
-  border-radius: var(--radius);
-  border: var(--avatar-ring) solid currentColor;
-  background: var(--surface-raised);
-  overflow: hidden;
+/* Role portrait: art in a team-colored frame, or a monogram crest when the file is absent or fails. */
+.ww-portrait {
+  --team: var(--neutral);
+  position: relative;
   display: grid;
   place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: hidden;
+  color: var(--team);
+  background:
+    radial-gradient(circle at 50% 38%, color-mix(in srgb, var(--team) 26%, transparent), transparent 68%),
+    var(--bg-night);
+  border-bottom: 3px solid var(--team);
 }
 
-.ww-role-portrait img {
+.ww-portrait[data-team='wolf'] {
+  --team: var(--wolf);
+}
+
+.ww-portrait[data-team='village'] {
+  --team: var(--village);
+}
+
+.ww-portrait[data-size='card'] {
+  width: min(100%, 14rem);
+  border: 3px solid var(--team);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.ww-portrait[data-size='thumb'] {
+  width: calc(var(--avatar) * 1.4);
+  border: 2px solid var(--team);
+  border-radius: var(--radius);
+  flex: none;
+}
+
+.ww-portrait img {
   width: 100%;
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.ww-portrait-crest {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 62%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--team) 70%, transparent);
+  background: radial-gradient(circle at 50% 40%, var(--surface-raised), var(--surface));
+  box-shadow: 0 0 1.5em color-mix(in srgb, var(--team) 35%, transparent);
+}
+
+.ww-portrait-moon {
+  position: absolute;
+  top: 14%;
+  right: 18%;
+  width: 18%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  box-shadow: inset -0.25em 0.1em 0 0 var(--accent);
+  opacity: 0.85;
+}
+
+.ww-portrait-mono {
+  font-family: var(--font-display);
+  font-size: var(--text-title);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.ww-portrait[data-size='thumb'] .ww-portrait-mono {
+  font-size: var(--text-body);
+}
+
+/* Team chip: word plus color. Never clips. */
+.ww-team-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  max-width: 100%;
+  padding: 0.1em 0.6em;
+  border-radius: var(--radius-pill);
+  border: 1px solid currentColor;
+  font-size: var(--text-label);
+  font-weight: 800;
+  white-space: nowrap;
+  line-height: 1.5;
+}
+
+.ww-team-chip::before {
+  content: '';
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+  background: currentColor;
+  flex: none;
+}
+
+/* Role tile: one card shape for the public catalog and the setup step. */
+.ww-role-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 10.5rem), 1fr));
+  gap: var(--space);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ww-role-tile {
+  position: relative;
+  min-width: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.ww-role-tile[data-picked='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), var(--shadow);
+}
+
+.ww-role-tile[data-available='false'] .ww-portrait img {
+  filter: grayscale(0.7);
+  opacity: 0.7;
+}
+
+.ww-role-tile-open.MuiButtonBase-root {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  min-width: 0;
+  text-align: left;
+  color: var(--text);
+  font: inherit;
+  border-radius: 0;
+}
+
+.ww-role-tile-open.MuiButtonBase-root:hover {
+  background: var(--surface-raised);
+}
+
+.ww-role-tile-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) / 2);
+  min-width: 0;
+  padding: calc(var(--space) * 0.75);
+}
+
+.ww-role-tile-name {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 800;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.ww-role-tile-summary {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-label);
+  line-height: 1.45;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+.ww-role-tile-badge {
+  position: absolute;
+  top: calc(var(--space) / 2);
+  left: calc(var(--space) / 2);
+  z-index: 1;
+  max-width: calc(100% - var(--space));
+  padding: 0.15em 0.6em;
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: var(--text-label);
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ww-role-tile-badge[data-tone='picked'] {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+
+.ww-role-tile-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--space) / 2);
+  padding: calc(var(--space) / 2) calc(var(--space) * 0.75);
+  border-top: 1px solid var(--border);
+  background: var(--surface-raised);
+}
+
+.ww-role-tile-note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-label);
+}
+
+.ww-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--space) / 2);
+}
+
+.ww-stepper .MuiIconButton-root {
+  width: var(--hit);
+  height: var(--hit);
+  border: 1px solid var(--primary);
+  color: var(--text);
+}
+
+.ww-stepper .MuiIconButton-root.Mui-disabled {
+  border-color: var(--border);
+  color: var(--text-muted);
+}
+
+.ww-stepper-count {
+  min-width: 1.5em;
+  text-align: center;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Role detail dialog. */
+.ww-role-detail-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space);
+  min-width: 0;
+}
+
+.ww-role-detail-head > div {
+  display: grid;
+  gap: calc(var(--space) / 2);
+  min-width: 0;
+}
+
+.ww-role-detail-section {
+  display: grid;
+  gap: calc(var(--space) / 4);
+  margin: 0;
+}
+
+.ww-role-detail-section h3 {
+  margin: 0;
+  font-size: var(--text-label);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.ww-role-detail-section p,
+.ww-role-detail-section li {
+  margin: 0;
+  font-size: var(--text-body);
+}
+
+.ww-role-detail-section ul {
+  display: grid;
+  gap: calc(var(--space) / 2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ww-role-detail-muted {
+  color: var(--text-muted);
+}
+
+.ww-catalog-empty {
+  display: grid;
+  justify-items: start;
+  gap: calc(var(--space) / 2);
+  padding: var(--space);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+}
+
+.ww-catalog-empty p {
+  margin: 0;
+  color: var(--text-muted);
 }
 
 .ww-role-back {
@@ -54,6 +344,17 @@
   padding-bottom: max(var(--space), env(safe-area-inset-bottom));
 }
 
+.ww-catalog-head {
+  display: grid;
+  gap: calc(var(--space) / 4);
+}
+
+.ww-catalog-head p {
+  margin: 0;
+  color: var(--text-muted);
+  max-width: 48rem;
+}
+
 .ww-catalog-tools {
   display: flex;
   flex-wrap: wrap;
@@ -61,20 +362,35 @@
   gap: var(--space);
 }
 
-.ww-catalog-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(clamp(7rem, 18vw, 11rem), 1fr));
-  gap: var(--space);
+.ww-catalog-tools .MuiToggleButtonGroup-root {
+  flex-wrap: wrap;
 }
 
-.ww-catalog-card.MuiButton-root {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-  gap: calc(var(--space) / 2);
-  white-space: normal;
+.ww-catalog-tools .MuiToggleButton-root {
+  min-height: var(--hit);
+  text-transform: none;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.ww-catalog-tools .MuiToggleButton-root.Mui-selected {
+  color: var(--accent-ink);
+  background: var(--accent);
+}
+
+.ww-catalog-tools .MuiToggleButton-root.Mui-selected:hover {
+  background: var(--accent-hover);
+}
+
+.ww-catalog-tools .MuiTextField-root {
+  flex: 1 1 14rem;
+  max-width: 22rem;
+}
+
+.ww-catalog-count {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-label);
 }
 
 .ww-catalog-name {
@@ -142,13 +458,18 @@
   color: var(--text);
 }
 
+/* Short landscape: smaller tiles with a wider portrait, so a full row and the filters fit the height. */
 @media (max-height: 499px) {
-  .ww-catalog-grid {
-    display: flex;
-    overflow: auto;
+  .ww-role-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 9rem), 1fr));
   }
 
-  .ww-catalog-card.MuiButton-root {
-    flex: 0 0 clamp(7rem, 18vw, 11rem);
+  .ww-role-grid .ww-portrait[data-size='tile'] {
+    aspect-ratio: 4 / 3;
+  }
+
+  .ww-role-tile-summary {
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
 }

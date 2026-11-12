@@ -50,7 +50,13 @@ export function SetupSettings({
         </>
       ) : null}
       <TimerField label="Round limit" value={draft.roundCap} disabled={disabled} onChange={(value) => onDraft(setRoundCap(draft, value))} />
-      <TimerField label="Wolf cap" value={draft.teams.wolfCap} disabled={disabled} onChange={(value) => onDraft(setWolfCap(draft, value))} />
+      <TimerField
+        label="Wolf cap"
+        value={draft.teams.wolfCap}
+        disabled={disabled}
+        helper="At least the number of wolves dealt at the start. A higher cap leaves room for a later conversion."
+        onChange={(value) => onDraft(setWolfCap(draft, value))}
+      />
       <Flag label="Wolves know each other" checked={draft.wolves.knowsTeammates} disabled={disabled} onChange={(value) => onDraft(setKnowsTeammates(draft, value))} />
       <Flag label="Friendly fire" checked={draft.wolves.friendlyFire} disabled={disabled} onChange={(value) => onDraft(setFriendlyFire(draft, value))} />
       <TextField
@@ -140,7 +146,19 @@ function Flag({ label, checked, disabled, onChange }: { label: string; checked: 
   );
 }
 
-function TimerField({ label, value, disabled, onChange }: { label: string; value: number; disabled: boolean; onChange: (value: number) => void }) {
+function TimerField({
+  label,
+  value,
+  disabled,
+  helper,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  disabled: boolean;
+  helper?: string;
+  onChange: (value: number) => void;
+}) {
   return (
     <TextField
       className="ww-setup-number"
@@ -148,6 +166,7 @@ function TimerField({ label, value, disabled, onChange }: { label: string; value
       type="number"
       value={value}
       disabled={disabled}
+      helperText={helper}
       onChange={(event) => onChange(Number(event.target.value))}
       slotProps={{ htmlInput: { min: 0 } }}
     />

@@ -5,7 +5,7 @@ import type { RoleDefinition } from '../types.js';
  * Ultimate 20 roles (docs/werewolf/ultimate-20-rules.md). Alpha Wolf and
  * Oracle keep their default profiles and gain `alpha_ultimate` and
  * `oracle_alignment` beside them. These fourteen are new catalog ids.
- * Recommended, so a game that seats them warns UNCONFIRMED_PRESET.
+ * They are CONFIRMED. A full Ultimate table still warns NEUTRAL_DENSITY.
  */
 
 const wolf = {

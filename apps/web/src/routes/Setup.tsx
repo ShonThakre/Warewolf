@@ -7,7 +7,7 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { apiErrorOf, type ApiErrorInfo } from '../api/api';
 import { useStartGameMutation } from '../api/game';
 import { useGetConfigurationQuery, useSaveConfigurationMutation } from '../api/lobby';
-import { startSentences } from '../game/components/lobbyCopy';
+import { acknowledgementCopy, explainIssue, startSentences } from '../game/components/lobbyCopy';
 import { useLayoutMode } from '../game/layout';
 import { ConfigSummary } from '../game/setup/ConfigSummary';
 import { SetupLayout } from '../game/setup/SetupLayout';
@@ -46,6 +46,7 @@ function SetupScreen() {
   const [draft, setDraft] = useState<GameConfiguration | null>(null);
   const [baseline, setBaseline] = useState<GameConfiguration | null>(null);
   const [saveError, setSaveError] = useState<ApiErrorInfo | null>(null);
+  const [justSaved, setJustSaved] = useState(false);
   const [startError, setStartError] = useState<ApiErrorInfo | null>(null);
   const [warnOpen, setWarnOpen] = useState(false);
   const [saveConfiguration, saveState] = useSaveConfigurationMutation();
@@ -102,13 +103,25 @@ function SetupScreen() {
   const editable = configuration.data?.editable === true && lobby.you.isHost && lobby.status === 'LOBBY';
   const validation = validateConfiguration(draft);
   const dirty = baseline != null && !sameConfiguration(draft, baseline);
+  const problems = validation.errors.map(explainIssue);
+  const localWarnings = validation.warnings.map(explainIssue);
+  const serverWarnings = configuration.data ? configuration.data.validation.warnings.map(explainIssue) : null;
+  const acknowledgement = acknowledgementCopy({
+    local: localWarnings,
+    server: dirty ? null : serverWarnings,
+    loading: configuration.isLoading || configuration.isFetching,
+    required: lobby.start.requiresWarningAcknowledgement || localWarnings.length > 0,
+  });
+  const warningLines = acknowledgement.lines.length > 0 ? acknowledgement.lines : localWarnings;
   const sentences = startSentences({
     status: lobby.status,
     ready: lobby.start.ready && validation.valid && !dirty,
     blockers: validation.valid ? lobby.start.blockers : ['CONFIG_INVALID'],
-    requiresWarningAcknowledgement: lobby.start.requiresWarningAcknowledgement || validation.warnings.length > 0,
+    requiresWarningAcknowledgement: lobby.start.requiresWarningAcknowledgement || warningLines.length > 0,
     seated: lobby.players.length,
     seats: draft.playerCount,
+    problems,
+    warnings: acknowledgement.lines,
   });
   const busy = saveState.isLoading || startState.isLoading;
   const startDisabled = !editable || dirty || !validation.valid || !lobby.start.ready || busy;
@@ -116,6 +129,7 @@ function SetupScreen() {
   function onDraft(next: GameConfiguration) {
     setDraft((current) => (current === next ? current : next));
     setSaveError(null);
+    setJustSaved(false);
   }
 
   async function save() {
@@ -126,6 +140,7 @@ function SetupScreen() {
       setDraft(saved);
       setBaseline(structuredClone(result.data.draft) as GameConfiguration);
       setSaveError(null);
+      setJustSaved(true);
       return;
     }
     setSaveError(apiErrorOf('error' in result ? result.error : null));
@@ -142,13 +157,13 @@ function SetupScreen() {
     setStartError(apiErrorOf('error' in result ? result.error : null));
   }
 
-  const reason = !editable
-    ? 'Waiting for the host.'
+  const reasonLines = !editable
+    ? ['Waiting for the host.']
     : !validation.valid
-      ? 'The role setup has problems to fix before the game can start.'
+      ? problems
       : dirty
-        ? 'Save the setup before starting.'
-        : sentences.join(' ');
+        ? ['Save the setup before starting.']
+        : sentences;
 
   return (
     <>
@@ -174,51 +189,74 @@ function SetupScreen() {
               <Review
                 mode={draft.mode}
                 valid={validation.valid}
-                errors={validation.errors.map((issue) => `${issue.message} (${issue.code})`)}
-                warnings={validation.warnings.map((issue) => `${issue.message} (${issue.code})`)}
+                errors={problems}
+                warnings={warningLines}
               />
             ) : null}
           </>
         }
         action={
           <>
-            <p className="ww-setup-copy" id="setup-reasons">
-              {reason}
-            </p>
-            {saveError ? <Alert severity="error">{saveError.message}</Alert> : null}
-            {startError ? <Alert severity="error">{startError.message}</Alert> : null}
-            {editable ? (
-              <Button variant="outlined" disabled={!dirty || busy} onClick={() => void save()}>
-                Save setup
-              </Button>
-            ) : null}
-            {editable ? (
-              <Button
-                color="secondary"
-                variant="contained"
-                disabled={startDisabled}
-                aria-describedby="setup-reasons"
-                onClick={() => {
-                  setStartError(null);
-                  if (lobby.start.requiresWarningAcknowledgement || validation.warnings.length > 0) setWarnOpen(true);
-                  else void begin(false);
-                }}
-              >
-                Start game
-              </Button>
-            ) : null}
-            <Button component={Link} to={`/lobby/${lobby.gameId}`}>
+            <Button className="ww-setup-back" variant="outlined" component={Link} to={`/lobby/${lobby.gameId}`}>
+              <span aria-hidden="true">← </span>
               Back to the lobby
             </Button>
+            <div className="ww-setup-action-cluster">
+              {editable && (saveState.isLoading || dirty || justSaved) ? (
+                <span className="ww-pill" data-tone={saveState.isLoading ? undefined : dirty ? 'waiting' : 'ready'} role="status">
+                  {saveState.isLoading ? 'Saving…' : dirty ? 'Unsaved changes' : '✓ Saved'}
+                </span>
+              ) : null}
+              {saveError ? <Alert severity="error">{saveError.message}</Alert> : null}
+              {startError ? <Alert severity="error">{startError.message}</Alert> : null}
+              {editable ? (
+                <Button color="secondary" variant={dirty ? 'contained' : 'outlined'} disabled={!dirty || busy} onClick={() => void save()}>
+                  {saveState.isLoading ? 'Saving…' : 'Save setup'}
+                </Button>
+              ) : null}
+              {editable ? (
+                <div className="ww-setup-start">
+                  <Button
+                    color="primary"
+                    variant="contained"
+                    disabled={startDisabled}
+                    aria-describedby="setup-reasons"
+                    onClick={() => {
+                      setStartError(null);
+                      if (lobby.start.requiresWarningAcknowledgement || localWarnings.length > 0 || acknowledgement.lines.length > 0) setWarnOpen(true);
+                      else void begin(false);
+                    }}
+                  >
+                    {startState.isLoading ? 'Starting…' : 'Start game'}
+                  </Button>
+                  <div className="ww-setup-reasons" id="setup-reasons">
+                    {reasonLines.map((line, index) => (
+                      <p key={`${index}-${line}`} className="ww-setup-copy">
+                        {line}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="ww-setup-reasons" id="setup-reasons">
+                  {reasonLines.map((line, index) => (
+                    <p key={`${index}-${line}`} className="ww-setup-copy">
+                      {line}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </div>
           </>
         }
       />
       <Dialog open={warnOpen} onClose={() => (startState.isLoading ? undefined : setWarnOpen(false))} fullWidth maxWidth="xs" aria-labelledby="setup-warn-title">
         <DialogTitle id="setup-warn-title">Acknowledge warnings</DialogTitle>
         <DialogContent sx={{ display: 'grid', gap: 'var(--space)' }}>
-          {validation.warnings.map((warning) => (
-            <p key={warning.message} className="ww-setup-copy">
-              {warning.message}
+          {acknowledgement.loading ? <p className="ww-setup-copy">Loading the warnings…</p> : null}
+          {acknowledgement.lines.map((message) => (
+            <p key={message} className="ww-setup-copy">
+              {message}
             </p>
           ))}
           {startError ? <Alert severity="error">{startError.message}</Alert> : null}
@@ -227,7 +265,7 @@ function SetupScreen() {
           <Button onClick={() => setWarnOpen(false)} disabled={startState.isLoading}>
             Cancel
           </Button>
-          <Button variant="contained" color="secondary" disabled={startDisabled || startState.isLoading} onClick={() => void begin(true)}>
+          <Button variant="contained" color="secondary" disabled={acknowledgement.loading || startDisabled || startState.isLoading} onClick={() => void begin(true)}>
             Start the game
           </Button>
         </DialogActions>

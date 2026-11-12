@@ -3,6 +3,7 @@ import { cleanup, fireEvent, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { gameStateFixture } from '../../src/game/fixtures/phase';
 import { hostDashboardFixture } from '../../src/game/fixtures/hostDashboard';
+import { killTargetFixture } from '../../src/game/fixtures/killTarget';
 import { FIXTURE_GAME_ID, fixturePlayerId } from '../../src/game/fixtures/role';
 import { json, renderApp } from '../render';
 
@@ -64,8 +65,9 @@ describe('host dashboard screen', () => {
     expect(screen.getByText('Infections 1 of 4')).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: 'Night actions' }));
-    expect(screen.getByRole('list', { name: 'Night actions' }).textContent).toMatch(/Kill/);
-    expect(screen.getByRole('list', { name: 'Night actions' }).textContent).toMatch(/Pack/);
+    const actions = screen.getByRole('region', { name: 'Submitted night actions' });
+    expect(actions.textContent).toMatch(/Wolf kill/);
+    expect(actions.textContent).toMatch(/Submitted|Resolved/);
 
     fireEvent.click(screen.getByRole('button', { name: 'Infection history' }));
     expect(screen.getByText(/The target could not be infected/)).toBeTruthy();
@@ -78,5 +80,29 @@ describe('host dashboard screen', () => {
 
     expect(document.body.textContent).not.toMatch(/alpha_wolf|alpha_kill|WOLF_KILL|TARGET_INELIGIBLE|WOLF_PACK/);
     expect(screen.queryByRole('combobox')).toBeNull();
+  });
+
+  it('opens Night actions with the kill picker and Resolve night during host confirm', async () => {
+    renderApp(`/game/${GAME}/host`, {
+      seat: host,
+      fetchFn: (async (input: RequestInfo | URL, init?: RequestInit) => {
+        const request = new Request(input, init);
+        const path = new URL(request.url).pathname;
+        if (path.endsWith('/host/dashboard')) return json(200, { ...hostDashboardFixture(), overview: { ...hostDashboardFixture().overview, phase: 'NIGHT_HOST_CONFIRM', roundNumber: 1 } });
+        if (path.endsWith('/host/kill-target')) return json(200, killTargetFixture({ phase: 'NIGHT_HOST_CONFIRM', editable: true }));
+        if (path.endsWith('/state')) {
+          return json(200, { ...gameStateFixture({ phase: 'NIGHT_HOST_CONFIRM', roundNumber: 1 }), close: { next: null, resolves: 'NIGHT' } });
+        }
+        if (path.endsWith('/events')) return json(200, { events: [] });
+        return json(404, { error: { code: 'NOT_FOUND', message: 'Not found.' } });
+      }) as typeof fetch,
+    });
+    expect(await screen.findByRole('heading', { level: 2, name: 'Night actions' })).toBeTruthy();
+    expect(screen.getByRole('region', { name: 'Submitted night actions' })).toBeTruthy();
+    expect(screen.getByRole('region', { name: 'Kill target' }).textContent).toMatch(/Choose a kill target/);
+    expect(screen.getByRole('button', { name: 'No kill' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Back to game' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Resolve night' })).toBeTruthy();
+    expect(screen.getByText(/Consequence:/)).toBeTruthy();
   });
 });

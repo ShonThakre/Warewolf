@@ -47,6 +47,7 @@ function nightState(phaseEndsAt: string | null) {
     phaseEndsAt,
     serverNow: SERVER_NOW,
     close: phaseEndsAt ? { next: null, resolves: 'NIGHT' } : { next: 'NIGHT_HOST_CONFIRM', resolves: null },
+    voting: { abstain: true, changeUntilClose: true },
     players: Array.from({ length: 20 }, (_, index) => seat(index + 1)),
     you: { playerId: you.playerId, isHost: true, lifeStatus: 'ALIVE' },
   };
@@ -108,7 +109,7 @@ test.describe('table phase bar', () => {
     await expect(page.locator('.ww-game-layout')).toHaveAttribute('data-layout', spec.mode);
     await expect(page.locator('.ww-game-layout')).toHaveAttribute('data-stage', 'night');
     await inView(page, status);
-    const button = await inView(page, page.getByRole('button', { name: 'End the night' }));
+    const button = await inView(page, page.getByRole('button', { name: 'Resolve night' }));
     await inView(page, page.getByText('Waiting for night to end', { exact: true }));
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
     expect(await page.locator('body').innerText()).not.toContain('alpha_wolf');
@@ -221,12 +222,46 @@ test.describe('day ballot', () => {
     await page.getByRole('button', { name: /Rafi/ }).click();
     await expect(confirm).toBeEnabled();
     await confirm.click();
-    await expect(page.getByRole('region', { name: 'Actions' })).toContainText('Submitted. Your vote is Rafi.');
+    await expect(page.getByRole('region', { name: 'Actions' })).toContainText('Vote sent. Your vote is Rafi. You can change it until voting closes.');
     await page.getByRole('button', { name: 'Abstain' }).click();
-    await expect(confirm).toBeEnabled();
-    await inView(page, confirm);
+    const change = page.getByRole('region', { name: 'Actions' }).getByRole('button', { name: 'Change vote' });
+    await expect(change).toBeEnabled();
+    await inView(page, change);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1)).toBe(true);
     if (spec.mode === 'portrait') await expect(page.getByRole('tab', { name: 'Players' })).toBeVisible();
+  });
+
+  test('hides abstain and locks the ballot when the room forbids both', async ({ page }, info) => {
+    test.skip(info.project.name !== 'tablet-land', 'One viewport covers the locked ballot.');
+    const state = gameStateFixture({ phase: 'VOTING', you: 4, voting: { abstain: false, changeUntilClose: false } });
+    await page.clock.install({ time: new Date(SERVER_NOW) });
+    await page.addInitScript(
+      (seat) => sessionStorage.setItem('warewolf.seat', JSON.stringify(seat)),
+      { ...hostSeat, playerId: state.you.playerId, isHost: false },
+    );
+    await page.route('**/api/v1/**', (route) => {
+      const url = route.request().url();
+      if (route.request().method() === 'POST' && url.includes('/votes')) {
+        const body = route.request().postDataJSON() as { targetPlayerId: string | null };
+        return route.fulfill({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ ballot: 1, targetPlayerId: body.targetPlayerId, supersedes: null }),
+        });
+      }
+      if (url.includes('/me')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(ROLE_FIXTURES.villager) });
+      if (url.includes('/state')) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(state) });
+      return route.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ error: { code: 'NOT_FOUND', message: 'Not found.' } }) });
+    });
+    await page.goto(`/game/${GAME}`);
+
+    const actions = page.getByRole('region', { name: 'Actions' });
+    await expect(actions).toContainText('Choose a player to eliminate.');
+    await expect(actions.getByRole('button', { name: 'Abstain' })).toHaveCount(0);
+    await page.getByRole('button', { name: /Rafi/ }).click();
+    await actions.getByRole('button', { name: 'Confirm vote' }).click();
+    await expect(actions).toContainText('Vote sent. Your vote is Rafi. This ballot is locked.');
+    await expect(page.getByRole('button', { name: /Asha/ })).toBeDisabled();
   });
 });
 

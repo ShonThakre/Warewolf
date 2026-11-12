@@ -133,6 +133,7 @@ export class PhaseService implements OnApplicationBootstrap {
         isHost: s.isHost,
         lifeStatus: s.lifeStatus,
       })),
+      voting: { abstain: config.voting.abstain, changeUntilClose: config.voting.changeUntilClose },
       you: { playerId: you.id, isHost: you.isHost, lifeStatus: you.lifeStatus },
     });
   }

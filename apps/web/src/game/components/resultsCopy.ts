@@ -111,5 +111,11 @@ export function infectionLine(results: FinishedResults, infection: FinishedResul
 }
 
 export function cancelReasonCopy(reason: 'HOST' | 'SURRENDER'): string {
-  return reason === 'HOST' ? 'The host cancelled the game.' : 'The table surrendered.';
+  const why = reason === 'HOST' ? 'The host cancelled the game.' : 'The table surrendered.';
+  return `${why} Roles stay hidden.`;
+}
+
+/** Names of seats that won on their own, in seat order. Empty when nobody did. */
+export function individualWinnerNames(results: FinishedResults): readonly string[] {
+  return results.seats.filter((seat) => seat.individualWin).map((seat) => seat.displayName);
 }

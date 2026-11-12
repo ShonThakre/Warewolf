@@ -1,8 +1,10 @@
 import type { TargetRuleDto } from '@warewolf/contracts';
+import type { Faction } from '@warewolf/domain';
 import { Button, TextField } from '@mui/material';
 import { useState } from 'react';
 import type { ActionPrompt } from '../state/actions';
 import { availabilitySentence, exclusiveNote, promptLabel, questionLabel, shownPrompt } from './actionCopy';
+import { RolePortrait } from './RolePortrait';
 
 /**
  * The signed-in player's abilities. The role name lives here, not in the
@@ -10,17 +12,26 @@ import { availabilitySentence, exclusiveNote, promptLabel, questionLabel, shownP
  */
 export function NightActionPanel({
   roleName,
+  roleId,
+  faction,
   prompts,
   activeId,
   question,
   hint,
   error,
   attackLine,
+  identityLine = null,
   onActivate,
   onQuestion,
   onHint,
+  part = 'all',
+  covered: coveredProp,
+  onToggleCover,
 }: {
   readonly roleName: string | null;
+  /** Private portrait. Omitted when the role has not loaded. Hidden with the name. */
+  readonly roleId?: string | null;
+  readonly faction?: Faction | null;
   readonly prompts: readonly ActionPrompt[];
   readonly activeId: string | null;
   readonly question: string | null;
@@ -28,11 +39,23 @@ export function NightActionPanel({
   readonly error: string | null;
   /** The informed Doctor's attack line. Null for every other seat. */
   readonly attackLine?: string | null;
+  /** Night identity strip: the open ability sentence under the role name. */
+  readonly identityLine?: string | null;
   readonly onActivate: (abilityInstanceId: string) => void;
   readonly onQuestion: (question: string) => void;
   readonly onHint: (hint: string) => void;
+  /** Night splits the name into the action bar and the controls onto the stage. */
+  readonly part?: 'all' | 'identity' | 'controls';
+  readonly covered?: boolean;
+  readonly onToggleCover?: (covered: boolean) => void;
 }) {
-  const [covered, setCovered] = useState(false);
+  const [localCovered, setLocalCovered] = useState(false);
+  const covered = coveredProp ?? localCovered;
+  function toggleCover() {
+    const next = !covered;
+    if (onToggleCover) onToggleCover(next);
+    else setLocalCovered(next);
+  }
   const visible = prompts.filter(shownPrompt);
   const active = visible.find((prompt) => prompt.abilityInstanceId === activeId) ?? null;
   const questions = active?.ability.target.kind === 'QUESTION' ? active.ability.target.questions : [];
@@ -41,18 +64,26 @@ export function NightActionPanel({
 
   return (
     <div className="ww-night-panel">
-      {roleName ? (
+      {part !== 'controls' && roleName ? (
         <div className="ww-night-role">
-          <p className="ww-status-title">{covered ? 'Your role' : roleName}</p>
-          <Button variant="outlined" onClick={() => setCovered((value) => !value)}>
+          {roleId && faction && !covered ? (
+            <RolePortrait roleId={roleId} name={roleName} faction={faction} size="thumb" loading="eager" />
+          ) : null}
+          <div className="ww-night-role-copy">
+            <p className="ww-status-title">{covered ? 'Your role' : roleName}</p>
+            {!covered && identityLine ? <p className="ww-night-role-line">{identityLine}</p> : null}
+          </div>
+          <Button className="ww-night-hide" variant="text" onClick={toggleCover}>
             {covered ? 'Show role' : 'Hide role'}
           </Button>
         </div>
       ) : null}
+      {part === 'identity' ? null : (
+        <>
       {showSwitcher ? (
         <ul className="ww-prompts">
           {visible.map((prompt) => {
-            const label = promptLabel(prompt.ability);
+            const sentence = promptLabel(prompt.ability);
             const locked = prompt.action?.status === 'LOCKED';
             const editable = prompt.availability === 'OPEN' && !locked;
             const why = locked ? 'Submitted' : availabilitySentence(prompt.availability);
@@ -60,11 +91,11 @@ export function NightActionPanel({
               <li key={prompt.abilityInstanceId}>
                 {editable ? (
                   <Button variant="outlined" aria-pressed={prompt.abilityInstanceId === active?.abilityInstanceId} onClick={() => onActivate(prompt.abilityInstanceId)}>
-                    {label}
+                    {sentence}
                   </Button>
                 ) : (
                   <p className="ww-action-copy">
-                    {label}
+                    {sentence}
                     {why ? `. ${why}` : ''}
                   </p>
                 )}
@@ -99,6 +130,8 @@ export function NightActionPanel({
           {error}
         </p>
       ) : null}
+        </>
+      )}
     </div>
   );
 }

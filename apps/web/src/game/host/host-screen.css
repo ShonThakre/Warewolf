@@ -1,12 +1,15 @@
-/* Host dashboard. The grid follows the setup shell: rail beside the canvas, controls pinned. */
+/* Host dashboard. Rail beside the canvas; phase controls pinned. Pixel target: 06-night-resolution.png at 1586×992. */
 
 .ww-host {
+  --host-rail: clamp(12rem, 17.6vw, 17.4375rem);
+  --host-strip: 3.8125rem;
+  --host-action: 5.6875rem;
   height: 100%;
   min-height: 0;
   min-width: 0;
   display: grid;
-  grid-template-columns: clamp(12rem, 22vw, 18rem) minmax(0, 1fr);
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-columns: var(--host-rail) minmax(0, 1fr);
+  grid-template-rows: var(--host-strip) minmax(0, 1fr) var(--host-action);
   grid-template-areas:
     'strip strip'
     'rail canvas'
@@ -17,6 +20,8 @@
 }
 
 .ww-host[data-steps='one'] {
+  --host-strip: auto;
+  --host-action: auto;
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: auto auto minmax(0, 1fr) auto;
   grid-template-areas:
@@ -29,13 +34,27 @@
 .ww-host-strip {
   grid-area: strip;
   min-width: 0;
-  padding: calc(var(--space) / 2) var(--space);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space);
   background: var(--surface-raised);
   border-bottom: 1px solid var(--border);
 }
 
-.ww-host-title,
-.ww-host-heading,
+.ww-host-title {
+  margin: 0;
+  font-size: var(--text-nav);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.ww-host-heading {
+  margin: 0 0 calc(var(--space) / 4);
+  font-size: var(--text-title);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
 .ww-host-subhead {
   margin: 0;
   font-size: var(--text-body);
@@ -48,7 +67,7 @@
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: calc(var(--space) / 4);
+  gap: 0.35rem;
   overflow: auto;
   padding: calc(var(--space) / 2);
   background: var(--surface);
@@ -65,9 +84,18 @@
   justify-content: flex-start;
   gap: calc(var(--space) / 2);
   min-width: 0;
+  min-height: var(--hit);
+  padding-inline: 0.85rem;
   color: var(--text);
   font-size: var(--text-label);
+  font-weight: 700;
   text-transform: none;
+  border-radius: calc(var(--radius) * 0.65);
+}
+
+.ww-host-section.MuiButton-root[aria-current='true'] {
+  background: var(--primary);
+  color: var(--primary-ink);
 }
 
 .ww-host[data-steps='one'] .ww-host-section.MuiButton-root {
@@ -88,12 +116,13 @@
   display: flex;
   flex-direction: column;
   gap: var(--space);
-  padding: var(--space);
+  padding: calc(var(--space) * 0.85) calc(var(--space) * 1.1);
 }
 
 .ww-host-copy {
   margin: 0;
   font-size: var(--text-body);
+  color: var(--text-muted);
 }
 
 .ww-host-stack {
@@ -101,6 +130,31 @@
   flex-direction: column;
   gap: var(--space);
   min-width: 0;
+}
+
+.ww-host-panel {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--space) / 2);
+  padding: calc(var(--space) * 0.85);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.ww-host-panel-title {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 800;
+  color: var(--text);
+}
+
+.ww-host-panel-hint {
+  margin: 0;
+  font-size: var(--text-label);
+  color: var(--text-muted);
 }
 
 .ww-host-facts,
@@ -132,6 +186,149 @@
   font-size: var(--text-label);
 }
 
+.ww-host-table-wrap {
+  min-width: 0;
+  overflow: auto;
+}
+
+.ww-host-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-body);
+}
+
+.ww-host-table th,
+.ww-host-table td {
+  padding: 0.75rem 0.65rem;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border);
+}
+
+.ww-host-table th {
+  font-size: var(--text-label);
+  font-weight: 800;
+  color: var(--text-muted);
+  letter-spacing: 0.02em;
+}
+
+.ww-host-table tbody tr:last-child th,
+.ww-host-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.ww-host-player {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  font-weight: 800;
+}
+
+.ww-host-player .ww-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+}
+
+.ww-host-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.75rem;
+  padding: 0.15rem 0.75rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgb(124 77 255 / 0.45);
+  background: rgb(124 77 255 / 0.18);
+  color: var(--text);
+  font-size: var(--text-label);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.ww-host .ww-kill-panel {
+  padding: 0;
+  gap: calc(var(--space) / 2);
+}
+
+.ww-host .ww-kill-title {
+  font-size: var(--text-body);
+}
+
+.ww-host .ww-kill-candidates {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: calc(var(--space) / 2);
+}
+
+.ww-host .ww-kill-candidates .MuiButton-root {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.65rem;
+  min-height: var(--hit);
+  height: auto;
+  padding: 0.7rem 0.85rem;
+  border-radius: calc(var(--radius) * 0.75);
+  border-color: var(--border);
+  background: var(--surface-raised);
+  color: var(--text);
+  text-transform: none;
+  line-height: 1.2;
+}
+
+.ww-host .ww-kill-candidates .MuiButton-root[aria-pressed='true'] {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+  background: rgb(124 77 255 / 0.16);
+}
+
+.ww-host .ww-kill-radio {
+  width: 1rem;
+  height: 1rem;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  border: 2px solid var(--text-muted);
+  display: grid;
+  place-items: center;
+}
+
+.ww-host .ww-kill-candidates .MuiButton-root[aria-pressed='true'] .ww-kill-radio {
+  border-color: var(--primary);
+}
+
+.ww-host .ww-kill-candidates .MuiButton-root[aria-pressed='true'] .ww-kill-radio::after {
+  content: '';
+  width: 0.45rem;
+  height: 0.45rem;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+.ww-host .ww-kill-candidates .ww-avatar {
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 auto;
+}
+
+.ww-host .ww-kill-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.ww-host .ww-kill-name {
+  font-weight: 800;
+}
+
+.ww-host .ww-kill-named {
+  font-size: var(--text-label);
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
 .ww-host-action {
   grid-area: action;
   min-width: 0;
@@ -139,10 +336,41 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space);
-  padding: var(--space);
-  padding-bottom: max(var(--space), env(safe-area-inset-bottom));
+  padding: 0 var(--space);
+  padding-bottom: max(0px, env(safe-area-inset-bottom));
   background: var(--surface);
   border-top: 1px solid var(--border);
+}
+
+.ww-host-action-copy {
+  flex: 1 1 18rem;
+  margin: 0;
+  font-size: var(--text-body);
+  color: var(--text-muted);
+}
+
+.ww-host-action-copy strong {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.ww-host-action-buttons {
+  margin-left: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: calc(var(--space) / 2);
+}
+
+.ww-host-action-buttons .MuiButton-containedSecondary {
+  min-width: 9rem;
+}
+
+.ww-host-action .ww-host-controls {
+  display: contents;
+  padding: 0;
+  border: 0;
 }
 
 @media (max-width: 599px) {
@@ -160,5 +388,14 @@
     clip: rect(0, 0, 0, 0);
     white-space: nowrap;
     border: 0;
+  }
+
+  .ww-host-action-buttons {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .ww-host-action-buttons .MuiButton-root {
+    flex: 1 1 auto;
   }
 }

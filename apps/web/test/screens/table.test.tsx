@@ -70,7 +70,7 @@ describe('table', () => {
     expect(guestRoot.textContent).not.toContain('alpha_wolf');
   });
 
-  it('shows a Classic night as a clock and an End the night button', async () => {
+  it('shows a Classic night as a clock and a Resolve night button', async () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date(FIXTURE_SERVER_NOW));
     const classic = {
@@ -82,7 +82,7 @@ describe('table', () => {
     expect(within(status).getByRole('heading', { name: 'Night' })).toBeTruthy();
     expect(within(status).getByText('1:30')).toBeTruthy();
     expect(within(status).queryByText('Waiting for host')).toBeNull();
-    expect(screen.getByRole('button', { name: 'End the night' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Resolve night' })).toBeTruthy();
     expect(await screen.findByText('Waiting for night to end')).toBeTruthy();
     expect(document.querySelector('[data-stage="night"]')).toBeTruthy();
   });
@@ -136,7 +136,11 @@ describe('table', () => {
       }) as typeof fetch,
     });
     fireEvent.click(await screen.findByRole('button', { name: 'End the day' }));
-    expect(await screen.findByText('The game moved on.')).toBeTruthy();
+    const confirm = await screen.findByRole('dialog', { name: 'End the day?' });
+    expect(confirm.textContent).toContain('This cannot be undone.');
+    fireEvent.click(within(confirm).getByRole('button', { name: 'End the day' }));
+    expect(await screen.findByText('The game moved on before that went through. This screen now shows the current phase.')).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Refresh' })).toBeTruthy();
     expect(screen.getByRole('heading', { name: 'Revote' })).toBeTruthy();
   });
 
@@ -168,15 +172,50 @@ describe('table', () => {
     expect((confirm as HTMLButtonElement).disabled).toBe(false);
     fireEvent.click(confirm);
     await waitFor(() => expect(posts).toEqual([{ targetPlayerId: fixturePlayerId(2) }]));
-    expect(within(actions).getByText('Submitted. Your vote is Rafi. You can change it until voting closes.')).toBeTruthy();
+    expect(within(actions).getByText('Vote sent. Your vote is Rafi. You can change it until voting closes.')).toBeTruthy();
+    expect(within(actions).getByText('Submitted')).toBeTruthy();
     expect((confirm as HTMLButtonElement).disabled).toBe(true);
+    expect(confirm.textContent).toBe('Vote sent');
 
     fireEvent.click(within(actions).getByRole('button', { name: 'Abstain' }));
     expect((confirm as HTMLButtonElement).disabled).toBe(false);
+    expect(confirm.textContent).toBe('Change vote');
+    expect(within(actions).getByText('Abstain selected: your ballot counts for nobody. Not sent yet.')).toBeTruthy();
     fireEvent.click(confirm);
     await waitFor(() => expect(posts[1]).toEqual({ targetPlayerId: null }));
-    expect(within(actions).getByText('Submitted. You abstained. You can change it until voting closes.')).toBeTruthy();
+    expect(within(actions).getByText('Vote sent. You abstained. You can change it until voting closes.')).toBeTruthy();
     expect(document.body.textContent).not.toContain('alpha_wolf');
+  });
+
+  it('hides abstain and locks a sent vote when the room forbids both', async () => {
+    const posts: { targetPlayerId: string | null }[] = [];
+    renderApp(`/game/${GAME}`, {
+      seat: guest,
+      fetchFn: (async (input: RequestInfo | URL, init?: RequestInit) => {
+        const request = new Request(input, init);
+        const path = new URL(request.url).pathname;
+        if (request.method === 'POST' && path.endsWith('/votes')) {
+          const body = (await request.json()) as { targetPlayerId: string | null };
+          posts.push(body);
+          return json(200, { ballot: 1, targetPlayerId: body.targetPlayerId, supersedes: null });
+        }
+        if (path.endsWith('/me')) return json(200, ROLE_FIXTURES.villager);
+        if (path.endsWith('/state')) return json(200, gameStateFixture({ phase: 'VOTING', you: 4, voting: { abstain: false, changeUntilClose: false } }));
+        return json(404, { error: { code: 'NOT_FOUND', message: 'Not found.' } });
+      }) as typeof fetch,
+    });
+
+    const actions = await screen.findByRole('region', { name: 'Actions' });
+    expect(within(actions).getByText('Choose a player to eliminate.')).toBeTruthy();
+    expect(within(actions).queryByRole('button', { name: 'Abstain' })).toBeNull();
+    expect(within(actions).queryByText(/abstain/i)).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: /Rafi/ }));
+    fireEvent.click(within(actions).getByRole('button', { name: 'Confirm vote' }));
+    await waitFor(() => expect(posts).toEqual([{ targetPlayerId: fixturePlayerId(2) }]));
+    expect(within(actions).getByText('Vote sent. Your vote is Rafi. This ballot is locked.')).toBeTruthy();
+    expect((within(actions).getByRole('button', { name: 'Vote sent' }) as HTMLButtonElement).disabled).toBe(true);
+    expect((screen.getByRole('button', { name: /Asha/ }) as HTMLButtonElement).disabled).toBe(true);
   });
 
   it('shows a refusal and keeps an eliminated player from voting', async () => {
@@ -235,7 +274,7 @@ describe('table', () => {
         return json(404, { error: { code: 'NOT_FOUND', message: 'Not found.' } });
       }) as typeof fetch,
     });
-    expect(await screen.findByText('The host cancelled the game.')).toBeTruthy();
+    expect((await screen.findAllByText(/The host cancelled the game/)).length).toBeGreaterThan(0);
     expect(router.state.location.pathname).toBe(`/game/${GAME}/results`);
     expect(document.body.textContent).not.toMatch(/alpha_wolf|Villager/);
     expect(screen.queryByRole('button', { name: 'Begin the night' })).toBeNull();
@@ -393,9 +432,9 @@ describe('discussion', () => {
       }) as typeof fetch,
     });
     const night = await screen.findByRole('region', { name: 'Discussion' });
-    expect(await within(night).findByText('Chat opens in day discussion and voting.')).toBeTruthy();
-    expect((within(night).getByRole('textbox', { name: 'Message' }) as HTMLInputElement).disabled).toBe(true);
-    expect((within(night).getByRole('button', { name: 'Send' }) as HTMLButtonElement).disabled).toBe(true);
+    expect(await within(night).findByText('Discussion is closed at night.')).toBeTruthy();
+    expect(within(night).queryByRole('textbox', { name: 'Message' })).toBeNull();
+    expect(within(night).queryByRole('button', { name: 'Send' })).toBeNull();
     expect(within(night).queryByRole('button', { name: /Mute/ })).toBeNull();
   });
 
@@ -502,7 +541,7 @@ describe('leaving role reveal', () => {
     const guestView = renderApp(`/game/${GAME}/reveal`, { seat: guest, fetchFn });
 
     expect(await within(hostView.container).findByRole('button', { name: 'Begin the night' })).toBeTruthy();
-    expect(await within(guestView.container).findByText('Waiting for host')).toBeTruthy();
+    expect(await within(guestView.container).findByText('Read your role, then go to the table. The host starts the game when everyone is ready.')).toBeTruthy();
     expect(within(guestView.container).queryByRole('button', { name: 'Begin the night' })).toBeNull();
     expect(within(hostView.container).getByRole('heading', { name: 'Villager' })).toBeTruthy();
 

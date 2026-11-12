@@ -63,14 +63,15 @@ describe('results screen', () => {
   it('shows a draw without a team win', async () => {
     renderApp(`/game/${GAME}/results`, { seat: host, fetchFn: endedFetch('FINISHED', finishedResultsFixture({ draw: true })) });
     expect(await screen.findByRole('heading', { name: 'Draw' })).toBeTruthy();
-    expect(screen.getByText(/The table drew/)).toBeTruthy();
+    expect(screen.getAllByText(/The table drew/).length).toBeGreaterThan(0);
   });
 
   it('keeps a cancelled game free of roles', async () => {
     const recap = cancelledResultsFixture();
     renderApp(`/game/${GAME}/results`, { seat: host, fetchFn: endedFetch('CANCELLED', recap) });
     expect(await screen.findByRole('heading', { name: 'Cancelled' })).toBeTruthy();
-    expect(screen.getByText('The host cancelled the game.')).toBeTruthy();
+    expect(screen.getAllByText(/The host cancelled the game/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/Roles stay hidden/).length).toBeGreaterThan(0);
     const rail = screen.getByRole('region', { name: 'Recap' });
     expect(within(rail).getByText(recap.seats[0]!.displayName)).toBeTruthy();
     expect(rail.textContent).not.toMatch(/Alpha Wolf|Infected Wolf|Villager|Wolf|Village/);
