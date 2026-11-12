@@ -3,6 +3,7 @@ import { Button } from '@mui/material';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { sceneArtUrl, type SceneId } from '../assets/art';
+import { GameIcon } from '../game/components/GameIcon';
 import { PhaseCloseButton } from '../game/components/PhaseCloseButton';
 import { phaseActionNote } from '../game/components/phaseCopy';
 import { RoleCard } from '../game/components/RoleCard';
@@ -152,6 +153,12 @@ export function Reveal() {
             <p className="ww-reveal-status">{error.message}</p>
             <Button onClick={() => refetch()}>Try again</Button>
           </div>
+        ) : null}
+        {role ? (
+          <p className="ww-reveal-private">
+            <GameIcon name="lock" size={18} />
+            Private role. Only you can see this screen.
+          </p>
         ) : null}
         {role ? (
           <RoleCard role={role} covered={covered}>

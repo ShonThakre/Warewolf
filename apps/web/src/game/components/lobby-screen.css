@@ -868,14 +868,6 @@
 }
 
 /* UX-PHONE: lobby portrait densify against 02-lobby-phone.png at 390×844. */
-.ww-game-layout[data-layout='portrait'][data-stage='lobby'] {
-  grid-template-rows: minmax(11rem, 34dvh) minmax(0, 1fr) auto;
-  grid-template-areas:
-    'stage'
-    'rail'
-    'action';
-}
-
 .ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-board {
   padding: var(--phone-page-gutter) var(--phone-page-gutter) 0;
   gap: var(--phone-section-gap);
@@ -1016,4 +1008,409 @@
 
 .ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-action-copy {
   font-size: var(--phone-label-size);
+}
+
+/* Mode / Pack / Seats facts: "Label: value" on wide screens; label over value on a phone. */
+.ww-lobby-fact-label::after {
+  content: ':';
+}
+
+/*
+ * UX-PHONE 02 (390×844): one scrolling column. Room card, campfire seats, room tabs,
+ * then a sticky Game setup / Start game dock.
+ */
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] {
+  grid-template-rows: max-content max-content max-content;
+  grid-template-areas:
+    'stage'
+    'rail'
+    'action';
+  align-content: start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-game-stage {
+  min-height: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-game-scene {
+  max-height: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-game-foreground {
+  overflow: visible;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-board {
+  display: flex;
+  flex-direction: column;
+  gap: var(--phone-section-gap);
+  padding: var(--phone-section-gap) var(--phone-page-gutter);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-head {
+  padding-bottom: 0.5rem;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-title h1 {
+  font-family: var(--font-display);
+  font-size: var(--phone-title-size);
+  font-weight: 800;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-line {
+  flex: 1 1 auto;
+  margin: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-label {
+  display: inline;
+  color: var(--text-muted);
+  font-size: var(--phone-label-size);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code {
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-row .MuiButton-root {
+  min-height: var(--phone-hit);
+  padding-inline: 0.75rem;
+  border-radius: var(--phone-control-radius);
+  font-size: var(--phone-label-size);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 0;
+  height: auto;
+  margin-top: calc(var(--phone-section-gap) * -1);
+  padding: 0.6rem var(--phone-card-padding) var(--phone-card-padding);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode p {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+  padding-top: 0.6rem;
+  border-top: 1px solid var(--border);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode .ww-lobby-icon {
+  flex: none;
+  width: var(--phone-icon-size);
+  height: var(--phone-icon-size);
+  color: var(--neutral);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-fact {
+  display: grid;
+  min-width: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-fact-label {
+  color: var(--text-muted);
+  font-size: var(--phone-meta-size);
+  font-weight: 700;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-fact-label::after {
+  content: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-fact-value {
+  overflow: hidden;
+  color: var(--text);
+  font-size: var(--phone-label-size);
+  font-weight: 800;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Team totals: one compact row of labelled counts. */
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-pack-strip {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.5rem;
+  margin: 0;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  font-size: var(--phone-meta-size);
+}
+
+/* Campfire seats: avatars sit on the scene, five to a row. */
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-seats {
+  padding: var(--phone-card-gap) 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-seat-grid,
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-open-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.5rem 0.25rem;
+  margin: 0;
+  padding: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-seat-card {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-seat-card .ww-avatar {
+  width: 3rem;
+  height: 3rem;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-seat-badges {
+  position: absolute;
+  top: 2.2rem;
+  display: flex;
+  gap: 0.15rem;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-seat-badge {
+  padding: 0 0.3rem;
+  font-size: 0.625rem;
+  line-height: 1.4;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-seat-card-name {
+  max-width: 100%;
+  margin: 0.35rem 0 0;
+  padding: 0 0.35rem;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  font-size: var(--phone-meta-size);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-seat-card-name .ww-seat-dot {
+  display: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-open-seat {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  min-height: 3rem;
+  padding: 0.25rem;
+  border: 1px dashed var(--border);
+  border-radius: var(--phone-control-radius);
+  background: color-mix(in srgb, var(--bg) 60%, transparent);
+  color: var(--text-muted);
+  font-size: var(--phone-meta-size);
+  text-align: center;
+}
+
+/* Room tabs and compact player rows. */
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-game-rail:not([hidden]) {
+  display: block;
+  overflow: visible;
+  padding: var(--phone-section-gap) var(--phone-page-gutter);
+  border-top: 1px solid var(--border);
+  background: var(--bg);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-game-rail .MuiTabs-root {
+  padding: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--phone-control-radius);
+  background: var(--surface);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-game-rail .MuiTabs-flexContainer {
+  gap: 0.25rem;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-game-rail .MuiTab-root {
+  flex: 1 1 0;
+  max-width: none;
+  border-radius: calc(var(--phone-control-radius) - 3px);
+  font-size: var(--phone-body-size);
+  font-weight: 800;
+  text-transform: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-game-rail .MuiTab-root.Mui-selected {
+  background: var(--primary);
+  color: var(--primary-ink);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-game-rail .MuiTabs-indicator {
+  display: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-room-body {
+  padding: var(--phone-card-gap) 0 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-rail-count {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-rail-count h2 {
+  margin: 0;
+  font-size: var(--phone-heading-size);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-player-list > li {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-player {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 0.65rem;
+  row-gap: 0.15rem;
+  padding: 0.5rem 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-player .ww-avatar {
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-player-name {
+  margin: 0;
+  font-weight: 800;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-player-meta {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-player-actions {
+  grid-column: 2 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-player-actions .MuiButton-root {
+  min-height: var(--phone-hit);
+  padding: 0 0.6rem;
+  font-size: var(--phone-label-size);
+}
+
+/* Sticky dock: start reasons over Game setup and Start game, side by side. */
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-game-action {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding: 0;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    'copy copy'
+    'setup start';
+  gap: var(--phone-dock-gap);
+  margin: 0;
+  padding: var(--phone-section-gap) var(--phone-page-gutter) var(--phone-safe-bottom);
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-action > .ww-action-copy {
+  grid-area: copy;
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-action > .ww-action-copy p {
+  margin: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-action > .ww-lobby-setup {
+  grid-area: setup;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-action > .ww-lobby-start {
+  grid-area: start;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-action > .ww-lobby-setup:last-of-type:not(:has(+ .ww-lobby-start)) {
+  grid-column: 1 / -1;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-action > .MuiAlert-root {
+  grid-column: 1 / -1;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-game-foreground {
+  height: auto;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-seats {
+  overflow: visible;
+  padding: var(--phone-section-gap) 0.25rem;
+  border: 0;
+  background: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-seat-card {
+  height: auto;
+  overflow: visible;
+  border-radius: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-seat-card .ww-avatar {
+  width: 3rem;
+  height: 3rem;
+  border: var(--avatar-ring) solid var(--avatar-ring-color);
+  border-radius: 50%;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-seat-card-name {
+  display: block;
+  min-height: 0;
+  font-weight: 700;
 }

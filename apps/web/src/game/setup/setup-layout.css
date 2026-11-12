@@ -702,3 +702,184 @@ fieldset.ww-setup-fields {
   background: var(--primary);
   color: var(--primary-ink);
 }
+
+/*
+ * UX-PHONE 03 (390×844): one scrolling column. Steps stay pinned on top, the
+ * role list comes before the configuration summary, and Back / Save / Start
+ * share a sticky bottom row.
+ */
+.ww-setup[data-layout='portrait'] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: repeat(5, max-content);
+  grid-template-areas:
+    'rail'
+    'head'
+    'canvas'
+    'summary'
+    'action';
+  align-content: start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-rail {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.25rem;
+  padding: 0.4rem var(--phone-page-gutter);
+  scrollbar-width: none;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-step-join {
+  display: none;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-step-slot {
+  flex: 1 0 auto;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-step.MuiButton-root {
+  gap: 0.35rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0.25rem 0.6rem 0.25rem 0.3rem;
+  font-size: var(--phone-meta-size);
+  white-space: nowrap;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-step-num {
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: var(--phone-meta-size);
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-head {
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-canvas {
+  min-height: 0;
+  overflow: visible;
+}
+
+/* Summary: compact two-column counts, no parchment, under the list. */
+.ww-setup[data-layout='portrait'] .ww-setup-summary {
+  margin: 0 var(--phone-page-gutter) var(--phone-section-gap);
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-parchment {
+  display: none;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-summary-title {
+  margin: 0 0 0.4rem;
+  font-size: var(--phone-body-size);
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.15rem 1rem;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-stat {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 0;
+  margin: 0;
+  padding: 0.2rem 0;
+  border: 0;
+  font-size: var(--phone-meta-size);
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-valid {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  font-size: var(--phone-label-size);
+}
+
+/* Sticky Back / Save / Start row; status, alerts, and start reasons span the row. */
+.ww-setup[data-layout='portrait'] .ww-setup-action {
+  position: sticky;
+  bottom: 0;
+  z-index: 3;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-action-cluster,
+.ww-setup[data-layout='portrait'] .ww-setup-start {
+  display: contents;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-action > .MuiButton-root,
+.ww-setup[data-layout='portrait'] .ww-setup-action-cluster > .MuiButton-root,
+.ww-setup[data-layout='portrait'] .ww-setup-start > .MuiButton-root {
+  grid-row: 2;
+  width: 100%;
+  min-width: 0;
+  padding-inline: 0.5rem;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-action-cluster > .ww-pill,
+.ww-setup[data-layout='portrait'] .ww-setup-action-cluster > .MuiAlert-root {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  justify-self: start;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-reasons {
+  grid-column: 1 / -1;
+  grid-row: 3;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-reasons:empty {
+  display: none;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-pager {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--phone-dock-gap);
+  margin-top: var(--phone-section-gap);
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-pager .MuiButton-root {
+  min-height: var(--phone-hit);
+  border-radius: var(--phone-control-radius);
+}
+
+/* Mode step: mode buttons wrap, the player count and pack cards use the full width. */
+.ww-setup[data-layout='portrait'] .ww-setup-tools {
+  gap: 0.5rem;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-tools .MuiButton-root {
+  min-height: var(--phone-hit);
+  border-radius: var(--radius-pill);
+  font-size: var(--phone-label-size);
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-number {
+  max-width: none;
+  width: 100%;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-grid {
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--phone-card-gap);
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-grid .ww-setup-role-open.MuiButton-root {
+  width: 100%;
+  align-items: flex-start;
+  text-align: left;
+}

@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useEffect, useRef, type ReactNode } from 'react';
 import { Button } from '@mui/material';
 import type { LayoutMode } from '../layout';
 import { HOST_SECTIONS, SECTION_LABEL, type HostSection } from './dashboardCopy';
@@ -16,12 +16,17 @@ export interface HostShellProps {
 
 /** Sidebar plus canvas. Phase controls stay in the bottom bar on every size. */
 export function HostShell({ section, onSection, oneStep, layoutMode, canvas, action }: HostShellProps) {
+  const rail = useRef<HTMLElement>(null);
+  // A scrolling chip rail (portrait) keeps the current section in view.
+  useEffect(() => {
+    rail.current?.querySelector<HTMLElement>('[aria-current]')?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
+  }, [section]);
   return (
     <div className="ww-host" data-layout={layoutMode} data-steps={oneStep ? 'one' : 'rail'}>
       <div className="ww-host-strip">
         <h1 className="ww-host-title">Host dashboard</h1>
       </div>
-      <nav className="ww-host-rail" aria-label="Dashboard sections">
+      <nav ref={rail} className="ww-host-rail" aria-label="Dashboard sections">
         {HOST_SECTIONS.map((id) => (
           <Button
             key={id}

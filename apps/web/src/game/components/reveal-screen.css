@@ -415,3 +415,112 @@
   font-size: var(--phone-body-size);
   font-weight: 800;
 }
+
+/* Private notice: shown above the secret on a phone; wider layouts keep their reference composition. */
+.ww-reveal-private {
+  display: none;
+}
+
+/*
+ * UX-PHONE 04 (390×844): scene band with the private notice, the role card,
+ * and Hide role / I understand pinned to the bottom of the card.
+ */
+.ww-reveal[data-layout='portrait'] .ww-reveal-scene {
+  height: 15rem;
+  bottom: auto;
+}
+
+.ww-reveal[data-layout='portrait'] .ww-reveal-panel {
+  margin-top: 0;
+  padding-top: 7.5rem;
+  padding-bottom: var(--phone-section-gap);
+}
+
+.ww-reveal[data-layout='portrait'] .ww-reveal-private {
+  display: inline-flex;
+  align-self: center;
+  align-items: center;
+  gap: 0.45rem;
+  margin: 0 auto;
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--surface-raised) 85%, transparent);
+  color: var(--text);
+  font-size: var(--phone-label-size);
+  font-weight: 800;
+  text-align: center;
+}
+
+.ww-reveal[data-layout='portrait'] .ww-role-body {
+  justify-items: stretch;
+  text-align: left;
+}
+
+.ww-reveal[data-layout='portrait'] .ww-portrait[data-size='card'] {
+  width: 100%;
+  max-height: 11rem;
+  aspect-ratio: 16 / 9;
+  justify-self: stretch;
+  border-radius: var(--phone-control-radius);
+}
+
+.ww-reveal[data-layout='portrait'] .ww-portrait[data-size='card'] img {
+  object-fit: cover;
+  object-position: 50% 22%;
+}
+
+.ww-reveal[data-layout='portrait'] .ww-role-badge {
+  font-family: var(--font-fantasy);
+  font-size: 1.875rem;
+}
+
+.ww-reveal[data-layout='portrait'] .ww-role-copy,
+.ww-reveal[data-layout='portrait'] .ww-role-tonight {
+  font-size: var(--phone-body-size);
+  line-height: 1.45;
+}
+
+.ww-reveal[data-layout='portrait'] .ww-role-foot {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  display: grid;
+  gap: var(--phone-dock-gap);
+  margin: 0 calc(var(--phone-card-padding) * -1) calc(var(--phone-card-padding) * -1);
+  padding: var(--phone-section-gap) var(--phone-card-padding) var(--phone-safe-bottom);
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 var(--phone-card-radius) var(--phone-card-radius);
+  background: var(--surface);
+}
+
+.ww-reveal[data-layout='portrait'] .ww-role-foot .ww-reveal-status {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--phone-label-size);
+}
+
+.ww-reveal[data-layout='portrait'] .ww-role-actions {
+  position: static;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--phone-dock-gap);
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.ww-reveal[data-layout='portrait'] .ww-role-actions .ww-howto-inline {
+  grid-column: 1 / -1;
+  min-height: var(--phone-hit);
+}
+
+.ww-reveal[data-layout='portrait'] .ww-reveal-close .MuiButton-root {
+  width: 100%;
+  min-height: max(var(--phone-control-height), var(--phone-hit));
+  border-radius: var(--phone-control-radius);
+}
+
+.ww-reveal[data-layout='portrait'] .ww-reveal-private {
+  margin-bottom: var(--phone-card-gap);
+}

@@ -178,7 +178,7 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 | BUG-03 | **High.** Phone landscape 844×390: ballot seat buttons cannot be brought into view (or sit under the header), so nobody can vote by tapping a seat; End the day is cut off. See `docs/werewolf/e2e-report.md` | Cursor | COMPLETED | — |
 | UX-R1 | Results banner: stat row and subtitle unreadable over the scene; empty ribbon (fold into UX-14) | Cursor | COMPLETED | — |
 | UX-MOBILE | Mobile-native full journey: phone session chrome (hide marketing nav), densify Home→Host for portrait + phone/narrow landscape | Cursor | COMPLETED | — |
-| UX-PHONE | Portrait phone screens matched to `*-phone.png` mockups (Phase 0 shared tokens/primitives, then Home→Results 01–12) | Claude | IN_PROGRESS | UX-MOBILE |
+| UX-PHONE | Portrait phone screens matched to `*-phone.png` mockups (Phase 0 shared tokens/primitives, then Home→Results 01–12) | Claude | COMPLETED | UX-MOBILE |
 
 ---
 
@@ -187,11 +187,21 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 ### UX-PHONE — Portrait phone mockup pass
 
 - **Agent:** Claude (taken over from Cursor at user request, 12 Nov 2026)
-- **Status:** IN_PROGRESS
+- **Status:** COMPLETED (12 November 2026)
 - **Description:** Implement `docs/werewolf/ux-mockups/PHONE-IMPLEMENTATION-PLAN.md`. Phase 0: `--phone-*` tokens and shared presentation primitives under `apps/web/src/game/layout/phone/`. Then match screens 01–12 to the portrait references at 390×844 while preserving AppShell, GameLayout, SetupLayout, HostShell, routes, Redux, and server contracts. No second mobile app.
 - **Files:** `apps/web/src/theme/tokens.ts`, `apps/web/src/game/layout/phone/**`, `apps/web/src/game/components/GameIcon.tsx`, `apps/web/src/shell/{AppShell.tsx,app-shell.css}`, `apps/web/src/game/layout/game-layout.css`, `apps/web/src/game/components/{home-scene,lobby-screen,reveal-screen,table-screen,results-screen}.css`, `apps/web/src/game/setup/{SetupLayout.tsx,SetupRoles.tsx,setup-layout.css}`, `apps/web/src/game/host/{HostShell.tsx,host-screen.css}`, `apps/web/src/routes/{Home,Lobby,Setup,Reveal,Table,Host,Results}.tsx`, related screen tests / layout e2e, `docs/AI-TASK-BOARD.md`, phone mockups under `docs/werewolf/ux-mockups/`
 - **Avoid:** HOST-01 deploy files; do not overwrite uncommitted ROLE-FIX logic in `Table.tsx` / domain / api day files — presentation/CSS only where those overlap.
-- **Checked:** (in progress)
+- **Built:**
+  - Phase 0 (Cursor): `--phone-*` tokens, `layout/phone/` primitives, GameIcon additions. The primitives are exported but no screen uses them yet; each screen styles its existing components instead.
+  - `GameLayout` / `stageMode`: day discussion now uses the portrait Players / Discussion switch and opens on Discussion (`StageSpec.portraitPanel`); the switch resets to each stage's default when the stage changes.
+  - Table portrait (05, 07–10): short scene band, two-column public seat cards, compact closed-discussion row, dawn result card over the scene, chat bubbles, compact night / ballot docks, revote rows.
+  - Lobby (02) and Results (12): one scrolling column with a sticky action dock. Lobby facts split into label / value spans (`ww-lobby-fact-*`).
+  - Setup (03): pinned step rail, role list before the summary, compact two-column summary, Back / Save / Start in one sticky row.
+  - Reveal (04): private-role notice (portrait only), banner role art, sticky Hide role / I understand.
+  - Host (06, 11): chip rail without icons that keeps the current section in view, submissions as stacked rows, full-width kill target rows, one action row.
+  - Home (01): emblem and title on the scene, larger Create / Join.
+- **Checked:** `pnpm --filter @warewolf/web typecheck`. `pnpm --filter @warewolf/web test` 392/392. Fixture Playwright `e2e/` 60 passed, 3 failed on tablet-land only (`results` cancelled-copy strict match, two `table` day-ballot tests). The same 3 fail on a clean checkout of `3f9f48f`, so they were already failing. A live Infection game screenshotted at 390×844 against each mockup, plus 360×800, 430×932, and 844×390 with no horizontal page scroll.
+- **Known gaps:** desktop and landscape layouts are unchanged. The Setup Roles step keeps the count stepper under each role's text, not beside it.
 
 ### ROLE-FIX — Role-power gaps from the audit
 

@@ -374,8 +374,23 @@
   padding: 0 1.125rem 0 0.9375rem;
 }
 
+/* Portrait lobby is one scrolling column (UX-PHONE 02); the action dock sticks to the bottom. */
+.ww-game-layout[data-stage='lobby'][data-layout='portrait'] .ww-game-stage {
+  display: block;
+  min-height: auto;
+}
+
+.ww-game-layout[data-stage='lobby'][data-layout='portrait'] .ww-game-foreground {
+  position: relative;
+  height: auto;
+  overflow: visible;
+}
+
+
 .ww-game-layout[data-stage='lobby'][data-layout='portrait'] {
-  grid-template-rows: minmax(0, 1.1fr) minmax(12rem, 0.9fr) auto;
+  grid-template-rows: max-content max-content max-content;
+  align-content: start;
+  overflow-y: auto;
   grid-template-areas:
     'stage'
     'rail'
@@ -573,4 +588,40 @@
 .ww-game-layout[data-layout='portrait'] .ww-game-rail,
 .ww-game-layout[data-layout='portrait'] .ww-game-players {
   min-width: 0;
+}
+
+/* Portrait results: one scrolling column (UX-PHONE 12). Outcome, stats, recap, then Play again. */
+.ww-game-layout[data-stage='results'][data-layout='portrait'] {
+  grid-template-rows: max-content max-content max-content max-content;
+  grid-template-areas:
+    'status'
+    'stage'
+    'rail'
+    'action';
+  align-content: start;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ww-game-layout[data-stage='results'][data-layout='portrait'] .ww-game-stage {
+  display: block;
+  min-height: auto;
+}
+
+.ww-game-layout[data-stage='results'][data-layout='portrait'] .ww-game-scene {
+  position: absolute;
+  inset: 0;
+}
+
+.ww-game-layout[data-stage='results'][data-layout='portrait'] .ww-game-foreground {
+  position: relative;
+  height: auto;
+  overflow: visible;
+}
+
+.ww-game-layout[data-stage='results'][data-layout='portrait'] .ww-game-action {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  max-height: none;
 }

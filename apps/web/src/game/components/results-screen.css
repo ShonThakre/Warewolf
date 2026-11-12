@@ -209,3 +209,36 @@
   font-size: var(--phone-body-size);
   font-weight: 800;
 }
+
+/* UX-PHONE 12: the stage grows with its content; the outcome title reads as a hero. */
+.ww-game-layout[data-layout='portrait'][data-stage='results'] .ww-results-stage {
+  height: auto;
+  overflow: visible;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='results'] .ww-victory-title {
+  font-family: var(--font-fantasy);
+  font-size: clamp(1.75rem, 8vw, 2.25rem);
+  line-height: 1.15;
+  text-align: center;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='results'] .ww-victory-reason {
+  font-size: var(--phone-body-size);
+  text-align: center;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='results'] .ww-game-rail:not([hidden]) {
+  display: block;
+  overflow: visible;
+  padding: var(--phone-section-gap) var(--phone-page-gutter);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='results'] .ww-recap-title {
+  font-size: var(--phone-heading-size);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='results'] .ww-game-action .ww-action {
+  display: grid;
+  gap: var(--phone-dock-gap);
+}

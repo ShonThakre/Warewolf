@@ -206,15 +206,27 @@ function LobbyScreen() {
             </header>
             <div className="ww-lobby-mode">
               <p>
-                <ModeMark /> Mode: {MODE_LABEL[lobby.mode]}
+                <ModeMark />
+                <span className="ww-lobby-fact">
+                  <span className="ww-lobby-fact-label">Mode</span> <span className="ww-lobby-fact-value">{MODE_LABEL[lobby.mode]}</span>
+                </span>
               </p>
               <span className="ww-lobby-mode-rule" aria-hidden="true" />
               <p>
-                <PackMark /> Pack: <span>{packName}</span>
+                <PackMark />
+                <span className="ww-lobby-fact">
+                  <span className="ww-lobby-fact-label">Pack</span> <span className="ww-lobby-fact-value">{packName}</span>
+                </span>
               </p>
               <span className="ww-lobby-mode-rule" aria-hidden="true" />
               <p>
-                <SeatMark /> {seated} / {seats} seats
+                <SeatMark />
+                <span className="ww-lobby-fact">
+                  <span className="ww-lobby-fact-label">Seats</span>{' '}
+                  <span className="ww-lobby-fact-value">
+                    {seated} / {seats}
+                  </span>
+                </span>
               </p>
             </div>
             <PackSummary summary={lobby.configuration.summary} packName={packName} modeLabel={MODE_LABEL[lobby.mode]} layout="strip" />

@@ -565,3 +565,173 @@
   font-size: var(--phone-body-size);
   font-weight: 800;
 }
+
+/*
+ * UX-PHONE 06 / 11 (390×844): compact chip rail, host-only submissions as stacked
+ * rows, full-width kill target rows, and one row of host actions.
+ */
+.ww-host[data-layout='portrait'] .ww-host-section.MuiButton-root {
+  flex: none;
+  min-height: var(--phone-hit);
+  padding: 0 0.85rem;
+  border-radius: var(--radius-pill);
+  font-size: var(--phone-label-size);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.ww-host[data-layout='portrait'] .ww-host-section.MuiButton-root:not([aria-current]) {
+  background: var(--surface);
+}
+
+.ww-host[data-layout='portrait'] .ww-host-section svg {
+  display: none;
+}
+
+.ww-host[data-layout='portrait'] .ww-host-rail {
+  gap: 0.4rem;
+  scrollbar-width: none;
+}
+
+.ww-host[data-layout='portrait'] .ww-host-heading {
+  font-size: var(--phone-title-size);
+}
+
+.ww-host[data-layout='portrait'] .ww-host-panel {
+  padding: var(--phone-card-padding);
+  border-radius: var(--phone-card-radius);
+}
+
+.ww-host[data-layout='portrait'] .ww-host-panel-title {
+  font-size: var(--phone-heading-size);
+}
+
+/* Submissions table reads as rows: player, then ability, target, and status. */
+.ww-host[data-layout='portrait'] .ww-host-table-wrap {
+  overflow: visible;
+}
+
+.ww-host[data-layout='portrait'] .ww-host-table,
+.ww-host[data-layout='portrait'] .ww-host-table tbody {
+  display: grid;
+  gap: var(--phone-card-gap);
+  width: 100%;
+}
+
+.ww-host[data-layout='portrait'] .ww-host-table thead {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.ww-host[data-layout='portrait'] .ww-host-table tr {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'player status'
+    'ability ability'
+    'target target';
+  gap: 0.2rem 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--phone-control-radius);
+  background: var(--surface-raised);
+}
+
+.ww-host[data-layout='portrait'] .ww-host-table td {
+  display: block;
+  padding: 0;
+  border: 0;
+  font-size: var(--phone-label-size);
+}
+
+.ww-host[data-layout='portrait'] .ww-host-table td:nth-child(1) {
+  grid-area: player;
+  font-weight: 800;
+}
+
+.ww-host[data-layout='portrait'] .ww-host-table td:nth-child(2) {
+  grid-area: ability;
+  color: var(--text-muted);
+}
+
+.ww-host[data-layout='portrait'] .ww-host-table td:nth-child(2)::before {
+  content: 'Ability: ';
+}
+
+.ww-host[data-layout='portrait'] .ww-host-table td:nth-child(3) {
+  grid-area: target;
+  color: var(--text-muted);
+}
+
+.ww-host[data-layout='portrait'] .ww-host-table td:nth-child(3)::before {
+  content: 'Target: ';
+}
+
+.ww-host[data-layout='portrait'] .ww-host-table td:nth-child(4) {
+  grid-area: status;
+  align-self: center;
+}
+
+.ww-host[data-layout='portrait'] .ww-host-player {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ww-host[data-layout='portrait'] .ww-host-player .ww-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+/* Kill target: one full-width radio row per eligible player. */
+.ww-host[data-layout='portrait'] .ww-kill-candidates {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.4rem;
+}
+
+.ww-host[data-layout='portrait'] .ww-kill-candidates .MuiButton-root {
+  justify-content: flex-start;
+  width: 100%;
+  min-height: var(--phone-hit);
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--phone-control-radius);
+  text-align: left;
+}
+
+/* Overview facts: sentence-case labels. */
+.ww-host[data-layout='portrait'] .ww-host-fact-label {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: var(--phone-body-size);
+  color: var(--text-muted);
+}
+
+/* Host action row: consequence over the buttons, which share one row. */
+.ww-host[data-layout='portrait'] .ww-host-action-buttons {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--phone-dock-gap);
+}
+
+.ww-host[data-layout='portrait'] .ww-host-action-buttons .ww-host-controls {
+  display: contents;
+}
+
+.ww-host[data-layout='portrait'] .ww-host-action-buttons .MuiButton-root {
+  min-width: 0;
+  min-height: max(var(--phone-control-height), var(--phone-hit));
+  padding-inline: 0.4rem;
+  border-radius: var(--phone-control-radius);
+  font-size: var(--phone-label-size);
+  line-height: 1.2;
+  white-space: normal;
+}
+
+.ww-host[data-layout='portrait'] .ww-host-action-copy {
+  font-size: var(--phone-meta-size);
+}
