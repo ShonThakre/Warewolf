@@ -1,5 +1,6 @@
 import { DEFAULT_CATALOG, type RoleCatalog } from '../catalog/catalog.js';
 import type { AbilityDefinition, IndividualTrigger } from '../catalog/types.js';
+import type { Faction } from '../factions.js';
 import type { LifeStatus } from '../game.js';
 import type { AbilityStatus } from '../roles.js';
 import type { PlayerId, RoleId } from '../snapshot.js';
@@ -43,6 +44,8 @@ export interface TallyAssignment {
   readonly playerId: PlayerId;
   readonly currentRoleId: RoleId;
   readonly currentProfileId: string;
+  /** Current seated faction. Used for OD-33 village weights when the Elder died to wolves. */
+  readonly currentFaction?: Faction;
 }
 
 export interface TallyInput {
@@ -54,6 +57,11 @@ export interface TallyInput {
   readonly votes: readonly TallyVote[];
   readonly mindControl?: readonly TallyMindControl[];
   readonly chaosEffects?: readonly TallyChaosEffect[];
+  /**
+   * OD-33: wolves killed the Elder last night. Village-faction votes weight 1,
+   * and one phantom weight is applied against the village plurality after tally.
+   */
+  readonly elderPenalty?: boolean;
   /** When the configuration allows it, a dead player's stored vote still counts. Targets must still be alive. */
   readonly countDeadVotes?: boolean;
   readonly catalog?: RoleCatalog;
@@ -102,7 +110,9 @@ export function voteWeight(playerId: PlayerId, abilities: readonly TallyAbility[
 /**
  * Tallies one ballot. Chaos day effects apply in order: no-vote, then the
  * vote swap, then the double vote. Mind Controller redirects run first, and
- * they do not turn an abstention into a vote.
+ * they do not turn an abstention into a vote. OD-33 elder penalty (when set)
+ * forces Village votes to weight 1 and adds one phantom against the village
+ * plurality after the count.
  */
 export function tallyDay(input: TallyInput): TallyResult {
   const catalog = input.catalog ?? DEFAULT_CATALOG;
@@ -110,6 +120,12 @@ export function tallyDay(input: TallyInput): TallyResult {
   const canVote = input.countDeadVotes ? new Set(input.players.map((p) => p.id)) : alive;
   const actionOutcomes: TallyActionOutcome[] = [];
   const redirects = new Map((input.mindControl ?? []).map((m) => [m.voterId, m.targetId]));
+  const factionOf = new Map(
+    input.assignments.map((a) => [
+      a.playerId,
+      a.currentFaction ?? catalog.byId.get(a.currentRoleId)?.defaultFaction ?? null,
+    ]),
+  );
 
   let ballots = input.votes
     .filter((v) => canVote.has(v.voterId))
@@ -153,11 +169,36 @@ export function tallyDay(input: TallyInput): TallyResult {
   }
 
   const doubled = new Set((input.chaosEffects ?? []).filter((e) => e.kind === 'DOUBLE_VOTE').flatMap((e) => e.playerIds));
+  const voterWeight = (voterId: PlayerId): number => {
+    if (input.elderPenalty && factionOf.get(voterId) === 'VILLAGE') return 1;
+    return voteWeight(voterId, input.abilities);
+  };
   const counts = new Map<PlayerId, number>();
+  const villageCounts = new Map<PlayerId, number>();
   for (const vote of ballots) {
     if (vote.targetId === null || !alive.has(vote.targetId)) continue;
-    const weight = voteWeight(vote.voterId, input.abilities) * (doubled.has(vote.voterId) ? 2 : 1);
+    const weight = voterWeight(vote.voterId) * (doubled.has(vote.voterId) ? 2 : 1);
     counts.set(vote.targetId, (counts.get(vote.targetId) ?? 0) + weight);
+    if (input.elderPenalty && factionOf.get(vote.voterId) === 'VILLAGE') {
+      villageCounts.set(vote.targetId, (villageCounts.get(vote.targetId) ?? 0) + weight);
+    }
+  }
+
+  if (input.elderPenalty && villageCounts.size > 0) {
+    const villageTop = Math.max(0, ...villageCounts.values());
+    const villageLeaders = [...villageCounts.entries()]
+      .filter(([, n]) => n === villageTop && n > 0)
+      .map(([id]) => id)
+      .sort(byString);
+    if (villageLeaders.length === 1) {
+      const plurality = villageLeaders[0]!;
+      const rivals = [...alive].filter((id) => id !== plurality).sort((a, b) => {
+        const diff = (counts.get(b) ?? 0) - (counts.get(a) ?? 0);
+        return diff !== 0 ? diff : byString(a, b);
+      });
+      const rival = rivals[0];
+      if (rival) counts.set(rival, (counts.get(rival) ?? 0) + 1);
+    }
   }
 
   const top = Math.max(0, ...counts.values());

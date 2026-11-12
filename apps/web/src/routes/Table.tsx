@@ -594,7 +594,10 @@ function StageForeground({
     );
   }
 
-  if (stage === 'night' || stage === 'voting') {
+  // Night, voting, and day discussion with a PLAYERS ability share the target grid.
+  // Plain day discussion keeps the static seat cards (UX-10).
+  const dayPicking = stage === 'day' && gridRule?.kind === 'PLAYERS';
+  if (stage === 'night' || stage === 'voting' || dayPicking) {
     const grid = (
       <PlayerGrid
         players={state.players}

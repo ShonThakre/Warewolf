@@ -151,15 +151,29 @@ export class DayResolutionService {
       });
       const number = ballot === 'FIRST' ? 1 : 2;
       const tallyVotes = (rows: typeof cast): TallyVote[] => rows.map((v) => ({ voterId: v.voterPlayerId, targetId: v.targetPlayerId }));
+      // OD-33: wolves killed the Elder this night → same-round day vote carries the village penalty.
+      const nightDeaths = await tx
+        .select()
+        .from(eliminationRecords)
+        .where(and(eq(eliminationRecords.gameId, game.id), eq(eliminationRecords.roundNumber, game.roundNumber), eq(eliminationRecords.phaseKind, 'NIGHT')));
+      const elderPenalty = nightDeaths.some(
+        (row) => row.roleAtDeath === 'elder' && row.causes.some((cause) => cause.type === 'WOLF_KILL'),
+      );
       const input = (dayBallot: 'FIRST' | 'REVOTE', rows: typeof cast): TallyInput => ({
         round: game.roundNumber,
         ballot: dayBallot,
         players: [...life].map(([id, lifeStatus]) => ({ id, lifeStatus })),
-        assignments: assignments.map((a) => ({ playerId: a.playerId, currentRoleId: a.currentRoleId, currentProfileId: a.currentProfileId })),
+        assignments: assignments.map((a) => ({
+          playerId: a.playerId,
+          currentRoleId: a.currentRoleId,
+          currentProfileId: a.currentProfileId,
+          currentFaction: a.currentFaction,
+        })),
         abilities: abilities.map((a) => ({ playerId: a.playerId, status: a.status, config: a.config })),
         votes: tallyVotes(rows),
         ...(dayChaos.length > 0 ? { chaosEffects: dayChaos.map((item) => item.effect) } : {}),
         ...(mindControl.length > 0 ? { mindControl: mindControl.map((item) => item.control) } : {}),
+        ...(elderPenalty ? { elderPenalty: true } : {}),
         ...(config.voting.deadMayVote ? { countDeadVotes: true } : {}),
       });
 

@@ -210,3 +210,46 @@ describe('night action panel', () => {
     expect(seatButton('Asha').getAttribute('aria-pressed')).toBe('false');
   });
 });
+
+describe('day action panel', () => {
+  it('lets the Sniper pick a seat during day discussion', async () => {
+    const role = ownRoleFixture('sniper', { seat: 4 });
+    const posts: { targetPlayerIds: string[] }[] = [];
+    renderApp(`/game/${GAME}`, {
+      seat: seatFor(role),
+      fetchFn: nightFetch(role, myActionsFixture(role, { phase: 'DAY_DISCUSSION' }), async (body) => {
+        posts.push({ targetPlayerIds: body.targetPlayerIds });
+        return json(200, stored(role, 'sniper_shot', body.targetPlayerIds));
+      }),
+    });
+
+    const actions = await screen.findByRole('region', { name: 'Actions' });
+    expect(await within(actions).findByText('Choose a kill target')).toBeTruthy();
+    expect(screen.getByRole('list', { name: /Choose a player/ })).toBeTruthy();
+    expect(seatButton('Rafi').disabled).toBe(false);
+    fireEvent.click(seatButton('Rafi'));
+    fireEvent.click(within(actions).getByRole('button', { name: 'Submit' }));
+    await waitFor(() => expect(posts).toEqual([{ targetPlayerIds: [fixturePlayerId(2)] }]));
+    expect(within(actions).getByText('Submitted')).toBeTruthy();
+  });
+
+  it('lets the Mind Controller choose a voter and a new target', async () => {
+    const role = ownRoleFixture('mind_controller', { seat: 4 });
+    const posts: { targetPlayerIds: string[] }[] = [];
+    renderApp(`/game/${GAME}`, {
+      seat: seatFor(role),
+      fetchFn: nightFetch(role, myActionsFixture(role, { phase: 'DAY_DISCUSSION' }), async (body) => {
+        posts.push({ targetPlayerIds: body.targetPlayerIds });
+        return json(200, stored(role, 'mind_control', body.targetPlayerIds));
+      }),
+    });
+
+    const actions = await screen.findByRole('region', { name: 'Actions' });
+    expect(await within(actions).findByText('Choose the voter, then their new target')).toBeTruthy();
+    expect(screen.getByRole('list', { name: /Choose two players/ })).toBeTruthy();
+    fireEvent.click(seatButton('Rafi'));
+    fireEvent.click(seatButton('Asha'));
+    fireEvent.click(within(actions).getByRole('button', { name: 'Submit' }));
+    await waitFor(() => expect(posts).toEqual([{ targetPlayerIds: [fixturePlayerId(2), fixturePlayerId(1)] }]));
+  });
+});

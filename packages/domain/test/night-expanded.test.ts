@@ -135,6 +135,13 @@ describe('step 8: Bodyguard (OD-14)', () => {
     expect(r.saves).toEqual([{ playerId: 'v1', attackType: 'WOLF_KILL', savedBy: ['bodyguard:bodyguard_protect'] }]);
   });
 
+  it('lets the Shieldbearer stop a wolf kill on its protectee', () => {
+    const r = run([act('shieldbearer', 'shieldbearer_protect', ['v1']), act('wolf1', 'pack_kill', ['v1'])]);
+    expect(deaths(r)).toEqual([]);
+    expect(r.saves).toEqual([{ playerId: 'v1', attackType: 'WOLF_KILL', savedBy: ['shieldbearer:shieldbearer_protect'] }]);
+    expect(update(r, 'shieldbearer:shieldbearer_protect')).toEqual(used('v1'));
+  });
+
   it('survives when the Bodyguard is protected too', () => {
     const r = run([act('bodyguard', 'bodyguard_protect', ['v1']), act('guard', 'guard_protect', ['bodyguard']), act('wolf1', 'pack_kill', ['v1'])]);
     expect(deaths(r)).toEqual([]);

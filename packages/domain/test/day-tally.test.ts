@@ -108,4 +108,38 @@ describe('tallyDay', () => {
     expect(result.eliminated).toBe('d');
     expect(result.individualWins).toEqual([{ playerId: 'd', trigger: 'ELIMINATED_BY_DAY_VOTE' }]);
   });
+
+  it('OD-33: after an Elder wolf kill, village votes weight 1 and a phantom ties the village plurality', () => {
+    const assignments = [
+      { playerId: 'a', currentRoleId: 'mayor', currentProfileId: 'mayor', currentFaction: 'VILLAGE' as const },
+      { playerId: 'b', currentRoleId: 'normal_villager', currentProfileId: 'normal_villager', currentFaction: 'VILLAGE' as const },
+      { playerId: 'c', currentRoleId: 'pack_wolf', currentProfileId: 'pack_wolf', currentFaction: 'WOLF_PACK' as const },
+      { playerId: 'd', currentRoleId: 'normal_villager', currentProfileId: 'normal_villager', currentFaction: 'VILLAGE' as const },
+    ];
+    // Without the penalty, Mayor (weight 2) + villager on d beats the wolf's vote on a.
+    const plain = tallyDay({
+      round: 1,
+      ballot: 'FIRST',
+      players,
+      assignments,
+      abilities: [weight('a', 2)],
+      votes: [vote('a', 'd'), vote('b', 'd'), vote('c', 'a')],
+    });
+    expect(plain.counts).toEqual({ a: 1, d: 3 });
+    expect(plain.eliminated).toBe('d');
+
+    // With the penalty, village votes are 1 each (Mayor stripped), d has 2, then phantom +1 on a → tie.
+    const penalized = tallyDay({
+      round: 1,
+      ballot: 'FIRST',
+      players,
+      assignments,
+      abilities: [weight('a', 2)],
+      votes: [vote('a', 'd'), vote('b', 'd'), vote('c', 'a')],
+      elderPenalty: true,
+    });
+    expect(penalized.counts).toEqual({ a: 2, d: 2 });
+    expect(penalized.eliminated).toBeNull();
+    expect(penalized.tied).toEqual(['a', 'd']);
+  });
 });

@@ -150,4 +150,36 @@ describe('evaluateVictory', () => {
     expect(result.team).toBe('VILLAGE');
     expect(result.individuals).toContainEqual({ playerId: 'j', trigger: 'ELIMINATED_BY_DAY_VOTE', state: 'ACHIEVED' });
   });
+
+  it('gives the Assassin a mark win when the marked seat is dead', () => {
+    const pending = game([
+      seat('a', 'assassin', 'NEUTRAL', 'ALIVE', { currentProfileId: 'assassin_mark', markTargetPlayerId: 'v1' }),
+      seat('v1', 'normal_villager', 'VILLAGE'),
+      seat('v2', 'normal_villager', 'VILLAGE'),
+      seat('w', 'pack_wolf', 'WOLF_PACK'),
+    ]);
+    expect(pending.individuals).not.toContainEqual({ playerId: 'a', trigger: 'MARKED_TARGET_ELIMINATED', state: 'ACHIEVED' });
+    expect(pending.ended).toBe(false);
+
+    const won = game([
+      seat('a', 'assassin', 'NEUTRAL', 'ALIVE', { currentProfileId: 'assassin_mark', markTargetPlayerId: 'v1' }),
+      seat('v1', 'normal_villager', 'VILLAGE', 'DEAD'),
+      seat('v2', 'normal_villager', 'VILLAGE'),
+      seat('w', 'pack_wolf', 'WOLF_PACK'),
+    ]);
+    expect(won.individuals).toContainEqual({ playerId: 'a', trigger: 'MARKED_TARGET_ELIMINATED', state: 'ACHIEVED' });
+    expect(won.ended).toBe(false);
+  });
+
+  it('gives the Lone Wolf a win only as the sole survivor', () => {
+    const withCompany = game([
+      seat('lone', 'lone_wolf', 'INDEPENDENT'),
+      seat('v', 'normal_villager', 'VILLAGE'),
+    ]);
+    expect(withCompany.individuals).not.toContainEqual({ playerId: 'lone', trigger: 'SOLE_SURVIVOR', state: 'ACHIEVED' });
+
+    const alone = game([seat('lone', 'lone_wolf', 'INDEPENDENT')]);
+    expect(alone.individuals).toContainEqual({ playerId: 'lone', trigger: 'SOLE_SURVIVOR', state: 'ACHIEVED' });
+    expect(alone.ended).toBe(true);
+  });
 });

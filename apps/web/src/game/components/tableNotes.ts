@@ -135,5 +135,9 @@ function investigation(payload: Record<string, unknown>, nameOf: NameOf): string
   if (kind === 'FACTION' && (value === 'VILLAGE' || value === 'WOLF_PACK' || value === 'NEUTRAL' || value === 'INDEPENDENT')) {
     return `${who} is ${teamWord(value)}.`;
   }
+  if (kind === 'ATTACKER_IDS') {
+    const attackers = names(value, nameOf);
+    return attackers === 'no one' ? 'Nobody walked into your trap.' : `${attackers} walked into your trap.`;
+  }
   return null;
 }

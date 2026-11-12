@@ -25,6 +25,20 @@ describe('table notes', () => {
     });
     expect(tableNote(own, you, nameOf)).toBe('Rafi is a Wolf.');
     expect(tableNote(host, you, nameOf)).toBeNull();
+    expect(
+      tableNote(
+        event('INVESTIGATION_RESULT', {
+          kind: 'ATTACKER_IDS',
+          targetPlayerIds: [you],
+          result: { value: [other] },
+        }),
+        you,
+        nameOf,
+      ),
+    ).toBe('Rafi walked into your trap.');
+    expect(
+      tableNote(event('INVESTIGATION_RESULT', { kind: 'ATTACKER_IDS', targetPlayerIds: [you], result: { value: [] } }), you, nameOf),
+    ).toBe('Nobody walked into your trap.');
   });
 
   it('keeps a conversion and a block that name no one else', () => {

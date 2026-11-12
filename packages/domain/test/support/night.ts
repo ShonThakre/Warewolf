@@ -56,6 +56,7 @@ export const EXPANDED_SEATS: Seat[] = [
   { id: 'lone', roleId: 'lone_wolf' },
   { id: 'guard', roleId: 'guard' },
   { id: 'bodyguard', roleId: 'bodyguard' },
+  { id: 'shieldbearer', roleId: 'shieldbearer' },
   { id: 'trapper', roleId: 'trapper' },
   { id: 'smith', roleId: 'blacksmith', profileId: 'blacksmith_item' },
   { id: 'doctor', roleId: 'doctor', profileId: 'doctor_limited' },

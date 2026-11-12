@@ -64,6 +64,7 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 
 | Id | Task | Agent | Status | Depends on |
 |---|---|---|---|---|
+| ROLE-FIX | Role-power gaps from audit: day PlayerGrid (Sniper/Mind Controller), Elder OD-33 penalty, Trapper ATTACKER_IDS note, hardening tests | Cursor | COMPLETED | — |
 | WW-301 | Lobby tables: players, tokens, drafts | Claude | COMPLETED | — |
 | WEB-01 | Client state foundation: Redux Toolkit, API client, session | Claude | COMPLETED | — |
 | WEB-02 | `GameLayout` architecture and layout-mode logic | Claude | COMPLETED | — |
@@ -177,10 +178,33 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 | BUG-03 | **High.** Phone landscape 844×390: ballot seat buttons cannot be brought into view (or sit under the header), so nobody can vote by tapping a seat; End the day is cut off. See `docs/werewolf/e2e-report.md` | Cursor | COMPLETED | — |
 | UX-R1 | Results banner: stat row and subtitle unreadable over the scene; empty ribbon (fold into UX-14) | Cursor | COMPLETED | — |
 | UX-MOBILE | Mobile-native full journey: phone session chrome (hide marketing nav), densify Home→Host for portrait + phone/narrow landscape | Cursor | COMPLETED | — |
+| UX-PHONE | Portrait phone screens matched to `*-phone.png` mockups (Phase 0 shared tokens/primitives, then Home→Results 01–12) | Claude | IN_PROGRESS | UX-MOBILE |
 
 ---
 
 ## Task details
+
+### UX-PHONE — Portrait phone mockup pass
+
+- **Agent:** Claude (taken over from Cursor at user request, 12 Nov 2026)
+- **Status:** IN_PROGRESS
+- **Description:** Implement `docs/werewolf/ux-mockups/PHONE-IMPLEMENTATION-PLAN.md`. Phase 0: `--phone-*` tokens and shared presentation primitives under `apps/web/src/game/layout/phone/`. Then match screens 01–12 to the portrait references at 390×844 while preserving AppShell, GameLayout, SetupLayout, HostShell, routes, Redux, and server contracts. No second mobile app.
+- **Files:** `apps/web/src/theme/tokens.ts`, `apps/web/src/game/layout/phone/**`, `apps/web/src/game/components/GameIcon.tsx`, `apps/web/src/shell/{AppShell.tsx,app-shell.css}`, `apps/web/src/game/layout/game-layout.css`, `apps/web/src/game/components/{home-scene,lobby-screen,reveal-screen,table-screen,results-screen}.css`, `apps/web/src/game/setup/{SetupLayout.tsx,SetupRoles.tsx,setup-layout.css}`, `apps/web/src/game/host/{HostShell.tsx,host-screen.css}`, `apps/web/src/routes/{Home,Lobby,Setup,Reveal,Table,Host,Results}.tsx`, related screen tests / layout e2e, `docs/AI-TASK-BOARD.md`, phone mockups under `docs/werewolf/ux-mockups/`
+- **Avoid:** HOST-01 deploy files; do not overwrite uncommitted ROLE-FIX logic in `Table.tsx` / domain / api day files — presentation/CSS only where those overlap.
+- **Checked:** (in progress)
+
+### ROLE-FIX — Role-power gaps from the audit
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Close the three live gaps from the role-powers audit, plus hardening coverage.
+  1. Day discussion mounts `PlayerGrid` when a `PLAYERS` day ability is open (Sniper, Mind Controller). Plain day discussion keeps the static UX-10 seat cards.
+  2. OD-33 Elder wolf-kill penalty: village votes weight 1 and one phantom weight against the village plurality in `tallyDay`; day close detects a same-round night Elder death with `WOLF_KILL`.
+  3. Trapper `ATTACKER_IDS` private table note.
+  4. Shieldbearer night fixture, Assassin mark / Lone Wolf victory tests, Immortal day-vote and Poisoner day-poison API tests.
+- **Files:** `apps/web/src/routes/Table.tsx`, `apps/web/src/game/components/tableNotes.ts`, `apps/web/test/screens/{action-panel,table-notes}.test.ts`, `packages/domain/src/day/tally.ts`, `packages/domain/test/{day-tally,victory,night-expanded}.test.ts`, `packages/domain/test/support/night.ts`, `apps/api/src/day/day-resolution.service.ts`, `apps/api/test/day-effects.integration.test.ts`, `docs/AI-TASK-BOARD.md`
+- **Checked:** `pnpm --filter @warewolf/{domain,web,api} typecheck`. Domain day-tally/victory/night-expanded 75. Web action-panel + table-notes 13. `pnpm test:integration` 299/299.
+- **Avoid:** HOST-01 deploy files.
 
 ### UX-MOBILE — Mobile-native full journey
 
