@@ -12,7 +12,8 @@
     "test": "vitest run",
     "e2e": "playwright test",
     "android:sync": "pnpm build && cap sync android",
-    "android:apk": "pnpm android:sync && cd android && ./gradlew assembleDebug"
+    "android:apk": "pnpm android:sync && cd android && ./gradlew assembleDebug",
+    "e2e:live": "playwright test --config playwright.live.config.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.6.0",
@@ -40,6 +41,7 @@
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.3.0",
+    "@warewolf/e2e-tools": "workspace:^",
     "happy-dom": "^21.0.4",
     "tailwindcss": "^4.3.5",
     "vite": "^8.3.6",

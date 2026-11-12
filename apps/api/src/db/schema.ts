@@ -481,6 +481,8 @@ export const investigationRecords = pgTable(
     targetPlayerIds: uuid('target_player_ids').array().notNull(),
     result: jsonb('result').$type<Record<string, unknown>>().notNull(),
     published: boolean('published').notNull().default(false),
+    /** The day the holder published it (GAP-01). Null while private. */
+    publishedRound: integer('published_round'),
     createdAt: timestamptz('created_at').notNull().defaultNow(),
   },
   (t) => [

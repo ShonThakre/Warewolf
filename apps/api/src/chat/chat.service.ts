@@ -2,8 +2,8 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { chatMessageSchema, chatViewSchema, type ChatMessage, type ChatView } from '@warewolf/contracts';
 import { CHAT_RATE_LIMIT, CHAT_RATE_WINDOW_MS, chatRefusal, type ChatRefusal } from '@warewolf/domain';
 import { and, asc, eq } from 'drizzle-orm';
-import { DATABASE, type Database } from '../db/database.js';
-import { chatMessages, chatMutes, gamePlayers, games, type ChatMessageRow, type GamePlayerRow } from '../db/schema.js';
+import { DATABASE, type Database, type Transaction } from '../db/database.js';
+import { chatMessages, chatMutes, gamePlayers, games, resolutionRuns, type ChatMessageRow, type GamePlayerRow } from '../db/schema.js';
 import { type ApiError, errors } from '../http/api-error.js';
 import { logLine } from '../http/log-line.js';
 import { SlidingWindow } from '../http/rate-limit.js';
@@ -32,12 +32,13 @@ export class ChatService {
 
   /** GET /games/:gameId/chat. Any seat in the game, alive or dead. */
   async view(gameId: string, seat: GamePlayerRow): Promise<ChatView> {
-    const [game] = await this.db.select({ status: games.status, phase: games.phase }).from(games).where(eq(games.id, gameId));
+    const [game] = await this.db.select({ status: games.status, phase: games.phase, roundNumber: games.roundNumber }).from(games).where(eq(games.id, gameId));
     if (!game) throw errors.notFound();
+    const silenced = await silencedThisDay(this.db, gameId, game.roundNumber);
     const rows = await this.db.select().from(chatMessages).where(eq(chatMessages.gameId, gameId)).orderBy(asc(chatMessages.seq));
     const muted = await this.db.select({ playerId: chatMutes.playerId }).from(chatMutes).where(eq(chatMutes.gameId, gameId)).orderBy(asc(chatMutes.createdAt));
     const mutedPlayerIds = muted.map((m) => m.playerId);
-    const refusal = chatRefusal({ status: game.status, phase: game.phase, lifeStatus: seat.lifeStatus, muted: mutedPlayerIds.includes(seat.id) });
+    const refusal = chatRefusal({ status: game.status, phase: game.phase, lifeStatus: seat.lifeStatus, muted: mutedPlayerIds.includes(seat.id) || silenced.has(seat.id) });
     return chatViewSchema.parse({
       messages: rows.map(toMessage),
       mutedPlayerIds,
@@ -65,7 +66,9 @@ export class ChatService {
         .select({ playerId: chatMutes.playerId })
         .from(chatMutes)
         .where(and(eq(chatMutes.gameId, gameId), eq(chatMutes.playerId, you.id)));
-      const refusal = chatRefusal({ status: game.status, phase: game.phase, lifeStatus: you.lifeStatus, muted: mute !== undefined });
+      // GAP-03: the Alchemist's silence holds for the day after its night, like a host mute.
+      const silenced = await silencedThisDay(tx, gameId, game.roundNumber);
+      const refusal = chatRefusal({ status: game.status, phase: game.phase, lifeStatus: you.lifeStatus, muted: mute !== undefined || silenced.has(you.id) });
       if (refusal) throw refusalError(refusal);
 
       const [inserted] = await tx
@@ -156,4 +159,19 @@ function refusalError(refusal: ChatRefusal): ApiError {
     case 'MUTED':
       return errors.chatMuted();
   }
+}
+
+/**
+ * Seats the Alchemist silenced in this round's night. A day belongs to the
+ * round of the night before it, so the silence ends when the next night opens.
+ */
+async function silencedThisDay(db: Pick<Database, 'select'> | Pick<Transaction, 'select'>, gameId: string, round: number): Promise<ReadonlySet<string>> {
+  if (round < 1) return new Set();
+  const [run] = await db
+    .select({ result: resolutionRuns.result })
+    .from(resolutionRuns)
+    .where(and(eq(resolutionRuns.gameId, gameId), eq(resolutionRuns.roundNumber, round), eq(resolutionRuns.phaseKind, 'NIGHT')))
+    .limit(1);
+  const silenced = (run?.result as { publicFacts?: { silenced?: unknown } } | undefined)?.publicFacts?.silenced;
+  return new Set(Array.isArray(silenced) ? silenced.filter((id): id is string => typeof id === 'string') : []);
 }

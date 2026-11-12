@@ -120,6 +120,7 @@ Severity:
 | `ABILITY_LIMIT_INVALID` | Negative charges, cooldown below 0, or uses per night above uses per game |
 | `VOTE_WEIGHT_DOMINANT` | One seat's weight is at least half the player count |
 | `NO_TERMINAL_PATH` | Voting is off and no kill or parity path exists |
+| `NO_WOLVES` | Roles are chosen but none is wolf-aligned (Pack Wolf, Alpha Wolf, Lone Wolf, or a role configured into the pack). The Village would win before the first night |
 | `CONTRADICTION` | Guard cannot block wolf kill, or infection is both sealed and uncapped |
 | `PACK_DEPENDENCY` | Healer Assistant seated and Doctor count is 0. Recommended error |
 | `DECISION_UNSET` | A blocking decision for the selected mode has no acknowledgement |
@@ -129,7 +130,7 @@ Severity:
 | Code | Condition |
 |---|---|
 | `WOLF_RATIO_HIGH` | Starting pack divided by players is above 0.30 |
-| `WOLF_RATIO_LOW` | Starting pack divided by players is below 0.10 and infection is off |
+| `WOLF_RATIO_LOW` | Starting pack divided by players is above 0 and below 0.10, and infection is off. With no wolf at all, `NO_WOLVES` applies instead |
 | `INFECTION_CAN_REACH_PARITY` | `wolfCap >= ceil(playerCount / 2)` |
 | `INFO_ROLE_DENSITY` | Information roles exceed `max(2, floor(players / 8))` |
 | `PROTECTION_DENSITY` | More than 3 protection roles when players are 15 or fewer |

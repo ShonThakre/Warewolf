@@ -1,5 +1,5 @@
 import type { SeatCredentials } from '@warewolf/contracts';
-import { cleanup, fireEvent, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { roleLabel } from '../../src/game/components/resultsCopy';
 import { cancelledResultsFixture, finishedResultsFixture } from '../../src/game/fixtures/results';
@@ -58,6 +58,14 @@ describe('results screen', () => {
     expect(rail.textContent).not.toMatch(/alpha_wolf|infected_wolf|ballot/i);
     expect(screen.getByRole('link', { name: 'Play again' })).toBeTruthy();
     expect(screen.queryByRole('textbox', { name: 'Message' })).toBeNull();
+  });
+
+  it('Play again clears the finished seat and goes home (GAP-04)', async () => {
+    const view = renderApp(`/game/${GAME}/results`, { seat: host, fetchFn: endedFetch('FINISHED', finishedResultsFixture()) });
+    fireEvent.click(await screen.findByRole('link', { name: 'Play again' }));
+    await waitFor(() => expect(view.router.state.location.pathname).toBe('/'));
+    expect(view.storage.load()).toBeNull();
+    expect(screen.queryByText(/return to your seat/i)).toBeNull();
   });
 
   it('shows a draw without a team win', async () => {

@@ -1,0 +1,23 @@
+{
+  "name": "@warewolf/e2e-tools",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Black-box game driver: plays whole games through the HTTP API for the end-to-end suites.",
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "default": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "socket.io-client": "^4.8.4"
+  },
+  "devDependencies": {
+    "@warewolf/contracts": "workspace:^"
+  }
+}

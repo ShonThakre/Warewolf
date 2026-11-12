@@ -14,6 +14,15 @@ const CATEGORY: Record<string, string> = {
   VILLAGE_BASIC: 'a Villager',
 };
 
+const CHAOS_WORDS: Record<string, string> = {
+  ABILITY_DISABLED: 'one player loses their ability',
+  PROTECTIONS_OFF: 'protections fail',
+  NO_KILLS: 'no one can be killed',
+  NO_VOTE: 'nobody votes',
+  SWAP_VOTES: 'two players swap votes',
+  DOUBLE_VOTE: 'one vote counts twice',
+};
+
 type NameOf = (playerId: string) => string;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -54,6 +63,42 @@ export function tableNote(event: GameEvent, youId: string, nameOf: NameOf): stri
   if (event.type === 'ACTION_BLOCKED') {
     if (text(payload['actorId'])) return null;
     return 'Your action was blocked.';
+  }
+  if (event.type === 'RESULT_PUBLISHED') {
+    // GAP-01: a Seeker read a stored result out to the room.
+    const publisher = text(payload['publisherPlayerId']);
+    const fact = investigation(payload, nameOf);
+    if (!publisher || !fact) return null;
+    return `${publisher === youId ? 'You' : nameOf(publisher)} published a result: ${fact}`;
+  }
+  // GAP-03: Ultimate 20 outcomes. A host copy carries `actorPlayerId` and stays off this surface.
+  if (text(payload['actorPlayerId'])) {
+    if (['GHOST_HINT', 'PLAYER_RETURNED', 'SILENCED', 'REWIND_RESULT', 'ABILITY_COPIED', 'CHAOS_EVENT'].includes(event.type)) return null;
+  }
+  if (event.type === 'GHOST_HINT') {
+    const hint = text(payload['text']);
+    return hint ? `A hint from beyond: “${hint}”` : null;
+  }
+  if (event.type === 'PLAYER_RETURNED') {
+    const id = text(payload['playerId']);
+    if (!id) return null;
+    return id === youId
+      ? 'You returned for one night. You cannot vote or use an ability.'
+      : `${nameOf(id)} returned for one night. They cannot vote or use an ability.`;
+  }
+  if (event.type === 'SILENCED') {
+    if (text(payload['playerId'])) return null;
+    return 'You are silenced today and cannot post in the discussion.';
+  }
+  if (event.type === 'REWIND_RESULT') {
+    return payload['cancelled'] === true ? 'Your rewind cancelled an action from last night.' : 'Your rewind found nothing to cancel.';
+  }
+  if (event.type === 'ABILITY_COPIED') {
+    return `You copied the ability of ${names(payload['targetPlayerIds'], nameOf)}.`;
+  }
+  if (event.type === 'CHAOS_EVENT') {
+    const kind = text(payload['kind']);
+    return kind ? `Your Chaos event: ${CHAOS_WORDS[kind] ?? 'something strange happens'}.` : null;
   }
   if (event.type === 'PLAYER_ELIMINATED') {
     const id = text(payload['playerId']);

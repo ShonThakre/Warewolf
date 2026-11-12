@@ -70,6 +70,17 @@ Keep the service at one instance. Phase deadlines are in-process timers and Sock
 
 To try the same image locally: `docker build -t warewolf .`, then run it with `-p 3000:3000 -e DATABASE_URL=...`. `compose.prod.yaml`, the two-container nginx stack, still works as before.
 
+The Blueprint sets `CORS_ORIGINS=https://localhost` so the Android APK, whose WebView has that origin, may call the API. If the service was created before that line, add the variable under the service's **Environment** in the dashboard.
+
+## Playing full screen on a phone
+
+The web client is installable (`apps/web/public/manifest.webmanifest`). Opened from the home screen it runs without browser bars.
+
+- **iPhone or iPad (Safari):** open the game, tap **Share**, then **Add to Home Screen**. Safari cannot hide its bars inside a normal tab.
+- **Android (Chrome):** open the game, then the menu, then **Add to Home screen** or **Install app**. It opens full screen, without the status bar.
+
+Rotation stays free (OD-71). Icons come from `art/ui/app_icon.png`; `sh apps/web/scripts/android-icons.sh` regenerates them and the APK launcher icons.
+
 ## Android debug APK
 
 The APK is the same web client in a WebView (OD-71). A phone cannot reach `localhost` on your computer, so the build names the API by its address on your network.
@@ -78,6 +89,8 @@ The APK is the same web client in a WebView (OD-71). A phone cannot reach `local
 2. Start the API so the WebView may call it: `CORS_ORIGINS=http://localhost pnpm dev:api` for a LAN debug build, or `https://localhost` when the API is served over HTTPS.
 3. Build: `JAVA_HOME=/opt/homebrew/opt/openjdk@21 VITE_API_ORIGIN=http://<your-lan-ip>:3000 pnpm --filter @warewolf/web android:apk`.
 4. Install with `adb install -r apps/web/android/app/build/outputs/apk/debug/app-debug.apk`, or copy the file to the phone.
+
+To build an APK that plays against the deployed game from anywhere, use the Render origin instead, with no API to start: `JAVA_HOME=/opt/homebrew/opt/openjdk@21 VITE_API_ORIGIN=https://warewolf-hi18.onrender.com pnpm --filter @warewolf/web android:apk`. Build it from the commit Render runs, so the client and the API match. The WebView origin is then `https://localhost`, which `render.yaml` lists in `CORS_ORIGINS`.
 
 Plain HTTP works only in debug builds. A release build needs an `https://` origin and a keystore kept outside the repository.
 

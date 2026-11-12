@@ -364,6 +364,7 @@ describe('night_actions', () => {
 
 describe('0002_avatars on existing data', () => {
   it('gives seats that predate avatars their seat number as avatar', async () => {
+    expect(await rollbackLast(pool)).toBe('0014_published_results');
     expect(await rollbackLast(pool)).toBe('0013_ultimate_play');
     expect(await rollbackLast(pool)).toBe('0012_day_tallies');
     expect(await tableExists('day_tallies')).toBe(false);
@@ -395,6 +396,7 @@ describe('0002_avatars on existing data', () => {
 
 describe('rollback', () => {
   it('reverts one migration at a time, then rolls forward again', async () => {
+    expect(await rollbackLast(pool)).toBe('0014_published_results');
     expect(await rollbackLast(pool)).toBe('0013_ultimate_play');
     expect(await rollbackLast(pool)).toBe('0012_day_tallies');
     expect(await tableExists('day_tallies')).toBe(false);

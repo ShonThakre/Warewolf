@@ -18,6 +18,11 @@ services:
     autoDeployTrigger: commit
     healthCheckPath: /api/v1/health/ready
     envVars:
+      # The Android APK's WebView origin (WW-1605). An https API origin keeps
+      # Capacitor's default https://localhost scheme. The browser client is
+      # same-origin and needs no entry.
+      - key: CORS_ORIGINS
+        value: https://localhost
       - key: DATABASE_URL
         fromDatabase:
           name: warewolf-db

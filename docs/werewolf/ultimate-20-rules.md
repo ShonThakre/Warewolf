@@ -107,4 +107,11 @@ The pack id is `ultimate-20`. The host cannot edit the roster or the locked rule
 | OD-83 | When "final five" is checked. The engine checks on every victory evaluation, and a recorded success stays recorded. |
 | OD-84 | A team win against individuals. A team win ends the game and keeps individual records. |
 
-Also open: who may be marked, who sees a Ghost hint, whether a returned player can speak, and what a Servant may say in public beyond the guide's day behavior. There is no second chat channel (OD-72). Private coordination is the teammate list and the shared night choice.
+Also open: who may be marked, and what a Servant may say in public beyond the guide's day behavior. There is no second chat channel (OD-72). Private coordination is the teammate list and the shared night choice.
+
+Engine defaults added with GAP-03 (12 November 2026), which a product decision can change:
+
+- **Ghost hint:** public. The morning after the Ghost writes it, every seat reads the text (`GHOST_HINT`) without the sender. The host also sees who wrote it.
+- **Returned player:** public. The room is told who came back (`PLAYER_RETURNED`). The seat stays dead, so it cannot vote, act, or post in the discussion.
+- **Alchemist silence:** the target alone is told (`SILENCED`), and cannot post for the day after that night. The refusal is the same as a host mute. The room is not told.
+- **Time Wizard, Mimic, and Chaos Demon:** each learns the outcome of their own action (`REWIND_RESULT`, `ABILITY_COPIED`, `CHAOS_EVENT`). The room is not told the Chaos kind.

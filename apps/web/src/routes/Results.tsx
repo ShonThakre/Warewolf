@@ -8,7 +8,9 @@ import { VictoryBanner } from '../game/components/VictoryBanner';
 import { bannerOutcome, cancelReasonCopy, resultsReason, resultsTitle, resultStats } from '../game/components/resultsCopy';
 import type { SceneId } from '../assets/art';
 import { GameLayout } from '../game/layout';
+import { useAppDispatch } from '../app/hooks';
 import { useSeat } from '../game/state/lobby';
+import { cleared } from '../session/sessionSlice';
 import { useGameState } from '../game/state/phase';
 import { resultsHeadline, useResults } from '../game/state/results';
 import '../game/components/lobby-screen.css';
@@ -33,6 +35,7 @@ export function Results() {
 }
 
 function ResultsScreen() {
+  const dispatch = useAppDispatch();
   const view = useGameState();
   const results = useResults(view.state?.status);
   const navigate = useNavigate();
@@ -118,7 +121,8 @@ function ResultsScreen() {
       action={
         <div className="ww-action">
           <p className="ww-action-copy">{reason}</p>
-          <Button component={Link} to="/" variant="contained" color="secondary">
+          {/* GAP-04: the finished seat is done; a new game starts from a clean tab. */}
+          <Button component={Link} to="/" variant="contained" color="secondary" onClick={() => dispatch(cleared())}>
             Play again
           </Button>
         </div>

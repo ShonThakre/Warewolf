@@ -533,6 +533,8 @@ The debug APK (WW-1602): `VITE_API_ORIGIN` is read by Vite and by `capacitor.con
 
 The seat token (WW-1603): `src/session/nativeStorage.ts` picks Capacitor Preferences inside the APK and sessionStorage on the web. The seat is read once before the first render and written through in order, so a reopened app lands back in its game. A 401 still clears it.
 
+Installable web app and Render APK (WW-1605): the browser client ships a web app manifest (`display: standalone`, `display_override: fullscreen`, no orientation) and an apple-touch-icon, and `index.html` carries the `apple-mobile-web-app-*` tags with a `black-translucent` status bar, so a home-screen launch on iOS or Android has no browser chrome. The shell header already pads for `safe-area-inset-top`. A debug APK built with `VITE_API_ORIGIN=https://warewolf-hi18.onrender.com` calls the deployed service from `https://localhost`, which `render.yaml` lists in `CORS_ORIGINS`. Launcher and home-screen icons are generated from `art/ui/app_icon.png` by `apps/web/scripts/android-icons.sh`.
+
 The activity allows portrait and landscape. The WebView reports safe-area insets. Google Play listing and store screenshots are out of scope. The APK can be built once create, join, lobby, reveal, the game layout, and voting work. It does not wait for every expanded role.
 
 ---

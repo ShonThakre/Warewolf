@@ -11,6 +11,7 @@
     "build": "pnpm -r build",
     "test": "pnpm -r test",
     "test:integration": "pnpm --filter @warewolf/api test:integration",
+    "e2e:api": "pnpm --filter @warewolf/api e2e",
     "typecheck": "pnpm -r typecheck",
     "db:up": "docker compose up -d --wait postgres",
     "db:down": "docker compose down",

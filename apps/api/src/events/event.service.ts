@@ -16,9 +16,10 @@ import {
   roleConversionRecords,
   scheduledEffects,
 } from '../db/schema.js';
+import { publishedResultPayload } from '../day/publications.js';
 import { toDayTally } from '../day/tallies.js';
 import { isVampireTeamRole } from '@warewolf/domain';
-import { nightEventDrafts, type EventAudience, type NightEventSource } from './night-events.js';
+import { nightEventDrafts, type EventAudience, type NightEventSource, type SpecialOutcomes } from './night-events.js';
 
 /** One stored row, ready to emit. The payload is already the audience's copy. */
 export interface StoredEvent {
@@ -97,6 +98,50 @@ export class EventService {
       }
       return stored;
     });
+  }
+
+  /**
+   * GAP-01: one PUBLIC `RESULT_PUBLISHED` row per investigation result a
+   * Seeker made public. Written after the discussion close commits. The
+   * dedupe key makes a retry, or the boot repair, insert nothing twice.
+   */
+  async publishResults(gameId: string): Promise<StoredEvent[]> {
+    return this.db.transaction(async (tx) => {
+      const [game] = await tx.select({ id: games.id }).from(games).where(eq(games.id, gameId)).for('update');
+      if (!game) return [];
+      const rows = await tx
+        .select()
+        .from(investigationRecords)
+        .where(and(eq(investigationRecords.gameId, gameId), eq(investigationRecords.published, true)))
+        .orderBy(asc(investigationRecords.publishedRound), asc(investigationRecords.createdAt));
+      const [maxRow] = await tx
+        .select({ max: sql<number>`coalesce(max(${gameEvents.seq}), 0)::int` })
+        .from(gameEvents)
+        .where(eq(gameEvents.gameId, gameId));
+      let seq = Number(maxRow?.max ?? 0);
+      const stored: StoredEvent[] = [];
+      for (const row of rows) {
+        const payload = publishedResultPayload(row);
+        const inserted = await tx
+          .insert(gameEvents)
+          .values({ gameId, seq: seq + 1, type: 'RESULT_PUBLISHED', audience: 'PUBLIC', recipientPlayerId: null, payload, dedupeKey: `published:${row.id}` })
+          .onConflictDoNothing({ target: [gameEvents.gameId, gameEvents.dedupeKey] })
+          .returning({ seq: gameEvents.seq });
+        const done = inserted[0];
+        if (!done) continue;
+        seq = done.seq;
+        stored.push({ gameId, seq: done.seq, type: 'RESULT_PUBLISHED', audience: 'PUBLIC', recipientPlayerId: null, payload });
+      }
+      return stored;
+    });
+  }
+
+  /** Boot repair: every game with a published result. */
+  async republishResults(): Promise<StoredEvent[]> {
+    const rows = await this.db.selectDistinct({ gameId: investigationRecords.gameId }).from(investigationRecords).where(eq(investigationRecords.published, true));
+    const fresh: StoredEvent[] = [];
+    for (const { gameId } of rows) fresh.push(...(await this.publishResults(gameId)));
+    return fresh;
   }
 
   /** Boot repair: every game with a tally row that has no event yet. */
@@ -326,8 +371,25 @@ export class EventService {
         revealedPublicly: row.revealedPublicly,
       })),
       blocks,
+      ...specialOf(result),
     };
   }
+}
+
+/** GAP-03: the Ultimate 20 outcomes the resolver stored on `resolution_runs.result`. */
+function specialOf(result: unknown): { special?: SpecialOutcomes } {
+  const r = (result ?? {}) as Partial<Record<keyof SpecialOutcomes, unknown>>;
+  const list = <T>(value: unknown): T[] => (Array.isArray(value) ? (value as T[]) : []);
+  const special: SpecialOutcomes = {
+    hints: list(r.hints),
+    silences: list(r.silences),
+    revivals: list(r.revivals),
+    rewinds: list(r.rewinds),
+    copies: list(r.copies),
+    chaosEvent: (r.chaosEvent as SpecialOutcomes['chaosEvent'] | undefined) ?? null,
+  };
+  const empty = !special.chaosEvent && [special.hints, special.silences, special.revivals, special.rewinds, special.copies].every((l) => l.length === 0);
+  return empty ? {} : { special };
 }
 
 function blocksOf(result: unknown): NightEventSource['blocks'] {

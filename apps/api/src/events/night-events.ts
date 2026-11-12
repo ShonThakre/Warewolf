@@ -55,6 +55,17 @@ export interface NightEventSource {
     readonly informTarget: boolean;
     readonly cancelledActionIds: readonly string[];
   }[];
+  /** Ultimate 20 outcomes read from the stored resolver result (GAP-03). Absent for a night that had none. */
+  readonly special?: SpecialOutcomes;
+}
+
+export interface SpecialOutcomes {
+  readonly hints: readonly { readonly actionId: string; readonly actorId: string; readonly text: string }[];
+  readonly silences: readonly { readonly actionId: string; readonly actorId: string; readonly targetId: string }[];
+  readonly revivals: readonly { readonly actionId: string; readonly actorId: string; readonly targetId: string }[];
+  readonly rewinds: readonly { readonly actionId: string; readonly actorId: string; readonly targetId: string; readonly removedActionIds: readonly string[] }[];
+  readonly copies: readonly { readonly actionId: string; readonly actorId: string; readonly targetId: string; readonly abilityIds: readonly string[] }[];
+  readonly chaosEvent: { readonly actorId: string; readonly kind: string; readonly playerIds: readonly string[]; readonly success: boolean | null } | null;
 }
 
 const byId = (a: { readonly actionId?: string; readonly playerId?: string }, b: { readonly actionId?: string; readonly playerId?: string }) =>
@@ -194,5 +205,72 @@ export function nightEventDrafts(source: NightEventSource): GameEventDraft[] {
     });
   }
 
+  if (source.special) drafts.push(...specialDrafts(round, source.special));
+
+  return drafts;
+}
+
+/**
+ * GAP-03. A Ghost hint is public text with no sender (ultimate-20-rules.md:
+ * "an indirect secret hint the next day"). A Necromancer's return is public,
+ * since the room sees the player back. A silence is told to its target only.
+ * A rewind, a copy, and a Chaos event are told to the player who caused them.
+ * The host gets every one with its actor.
+ */
+function specialDrafts(round: number, special: SpecialOutcomes): GameEventDraft[] {
+  const drafts: GameEventDraft[] = [];
+  const host = (type: string, key: string, payload: Record<string, unknown>): GameEventDraft => ({
+    type,
+    audience: 'HOST',
+    recipientPlayerId: null,
+    payload: { roundNumber: round, ...payload },
+    dedupeKey: `night:${round}:${key}:host`,
+  });
+  const player = (type: string, key: string, recipient: string, payload: Record<string, unknown>): GameEventDraft => ({
+    type,
+    audience: 'PLAYER',
+    recipientPlayerId: recipient,
+    payload: { roundNumber: round, ...payload },
+    dedupeKey: `night:${round}:${key}:player`,
+  });
+
+  for (const hint of [...special.hints].sort(byId)) {
+    drafts.push({
+      type: 'GHOST_HINT',
+      audience: 'PUBLIC',
+      recipientPlayerId: null,
+      payload: { roundNumber: round, text: hint.text },
+      dedupeKey: `night:${round}:hint:${hint.actionId}`,
+    });
+    drafts.push(host('GHOST_HINT', `hint:${hint.actionId}`, { text: hint.text, actorPlayerId: hint.actorId }));
+  }
+  for (const revival of [...special.revivals].sort(byId)) {
+    drafts.push({
+      type: 'PLAYER_RETURNED',
+      audience: 'PUBLIC',
+      recipientPlayerId: null,
+      payload: { roundNumber: round, playerId: revival.targetId },
+      dedupeKey: `night:${round}:returned:${revival.actionId}`,
+    });
+    drafts.push(host('PLAYER_RETURNED', `returned:${revival.actionId}`, { playerId: revival.targetId, actorPlayerId: revival.actorId }));
+  }
+  for (const silence of [...special.silences].sort(byId)) {
+    drafts.push(player('SILENCED', `silence:${silence.actionId}`, silence.targetId, {}));
+    drafts.push(host('SILENCED', `silence:${silence.actionId}`, { playerId: silence.targetId, actorPlayerId: silence.actorId }));
+  }
+  for (const rewind of [...special.rewinds].sort(byId)) {
+    const cancelled = rewind.removedActionIds.length > 0;
+    drafts.push(player('REWIND_RESULT', `rewind:${rewind.actionId}`, rewind.actorId, { targetPlayerIds: [rewind.targetId], cancelled }));
+    drafts.push(host('REWIND_RESULT', `rewind:${rewind.actionId}`, { actorPlayerId: rewind.actorId, targetPlayerIds: [rewind.targetId], removedActionIds: [...rewind.removedActionIds] }));
+  }
+  for (const copy of [...special.copies].sort(byId)) {
+    drafts.push(player('ABILITY_COPIED', `copy:${copy.actionId}`, copy.actorId, { targetPlayerIds: [copy.targetId], abilityIds: [...copy.abilityIds] }));
+    drafts.push(host('ABILITY_COPIED', `copy:${copy.actionId}`, { actorPlayerId: copy.actorId, targetPlayerIds: [copy.targetId], abilityIds: [...copy.abilityIds] }));
+  }
+  if (special.chaosEvent) {
+    const chaos = special.chaosEvent;
+    drafts.push(player('CHAOS_EVENT', 'chaos', chaos.actorId, { kind: chaos.kind }));
+    drafts.push(host('CHAOS_EVENT', 'chaos', { actorPlayerId: chaos.actorId, kind: chaos.kind, playerIds: [...chaos.playerIds], success: chaos.success }));
+  }
   return drafts;
 }

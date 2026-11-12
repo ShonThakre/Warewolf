@@ -276,6 +276,17 @@ describe('errors', () => {
     expect(errorCodes({ ...infection, infection: { ...infection.infection, announcement: 'PUBLIC' } })).toContain('MODE_RULE_LOCKED');
   });
 
+  it('NO_WOLVES: a setup without a wolf-aligned seat cannot start (BUG-01)', () => {
+    const villagers = custom([{ roleId: 'seeker', count: 1 }, { roleId: 'normal_villager', count: 9 }]);
+    expect(errorCodes(villagers)).toContain('NO_WOLVES');
+    expect(canStart(validateConfiguration(villagers), { acknowledgeWarnings: true })).toBe(false);
+    // A Lone Wolf alone is enough: it is wolf-aligned.
+    expect(errorCodes(custom([{ roleId: 'lone_wolf', count: 1 }, { roleId: 'normal_villager', count: 9 }]))).not.toContain('NO_WOLVES');
+    expect(errorCodes(pack('classic-10'))).not.toContain('NO_WOLVES');
+    // The ratio warning does not repeat what the error says.
+    expect(codes(villagers)).not.toContain('WOLF_RATIO_LOW');
+  });
+
   it('asserts every error and warning code somewhere in this file', () => {
     const source = readFileSync(fileURLToPath(import.meta.url), 'utf8');
     const untested = [...VALIDATION_ERROR_CODES, ...VALIDATION_WARNING_CODES, ...VALIDATION_INFO_CODES].filter(
@@ -420,7 +431,8 @@ describe('packs (WW-204)', () => {
     'expanded-24': { status: 'CONFIRMED', players: 24, errors: [], warnings: [] },
     'expanded-30': { status: 'CONFIRMED', players: 30, errors: [], warnings: ['INFO_ROLE_DENSITY'] },
     'ultimate-20': { status: 'CONFIRMED', players: 20, errors: [], warnings: ['NEUTRAL_DENSITY'] },
-    custom: { status: 'TEMPLATE', players: 10, errors: ['ROLE_COUNT_MISMATCH'], warnings: ['WOLF_RATIO_LOW'] },
+    // An empty template has no wolves yet; the ratio warning waits for a first wolf (BUG-01).
+    custom: { status: 'TEMPLATE', players: 10, errors: ['ROLE_COUNT_MISMATCH'], warnings: [] },
   };
 
   it('covers every pack', () => {

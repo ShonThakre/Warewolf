@@ -1,0 +1,84 @@
+{
+  "presetId": "ultimate-20",
+  "policyId": "random-legal",
+  "seed": 1,
+  "games": 10000,
+  "finished": 10000,
+  "note": "Bot measurements for this seed and policy. Not a human win rate.",
+  "finish": {
+    "VILLAGE": 3936,
+    "WOLF_PACK": 5644,
+    "draw": 420,
+    "other": 0
+  },
+  "individuals": {
+    "fox": 1577,
+    "mind_controller": 2306,
+    "vampire": 1691,
+    "normal_villager": 797,
+    "joker": 331,
+    "guardian": 149,
+    "ghost": 164,
+    "double_agent": 161,
+    "chaos_demon": 163,
+    "alchemist": 171,
+    "oracle": 146,
+    "necromancer": 154,
+    "time_wizard": 154,
+    "mimic": 169
+  },
+  "rounds": {
+    "mean": 8.294,
+    "median": 8
+  },
+  "deaths": {
+    "nightMean": 7.4667,
+    "dayMean": 7.1317
+  },
+  "infectionSuccesses": {
+    "0": 2814,
+    "1": 3280,
+    "2": 2586,
+    "3": 1139,
+    "4": 181
+  },
+  "survivalByStartingRole": {
+    "joker": 0.2477,
+    "guardian": 0.2704,
+    "double_agent": 0.2617,
+    "mind_controller": 0.2456,
+    "normal_villager": 0.26696,
+    "alchemist": 0.2893,
+    "vampire": 0.3184,
+    "shadow_wolf": 0.2654,
+    "chaos_demon": 0.2445,
+    "ghost": 0.2765,
+    "oracle": 0.2712,
+    "fox": 0.2452,
+    "time_wizard": 0.2638,
+    "mimic": 0.2649,
+    "alpha_wolf": 0.3591,
+    "necromancer": 0.2431
+  },
+  "abilityUseRate": {
+    "guardian_protect": 4.3414,
+    "alchemist_heal": 1.0848,
+    "alchemist_poison": 1.0834,
+    "alchemist_silence": 1.0801,
+    "vampire_kill": 2.5238,
+    "shadow_block": 5.6557,
+    "oracle_alignment": 4.2251,
+    "fox_investigate": 4.4987,
+    "time_rewind": 1.0391,
+    "alpha_u20_kill": 2.7694,
+    "necro_revive": 3.2516,
+    "chaos_event": 2.4926,
+    "alpha_u20_infect": 2.7274,
+    "vampire_mark": 2.5187,
+    "infected_kill": 3.7034,
+    "mimic_copy": 0.8244,
+    "servant_kill": 1.6577,
+    "servant_mark": 1.6514
+  },
+  "doctorNegatedFraction": 0
+}

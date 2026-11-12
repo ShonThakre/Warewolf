@@ -1,0 +1,38 @@
+{
+  "presetId": "classic-10",
+  "policyId": "random-legal",
+  "seed": 1,
+  "games": 10000,
+  "finished": 10000,
+  "note": "Bot measurements for this seed and policy. Not a human win rate.",
+  "finish": {
+    "VILLAGE": 3272,
+    "WOLF_PACK": 6728,
+    "draw": 0,
+    "other": 0
+  },
+  "individuals": {},
+  "rounds": {
+    "mean": 5.0412,
+    "median": 5
+  },
+  "deaths": {
+    "nightMean": 2.7012,
+    "dayMean": 4.2118
+  },
+  "infectionSuccesses": {
+    "0": 10000
+  },
+  "survivalByStartingRole": {
+    "normal_villager": 0.26621666666666666,
+    "doctor": 0.2708,
+    "seeker": 0.2643,
+    "pack_wolf": 0.4773
+  },
+  "abilityUseRate": {
+    "seeker_investigate": 3.0514,
+    "pack_kill": 7.0392,
+    "doctor_save": 3.1306
+  },
+  "doctorNegatedFraction": 0.08492835123141028
+}

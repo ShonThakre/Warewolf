@@ -1,4 +1,4 @@
-import { DEFAULT_CATALOG, effectiveStatus, type RoleCatalog } from '../catalog/catalog.js';
+import { DEFAULT_CATALOG, effectiveStatus, isWolfAligned, type RoleCatalog } from '../catalog/catalog.js';
 import type { AbilityDefinition } from '../catalog/types.js';
 import { FACTIONS, type Faction } from '../factions.js';
 import { BLOCKING_DECISIONS } from './decisions.js';
@@ -34,6 +34,7 @@ export const VALIDATION_ERROR_CODES = [
   'OVERRIDE_INVALID',
   'VOTE_WEIGHT_DOMINANT',
   'NO_TERMINAL_PATH',
+  'NO_WOLVES',
   'CONTRADICTION',
   'PACK_DEPENDENCY',
   'PACING_TIMERS_MISSING',
@@ -277,6 +278,11 @@ export function validateConfiguration(config: GameConfiguration, catalog: RoleCa
     }
   }
 
+  // BUG-01: with no wolf-aligned seat, the Village has already won before the first night.
+  if (selected > 0 && seatsWhere((s) => isWolfAligned(s.resolved.role, s.resolved.faction)) === 0) {
+    add('NO_WOLVES', 'The game needs at least one wolf. Add a Pack Wolf, an Alpha Wolf, or a Lone Wolf.');
+  }
+
   const repeatingKill = seated.some((s) => hasAbility(s, (a) => a.capability === 'KILL' && a.usesPerGame === null));
   if (!config.voting.enabled && !repeatingKill && !infection.enabled) {
     add('NO_TERMINAL_PATH', 'With voting off, the game needs a repeating kill or infection to be able to end.');
@@ -342,7 +348,7 @@ export function validateConfiguration(config: GameConfiguration, catalog: RoleCa
   if (n > 0) {
     const ratio = startingPack / n;
     if (ratio > 0.3) add('WOLF_RATIO_HIGH', `${startingPack} starting wolves of ${n} players is above 30 percent.`);
-    if (ratio < 0.1 && !infection.enabled) add('WOLF_RATIO_LOW', `${startingPack} starting wolves of ${n} players is below 10 percent, with no infection to grow the pack.`);
+    if (startingPack > 0 && ratio < 0.1 && !infection.enabled) add('WOLF_RATIO_LOW', `${startingPack} starting wolves of ${n} players is below 10 percent, with no infection to grow the pack.`);
   }
   if (infection.enabled && wolfCap >= Math.ceil(n / 2)) {
     add('INFECTION_CAN_REACH_PARITY', `A wolf cap of ${wolfCap} lets infection alone reach parity with ${n} players.`);

@@ -21,6 +21,7 @@ import { logLine } from '../http/log-line.js';
 import { PlayGateway } from '../realtime/play.gateway.js';
 import { LobbyService } from '../lobby/lobby.service.js';
 import { hostDecisionFor } from '../night/night-input.js';
+import { publishLockedReveals } from '../day/publications.js';
 import { PHASE_RESOLVERS, type PhaseResolvers } from './resolution.js';
 import { PHASE_CLOCK, PHASE_SCHEDULER, type Clock, type PhaseScheduler } from './timing.js';
 
@@ -30,7 +31,7 @@ export const TIMED_CLOSE_RETRY_MS = 5_000;
 type TimedClose =
   | { readonly kind: 'IDLE' }
   | { readonly kind: 'EARLY'; readonly at: Date }
-  | { readonly kind: 'CLOSED'; readonly game: GameRow; readonly nightRound: number | null; readonly ballotRound: number | null };
+  | { readonly kind: 'CLOSED'; readonly game: GameRow; readonly nightRound: number | null; readonly ballotRound: number | null; readonly published: boolean };
 
 function describeClose(step: CloseStep): PhaseClose {
   switch (step.kind) {
@@ -87,6 +88,11 @@ export class PhaseService implements OnApplicationBootstrap {
       this.play.emitStored(await this.events.republishNights());
     } catch (error) {
       this.logger.error(`night event recovery failed: ${error instanceof Error ? error.message : String(error)}`);
+    }
+    try {
+      this.play.emitStored(await this.events.republishResults());
+    } catch (error) {
+      this.logger.error(`published result recovery failed: ${error instanceof Error ? error.message : String(error)}`);
     }
     try {
       this.play.emitStored(await this.events.republishTallies());
@@ -153,6 +159,7 @@ export class PhaseService implements OnApplicationBootstrap {
     });
     this.track(closed.game);
     await this.publishNight(closed.game.id, closed.nightRound);
+    await this.publishResults(closed.game.id, closed.published);
     await this.publishTallies(closed.game.id, closed.ballotRound);
     await this.publishPhase(closed.game);
     return this.state(gameId, seat);
@@ -177,6 +184,7 @@ export class PhaseService implements OnApplicationBootstrap {
     if (outcome.kind === 'CLOSED') {
       this.track(outcome.game);
       await this.publishNight(outcome.game.id, outcome.nightRound);
+      await this.publishResults(outcome.game.id, outcome.published);
       await this.publishTallies(outcome.game.id, outcome.ballotRound);
       await this.publishPhase(outcome.game);
     }
@@ -187,7 +195,11 @@ export class PhaseService implements OnApplicationBootstrap {
    * needs, then writes the next phase, round, and deadline with the version
    * guard. The caller has already checked who may close and when.
    */
-  private async closeLocked(tx: Transaction, game: GameRow, by: 'HOST' | 'TIMER'): Promise<{ game: GameRow; nightRound: number | null; ballotRound: number | null }> {
+  private async closeLocked(
+    tx: Transaction,
+    game: GameRow,
+    by: 'HOST' | 'TIMER',
+  ): Promise<{ game: GameRow; nightRound: number | null; ballotRound: number | null; published: boolean }> {
     if (!isClosable(game.phase)) throw errors.phaseConflict();
     // OD-01: host confirm ends only with a chosen target or an explicit "no kill" (WW-803).
     if (game.phase === 'NIGHT_HOST_CONFIRM' && !(await hostDecisionFor(tx, game.id, game.roundNumber))) throw errors.killTargetRequired();
@@ -206,6 +218,8 @@ export class PhaseService implements OnApplicationBootstrap {
           ),
         );
     }
+    // GAP-01: a Seeker's reveal goes public when discussion closes, before any day shot or ballot.
+    const published = game.phase === 'DAY_DISCUSSION' && (await publishLockedReveals(tx, game)) > 0;
     const step = planClose(game.phase, rules);
     const nightRound = step.kind === 'RESOLVE_NIGHT' ? game.roundNumber : null;
     // A closed ballot has a public tally to publish after commit (OD-85).
@@ -232,7 +246,7 @@ export class PhaseService implements OnApplicationBootstrap {
     if (!updated) throw errors.phaseConflict();
 
     this.logger.log(logLine('phase', { game: game.id, round: updated.roundNumber, from: game.phase, to: updated.phase, by }));
-    return { game: updated, nightRound, ballotRound };
+    return { game: updated, nightRound, ballotRound, published };
   }
 
   /** The public phase signal. A failure here does not roll the close back. */
@@ -251,6 +265,16 @@ export class PhaseService implements OnApplicationBootstrap {
       this.play.emitStored(await this.events.publishTallies(gameId, round));
     } catch (error) {
       this.logger.error(`tally events failed game=${gameId} round=${round}: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  }
+
+  /** A published Seeker result (GAP-01). A failure here does not roll the close back; boot recovery repairs it. */
+  private async publishResults(gameId: string, published: boolean): Promise<void> {
+    if (!published) return;
+    try {
+      this.play.emitStored(await this.events.publishResults(gameId));
+    } catch (error) {
+      this.logger.error(`published result events failed game=${gameId}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 

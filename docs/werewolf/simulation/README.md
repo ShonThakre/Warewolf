@@ -36,3 +36,23 @@ Reproduce one row: `pnpm --filter @warewolf/domain simulate -- --games 10000 --s
 - Human information use beyond the saving Doctor: a Seeker who acts on a result, wolves who coordinate.
 - Talk, bluffing, and the host's kill choice beyond picking among the pack's submissions.
 - Any preset but `infection-core`.
+
+## Other presets, 10,000 games each (GAP-07)
+
+Run 12 November 2026 with `random-legal`, seed 1. The raw reports are `classic-10-random-legal-seed1.json`, `chaos-15-random-legal-seed1.json`, and `ultimate-20-random-legal-seed1.json`. As above, these are bot measurements, not human win rates.
+
+| Preset | Village wins | Pack wins | Draws | Mean rounds | Mean deaths (night / day) | Individual wins |
+|---|---|---|---|---|---|---|
+| `classic-10` | 3,272 (32.7%) | 6,728 (67.3%) | 0 | 5.0 | 2.7 / 4.2 | none seated |
+| `chaos-15` | 4,288 (42.9%) | 4,581 (45.8%) | 1,131 (11.3%) | 6.0 | 7.2 / 5.0 | Assassin 7,473, Shapeshifter 2,019, Lone Wolf 763, Jester 161 |
+| `ultimate-20` | 3,936 (39.4%) | 5,644 (56.4%) | 420 (4.2%) | 8.3 | 7.5 / 7.1 | Mind Controller 2,306, Vampire 1,691, Fox 1,577, Joker 331, Chaos Demon 163, Necromancer 154; Servant wins counted under their dealt role, such as Villager 797 |
+
+Every game finished in all three runs.
+
+Reproduce one row: `pnpm --filter @warewolf/domain simulate -- --preset chaos-15 --games 10000 --seed 1 --policy random-legal --out report.json`.
+
+What stands out:
+
+1. **The Assassin wins in about 3 games of 4 in `chaos-15`.** Its mark only has to die, and random play kills many players. That is a property of random bots, but it is large enough to watch in playtests.
+2. **Classic's random village loses two games in three.** Random voting rarely finds two wolves among ten. Human discussion is the village's real tool, so this is the expected baseline, not a balance finding.
+3. **Draws in `chaos-15` (11%)** come from both teams running out while individual roles remain, or from the round cap.

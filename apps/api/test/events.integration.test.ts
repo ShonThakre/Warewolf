@@ -126,7 +126,8 @@ describe('private result events (WW-804)', () => {
     const death = events.find((row) => row.type === 'PLAYER_ELIMINATED')!;
     expect(death.audience).toBe('PUBLIC');
     expect(death.payload).toMatchObject({ playerId: victim!.playerId, roleId: 'normal_villager' });
-    expect(events.filter((row) => row.audience === 'PUBLIC').every((row) => row.type === 'PLAYER_ELIMINATED')).toBe(true);
+    // The night adds no public fact but the death. The phase signal (WW-1103) is public too, and names no one.
+    expect(events.filter((row) => row.audience === 'PUBLIC' && row.type !== 'PHASE_CHANGED').every((row) => row.type === 'PLAYER_ELIMINATED')).toBe(true);
     expect(events.some((row) => row.type === 'NIGHT_PUBLISHED')).toBe(true);
 
     const before = events.length;

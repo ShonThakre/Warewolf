@@ -13,6 +13,7 @@ import type { z } from 'zod';
 import { DATABASE, isUniqueViolation, type Database } from '../db/database.js';
 import { abilityInstances, gamePlayers, games, idempotencyKeys, nightActions, type GamePlayerRow, type NightActionRow } from '../db/schema.js';
 import { ApiError, errors, type FieldIssue } from '../http/api-error.js';
+import { latestUnpublished } from '../day/publications.js';
 import { LobbyService } from '../lobby/lobby.service.js';
 import { loadNightInput } from '../night/night-input.js';
 
@@ -135,6 +136,10 @@ export class ActionService {
         if (!check.ok) {
           if (check.refusal === 'ACTION_TARGET_ILLEGAL') throw errors.actionTargetIllegal([TARGET_MESSAGES[check.reason as TargetProblem]]);
           throw refusalError(check.refusal);
+        }
+        // GAP-01: a Seeker can only publish a result they hold and have not published.
+        if (ability.config.capability === 'ROLE_REVEAL' && !(await latestUnpublished(tx, game.id, you.id))) {
+          throw errors.actionTargetIllegal([{ path: 'targetPlayerIds', message: 'You have no result to publish yet.' }]);
         }
 
         // A new choice replaces the pending one. The old row stays, cancelled, as the record.

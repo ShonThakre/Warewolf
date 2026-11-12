@@ -69,6 +69,9 @@ importers:
       '@types/supertest':
         specifier: ^7.2.1
         version: 7.2.1
+      '@warewolf/e2e-tools':
+        specifier: workspace:^
+        version: link:../../tools/e2e
       drizzle-kit:
         specifier: ^0.31.11
         version: 0.31.11
@@ -154,6 +157,9 @@ importers:
       '@vitejs/plugin-react':
         specifier: ^6.3.0
         version: 6.3.0(vite@8.3.6(@types/node@26.6.6)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.23.15))
+      '@warewolf/e2e-tools':
+        specifier: workspace:^
+        version: link:../../tools/e2e
       happy-dom:
         specifier: ^21.0.4
         version: 21.0.4
@@ -187,6 +193,16 @@ importers:
       '@warewolf/domain':
         specifier: workspace:^
         version: link:../../packages/domain
+
+  tools/e2e:
+    dependencies:
+      socket.io-client:
+        specifier: ^4.8.4
+        version: 4.8.4
+    devDependencies:
+      '@warewolf/contracts':
+        specifier: workspace:^
+        version: link:../../packages/contracts
 
 packages:
 

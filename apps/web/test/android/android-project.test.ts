@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -49,6 +50,26 @@ describe('AndroidManifest.xml', () => {
     expect(debug).toMatch(/android:usesCleartextTraffic="true"/);
     expect(debug).not.toMatch(/uses-permission/);
     expect(() => read('app/src/release/AndroidManifest.xml')).toThrow();
+  });
+});
+
+describe('launcher icon (WW-1605)', () => {
+  // Capacitor's template launcher icon at xxxhdpi, before apps/web/scripts/android-icons.sh.
+  const CAPACITOR_DEFAULT_MD5 = '9e029293ab1ae8e3a6a7b7d0b7177e46';
+  const png = (path: string) => readFileSync(resolve(android, 'app/src/main/res', path));
+
+  it('uses the game art, not the Capacitor default', () => {
+    const icon = png('mipmap-xxxhdpi/ic_launcher.png');
+    expect(createHash('md5').update(icon).digest('hex')).not.toBe(CAPACITOR_DEFAULT_MD5);
+    expect([icon.readUInt32BE(16), icon.readUInt32BE(20)]).toEqual([192, 192]);
+    const foreground = png('mipmap-xxxhdpi/ic_launcher_foreground.png');
+    expect([foreground.readUInt32BE(16), foreground.readUInt32BE(20)]).toEqual([432, 432]);
+  });
+
+  it('gives the adaptive icon the art\'s purple background', () => {
+    expect(read('app/src/main/res/values/ic_launcher_background.xml')).toMatch(
+      /<color name="ic_launcher_background">#160350<\/color>/,
+    );
   });
 });
 

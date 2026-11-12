@@ -1,0 +1,50 @@
+{
+  "presetId": "chaos-15",
+  "policyId": "random-legal",
+  "seed": 1,
+  "games": 10000,
+  "finished": 10000,
+  "note": "Bot measurements for this seed and policy. Not a human win rate.",
+  "finish": {
+    "VILLAGE": 4288,
+    "WOLF_PACK": 4581,
+    "draw": 1131,
+    "other": 0
+  },
+  "individuals": {
+    "assassin": 7473,
+    "lone_wolf": 763,
+    "shapeshifter": 2019,
+    "jester": 161
+  },
+  "rounds": {
+    "mean": 6.0011,
+    "median": 6
+  },
+  "deaths": {
+    "nightMean": 7.1512,
+    "dayMean": 4.9791
+  },
+  "infectionSuccesses": {
+    "0": 10000
+  },
+  "survivalByStartingRole": {
+    "assassin": 0.1791,
+    "cursed_villager": 0.1707,
+    "normal_villager": 0.17991666666666667,
+    "pack_wolf": 0.28335,
+    "lone_wolf": 0.1536,
+    "avenger": 0.159,
+    "shapeshifter": 0.2019,
+    "jester": 0.1823,
+    "spy": 0.1769
+  },
+  "abilityUseRate": {
+    "assassin_mark": 0.9337,
+    "pack_kill": 7.817,
+    "lone_kill": 3.7633,
+    "shapeshifter_copy": 3.2899,
+    "spy_count": 1.936
+  },
+  "doctorNegatedFraction": 0
+}

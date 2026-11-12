@@ -111,3 +111,50 @@ describe('night event audiences (WW-804)', () => {
     expect(drafts.map((row) => `${row.type}:${row.audience}`)).toEqual(['ACTION_BLOCKED:HOST']);
   });
 });
+
+describe('Ultimate 20 outcomes (GAP-03)', () => {
+  const special = {
+    hints: [{ actionId: 'h-1', actorId: 'ghost', text: 'Look to the quiet corner.' }],
+    silences: [{ actionId: 's-1', actorId: 'alchemist', targetId: 'villager' }],
+    revivals: [{ actionId: 'r-1', actorId: 'necromancer', targetId: 'dead-seat' }],
+    rewinds: [{ actionId: 'w-1', actorId: 'wizard', targetId: 'wolf', removedActionIds: ['kill-1'] }],
+    copies: [{ actionId: 'c-1', actorId: 'mimic', targetId: 'dead-oracle', abilityIds: ['oracle_investigate'] }],
+    chaosEvent: { actorId: 'demon', kind: 'NO_VOTE', playerIds: [], success: null },
+  };
+
+  it('makes the Ghost hint and the return public without naming the actor', () => {
+    const drafts = nightEventDrafts(source({ special }));
+    const pub = drafts.filter((d) => d.audience === 'PUBLIC');
+    expect(pub.map((d) => [d.type, d.payload])).toEqual([
+      ['GHOST_HINT', { roundNumber: 1, text: 'Look to the quiet corner.' }],
+      ['PLAYER_RETURNED', { roundNumber: 1, playerId: 'dead-seat' }],
+    ]);
+    for (const d of pub) expect(JSON.stringify(d.payload)).not.toMatch(/ghost|necromancer/);
+  });
+
+  it('tells a silence to its target, and a rewind, a copy, and a Chaos event to their actor, without the source', () => {
+    const drafts = nightEventDrafts(source({ special }));
+    const own = drafts.filter((d) => d.audience === 'PLAYER').map((d) => [d.type, d.recipientPlayerId]);
+    expect(own).toEqual([
+      ['SILENCED', 'villager'],
+      ['REWIND_RESULT', 'wizard'],
+      ['ABILITY_COPIED', 'mimic'],
+      ['CHAOS_EVENT', 'demon'],
+    ]);
+    const silenced = drafts.find((d) => d.type === 'SILENCED' && d.audience === 'PLAYER')!;
+    expect(silenced.payload).toEqual({ roundNumber: 1 });
+    expect(drafts.find((d) => d.type === 'REWIND_RESULT' && d.audience === 'PLAYER')!.payload).toEqual({ roundNumber: 1, targetPlayerIds: ['wolf'], cancelled: true });
+  });
+
+  it('gives the host every outcome with its actor, under its own dedupe key', () => {
+    const drafts = nightEventDrafts(source({ special }));
+    const host = drafts.filter((d) => d.audience === 'HOST');
+    expect(host.map((d) => d.type)).toEqual(['GHOST_HINT', 'PLAYER_RETURNED', 'SILENCED', 'REWIND_RESULT', 'ABILITY_COPIED', 'CHAOS_EVENT']);
+    for (const d of host) expect(d.payload).toHaveProperty('actorPlayerId');
+    expect(new Set(drafts.map((d) => d.dedupeKey)).size).toBe(drafts.length);
+  });
+
+  it('adds nothing for a night without them', () => {
+    expect(nightEventDrafts(source())).toEqual([]);
+  });
+});
