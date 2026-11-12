@@ -89,3 +89,22 @@ export function replaceDialogCopy(current: string, targetName: string, target: s
     cancel: 'Keep editing',
   };
 }
+
+/** Decisions the Settings step asks inline, beside the setting they describe. */
+export const INLINE_DECISIONS: readonly string[] = ['OD-03'];
+
+/** OD-03 in plain words, shown under the Infection switch. */
+export const SURVIVAL_QUESTION = 'If an infected player is also killed that night';
+
+export const SURVIVAL_CHOICES = [
+  { value: 'SURVIVAL_REQUIRED', label: "They die, and the infection doesn't count", note: 'Infection Edition rule' },
+  { value: 'CONVERT_BEFORE_DEATH', label: 'They turn into a wolf, then die', note: null },
+] as const;
+
+/** Infection is on but nobody can infect. */
+export function alphaWolfHint(hasVillager: boolean): { text: string; action: string } {
+  return {
+    text: 'Infection needs one Alpha Wolf seated. The Alpha Wolf is the player who infects.',
+    action: hasVillager ? 'Add an Alpha Wolf (replaces one Villager)' : 'Add an Alpha Wolf',
+  };
+}

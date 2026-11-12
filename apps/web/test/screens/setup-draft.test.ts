@@ -7,6 +7,9 @@ import {
   configurationFromPack,
   hasHandEdits,
   roleSummary,
+  seatAlphaWolf,
+  setInfectionEnabled,
+  setRequiresSurvival,
   toCustom,
   infectionLocked,
   roleCount,
@@ -122,5 +125,36 @@ describe('setup drafts', () => {
     expect(roleSummary(setPlayerCount(classic!, 12))).toBe('2 Pack Wolf · 1 Seeker · 1 Doctor · 6 Villager · 2 seats open');
     expect(roleSummary(configurationFromPack('custom')!)).toBe('10 seats open');
     expect(roleSummary(setRoleCount(classic!, 'normal_villager', 7))).toBe('2 Pack Wolf · 1 Seeker · 1 Doctor · 7 Villager · 1 more than the 10 seats');
+  });
+
+  it('settles OD-03 when infection is turned on, and drops it when turned off', () => {
+    const on = setInfectionEnabled(classic!, true);
+    expect(on.rulesetAcknowledgments['OD-03']).toBe('SURVIVAL_REQUIRED');
+    expect(validateConfiguration(on).errors.map((issue) => issue.code)).not.toContain('DECISION_UNSET');
+    const off = setInfectionEnabled(on, false);
+    expect('OD-03' in off.rulesetAcknowledgments).toBe(false);
+    expect(setInfectionEnabled(infection!, false)).toBe(infection);
+  });
+
+  it('records the survival choice as the OD-03 acknowledgement', () => {
+    const convert = setRequiresSurvival(setInfectionEnabled(classic!, true), false);
+    expect(convert.infection.requiresSurvival).toBe(false);
+    expect(convert.rulesetAcknowledgments['OD-03']).toBe('CONVERT_BEFORE_DEATH');
+    expect(validateConfiguration(convert).errors.map((issue) => issue.code)).not.toContain('DECISION_MISMATCH');
+    // A draft saved before the fix (infection on, no acknowledgement) is settled by picking the shown rule.
+    const unsettled = { ...classic!, infection: { ...classic!.infection, enabled: true }, rulesetAcknowledgments: {} };
+    expect(setRequiresSurvival(unsettled, true).rulesetAcknowledgments['OD-03']).toBe('SURVIVAL_REQUIRED');
+  });
+
+  it('seats an Alpha Wolf in a Villager seat for infection', () => {
+    const seated = seatAlphaWolf(setInfectionEnabled(classic!, true));
+    expect(roleCount(seated, 'alpha_wolf')).toBe(1);
+    expect(roleCount(seated, 'normal_villager')).toBe(5);
+    expect(seated.roles.reduce((sum, entry) => sum + entry.count, 0)).toBe(seated.playerCount);
+    const codes = validateConfiguration(seated).errors.map((issue) => issue.code);
+    expect(codes).not.toContain('INFECTION_WITHOUT_ALPHA');
+    expect(codes).not.toContain('DECISION_UNSET');
+    expect(seatAlphaWolf(seated)).toBe(seated);
+    expect(seatAlphaWolf(infection!)).toBe(infection);
   });
 });

@@ -1,9 +1,11 @@
 import type { GameConfiguration } from '@warewolf/domain';
 import { BLOCKING_DECISIONS, DEFAULT_CATALOG, KILL_AGGREGATIONS, requiredAcknowledgments } from '@warewolf/domain';
-import { MenuItem, Switch, TextField } from '@mui/material';
-import { ACK_LABEL, KILL_LABEL, lockedModeCopy, NIGHT_TOGGLE_LABEL } from './setupCopy';
+import { Button, FormControlLabel, MenuItem, Radio, RadioGroup, Switch, TextField } from '@mui/material';
+import { ACK_LABEL, alphaWolfHint, INLINE_DECISIONS, KILL_LABEL, lockedModeCopy, NIGHT_TOGGLE_LABEL, SURVIVAL_CHOICES, SURVIVAL_QUESTION } from './setupCopy';
 import {
   modeLocked,
+  roleCount,
+  seatAlphaWolf,
   setAcknowledgement,
   setFriendlyFire,
   setInfectionAnnouncement,
@@ -34,6 +36,7 @@ export function SetupSettings({
   const lockedCopy = lockedModeCopy(draft.mode);
   const disabled = !editable || locked;
   const needed = requiredAcknowledgments(draft, DEFAULT_CATALOG);
+  const alphaHint = draft.infection.enabled && roleCount(draft, 'alpha_wolf') === 0 ? alphaWolfHint(roleCount(draft, 'normal_villager') > 0) : null;
 
   return (
     <div className="ww-setup-fields">
@@ -86,7 +89,38 @@ export function SetupSettings({
             <MenuItem value="PUBLIC">The table is told</MenuItem>
           </TextField>
           <TimerField label="Infection successes" value={draft.infection.maxSuccesses} disabled={disabled} onChange={(value) => onDraft(setInfectionSuccesses(draft, value))} />
-          <Flag label="Infection needs the player to survive the night" checked={draft.infection.requiresSurvival} disabled={disabled} onChange={(value) => onDraft(setRequiresSurvival(draft, value))} />
+          <fieldset className="ww-setup-choice">
+            <legend className="ww-setup-choice-title">{SURVIVAL_QUESTION}</legend>
+            <RadioGroup
+              value={draft.infection.requiresSurvival ? 'SURVIVAL_REQUIRED' : 'CONVERT_BEFORE_DEATH'}
+              onChange={(event) => onDraft(setRequiresSurvival(draft, event.target.value === 'SURVIVAL_REQUIRED'))}
+            >
+              {SURVIVAL_CHOICES.map((choice) => (
+                <FormControlLabel
+                  key={choice.value}
+                  value={choice.value}
+                  disabled={disabled}
+                  control={<Radio />}
+                  label={
+                    <span className="ww-setup-choice-label">
+                      {choice.label}
+                      {choice.note ? <span className="ww-setup-choice-note">{choice.note}</span> : null}
+                    </span>
+                  }
+                />
+              ))}
+            </RadioGroup>
+          </fieldset>
+          {alphaHint ? (
+            <div className="ww-setup-hint" role="note">
+              <p className="ww-setup-copy">{alphaHint.text}</p>
+              {editable && !locked ? (
+                <Button variant="outlined" onClick={() => onDraft(seatAlphaWolf(draft))}>
+                  {alphaHint.action}
+                </Button>
+              ) : null}
+            </div>
+          ) : null}
         </>
       ) : null}
       <Flag label="Day vote" checked={draft.voting.enabled} disabled={disabled} onChange={(value) => onDraft(setVotingFlag(draft, 'enabled', value))} />
@@ -116,7 +150,7 @@ export function SetupSettings({
       {(Object.keys(NIGHT_TOGGLE_LABEL) as (keyof typeof NIGHT_TOGGLE_LABEL)[]).map((key) => (
         <Flag key={key} label={NIGHT_TOGGLE_LABEL[key]} checked={draft.night.toggles[key]} disabled={disabled} onChange={(value) => onDraft(setNightToggle(draft, key, value))} />
       ))}
-      {BLOCKING_DECISIONS.filter((decision) => decision.id in needed).map((decision) => (
+      {BLOCKING_DECISIONS.filter((decision) => decision.id in needed && !INLINE_DECISIONS.includes(decision.id)).map((decision) => (
         <TextField
           key={decision.id}
           select

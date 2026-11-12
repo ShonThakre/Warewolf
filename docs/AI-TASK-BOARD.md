@@ -180,10 +180,20 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 | UX-MOBILE | Mobile-native full journey: phone session chrome (hide marketing nav), densify Home→Host for portrait + phone/narrow landscape | Cursor | COMPLETED | — |
 | UX-PHONE | Portrait phone screens matched to `*-phone.png` mockups (Phase 0 shared tokens/primitives, then Home→Results 01–12) | Claude | COMPLETED | UX-MOBILE |
 | SETUP-MODE | Setup: confirm before a mode or preset replaces edited roles, Custom starts from the current roles, edited-preset card with reset | Claude | COMPLETED | — |
+| SETUP-INFECTION | Setup: turning Infection on settles OD-03 inline, offers to seat an Alpha Wolf, and the summary shows each issue once in plain words | Claude | COMPLETED | SETUP-MODE |
 
 ---
 
 ## Task details
+
+### SETUP-INFECTION — Turning Infection on in an editable mode
+
+- **Agent:** Claude
+- **Status:** COMPLETED (12 November 2026)
+- **Description:** Turning Infection on (Classic, Expanded, Custom) no longer raises "OD-03 needs an acknowledgement". The survival rule is one inline choice under Infection, defaulting to the Infection Edition rule, and picking it writes the OD-03 acknowledgement. With no Alpha Wolf seated, a hint offers "Add an Alpha Wolf", which takes one Villager's seat. Issue text is plain language, and the summary shows each issue once.
+- **Files:** `apps/web/src/game/setup/{setupDraft.ts,setupCopy.ts,SetupSettings.tsx,ConfigSummary.tsx,setup-layout.css}`, `apps/web/src/game/components/lobbyCopy.ts`, `apps/web/test/screens/{setup-draft.test.ts,setup.test.tsx,lobby-copy.test.ts}`.
+- **Interfaces:** `setInfectionEnabled` writes or drops `rulesetAcknowledgments['OD-03']`. `setRequiresSurvival` always records it while infection is on. New `seatAlphaWolf`. `explainIssue` covers `DECISION_UNSET`, `DECISION_MISMATCH`, and `INFECTION_WITHOUT_ALPHA`. No domain or server change.
+- **Checked:** `pnpm --filter @warewolf/web typecheck`. `pnpm --filter @warewolf/web test` 404/404. Live API in Chrome at 1440×900 and 390×844: Classic → Infection on shows the inline choice and the Alpha Wolf hint, with no OD-03 text. After adding the Alpha Wolf and choosing "turn into a wolf", the saved configuration has no server errors or warnings, and OD-03 is `CONVERT_BEFORE_DEATH`.
 
 ### SETUP-MODE — Mode and preset switching on Game setup
 

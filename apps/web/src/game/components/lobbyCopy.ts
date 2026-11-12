@@ -1,5 +1,5 @@
 import type { LobbyProjection } from '@warewolf/contracts';
-import type { Faction, GameMode } from '@warewolf/domain';
+import { BLOCKING_DECISIONS, type Faction, type GameMode } from '@warewolf/domain';
 
 type StartBlocker = LobbyProjection['start']['blockers'][number];
 
@@ -49,15 +49,27 @@ export function blockerSentence(blocker: StartBlocker, seated: number, seats: nu
 }
 
 /** A host-facing sentence. Codes stay off the screen. */
-export function explainIssue(issue: { code: string; message: string }): string {
+export function explainIssue(issue: { code: string; message: string; decisionIds?: readonly string[] | undefined }): string {
   switch (issue.code) {
     case 'WOLF_CAP':
       return explainWolfCap(issue.message);
     case 'ROLE_COUNT_MISMATCH':
       return explainRoleCount(issue.message);
+    case 'DECISION_UNSET':
+    case 'DECISION_MISMATCH':
+      return explainDecision(issue.decisionIds?.[0]) ?? issue.message;
+    case 'INFECTION_WITHOUT_ALPHA':
+      return 'Infection is on, but no Alpha Wolf is seated. Add one on the Settings or Roles step, or turn Infection off.';
     default:
       return issue.message;
   }
+}
+
+/** A blocking rule decision in the host's words, pointing at the control that settles it. */
+function explainDecision(id: string | undefined): string | null {
+  if (id === 'OD-03') return 'Choose what happens when an infected player is also killed that night. It is under Infection on the Settings step.';
+  const decision = BLOCKING_DECISIONS.find((item) => item.id === id);
+  return decision ? `Choose a rule for "${decision.title.toLowerCase()}" on the Settings step.` : null;
 }
 
 function explainWolfCap(message: string): string {

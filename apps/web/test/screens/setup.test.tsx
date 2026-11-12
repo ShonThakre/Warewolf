@@ -187,4 +187,24 @@ describe('configuration browser', () => {
     expect(screen.getByText('2 Pack Wolf · 1 Seeker · 1 Doctor · 6 Villager')).toBeTruthy();
     expect((screen.getByRole('spinbutton', { name: 'Players' }) as HTMLInputElement).value).toBe('10');
   });
+
+  it('turns Infection on without an OD-03 error and offers an Alpha Wolf', async () => {
+    setViewport(1024, 768);
+    renderApp(`/lobby/${GAME}/setup`, { seat: hostSeat, fetchFn: fetchSetup('classic-10', true) });
+    expect(await screen.findByRole('navigation', { name: 'Setup steps' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: '3. Settings' }));
+    fireEvent.click(await screen.findByRole('switch', { name: 'Infection' }));
+
+    const survive = await screen.findByRole('radio', { name: /They die, and the infection doesn't count/ });
+    expect((survive as HTMLInputElement).checked).toBe(true);
+    expect(screen.queryByText(/OD-03/)).toBeNull();
+    // Once in the summary, once in the start reasons beside Start game.
+    const summary = document.querySelector('.ww-setup-summary') as HTMLElement;
+    expect(within(summary).getAllByText('Infection is on, but no Alpha Wolf is seated. Add one on the Settings or Roles step, or turn Infection off.')).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Add an Alpha Wolf (replaces one Villager)' }));
+    await waitFor(() => expect(screen.queryByRole('button', { name: /Add an Alpha Wolf/ })).toBeNull());
+    expect(screen.queryByText(/no Alpha Wolf is seated/)).toBeNull();
+    expect(screen.queryByText(/OD-03/)).toBeNull();
+  });
 });

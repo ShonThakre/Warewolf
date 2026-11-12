@@ -19,11 +19,15 @@ export function ConfigSummary({ mode, summary, detail, errors, warnings }: Confi
   const tone = errors.length > 0 ? 'problem' : warnings.length > 0 ? 'waiting' : 'ready';
   const title = errors.length > 0 ? 'Needs changes' : warnings.length > 0 ? 'Warnings to acknowledge' : 'Configuration valid';
   const firstError = errors[0];
-  const line = firstError
-    ? explainIssue(firstError)
-    : warnings.length > 0
-      ? `${warnings.length} ${warnings.length === 1 ? 'warning needs' : 'warnings need'} acknowledgement before start.`
-      : summary.remainingSeats === 0
+  const issues = errors.length + warnings.length;
+  // One issue reads in the status line. Several get a count there and one list entry each, so nothing prints twice.
+  const line = issues === 1
+    ? explainIssue(firstError ?? warnings[0]!)
+    : errors.length > 0
+      ? `${errors.length} ${errors.length === 1 ? 'change' : 'changes'} needed${warnings.length > 0 ? `, and ${warnings.length} ${warnings.length === 1 ? 'warning' : 'warnings'} to acknowledge` : ''}.`
+      : warnings.length > 0
+        ? `${warnings.length} warnings need acknowledgement before start.`
+        : summary.remainingSeats === 0
         ? 'Every role seat is filled.'
         : `${summary.remainingSeats} role ${summary.remainingSeats === 1 ? 'seat is' : 'seats are'} still open.`;
 
@@ -56,7 +60,7 @@ export function ConfigSummary({ mode, summary, detail, errors, warnings }: Confi
             <span className="ww-setup-valid-line">{line}</span>
           </span>
         </div>
-        {detail && (errors.length > 0 || warnings.length > 0) ? (
+        {detail && issues > 1 ? (
           <ul className="ww-setup-detail">
             {errors.map((issue, index) => (
               <li key={`error-${issue.code}-${index}`} className="ww-setup-issue ww-setup-issue-error">

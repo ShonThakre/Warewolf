@@ -913,3 +913,56 @@ fieldset.ww-setup-fields {
   border: 2px solid var(--primary);
   background: var(--surface-raised);
 }
+
+/* SETUP-INFECTION: the OD-03 rule as one inline choice, and the Alpha Wolf hint, under the Infection switch. */
+.ww-setup-choice {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.ww-setup-choice-title {
+  padding: 0 0.25rem;
+  color: var(--text);
+  font-size: var(--text-label);
+  font-weight: 800;
+}
+
+.ww-setup-choice .MuiFormControlLabel-root {
+  min-height: var(--hit);
+  margin-left: 0;
+}
+
+.ww-setup-choice-label {
+  display: grid;
+  gap: 0.1rem;
+  font-size: var(--text-body);
+}
+
+.ww-setup-choice-note {
+  color: var(--accent);
+  font-size: var(--text-label);
+  font-weight: 700;
+}
+
+.ww-setup-hint {
+  display: grid;
+  justify-items: start;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 50%, var(--border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--accent) 10%, var(--surface));
+}
+
+.ww-setup-hint .ww-setup-copy {
+  color: var(--text);
+}
+
+.ww-setup-hint .MuiButton-root {
+  min-height: var(--hit);
+}

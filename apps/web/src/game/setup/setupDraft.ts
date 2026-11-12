@@ -281,10 +281,22 @@ export function setKillAggregation(draft: GameConfiguration, killAggregation: Ki
   );
 }
 
+/** The OD-03 option a survival rule implements. */
+function survivalChoice(requiresSurvival: boolean): 'SURVIVAL_REQUIRED' | 'CONVERT_BEFORE_DEATH' {
+  return requiresSurvival ? 'SURVIVAL_REQUIRED' : 'CONVERT_BEFORE_DEATH';
+}
+
+/**
+ * Infection on also settles OD-03 (an infected player who is also killed that night) with the
+ * survival rule shown beside the switch. Off drops the acknowledgement, which no longer applies.
+ */
 export function setInfectionEnabled(draft: GameConfiguration, enabled: boolean): GameConfiguration {
-  return editSettings(draft, (current) =>
-    current.infection.enabled === enabled ? current : { ...current, infection: { ...current.infection, enabled } },
-  );
+  return editSettings(draft, (current) => {
+    if (current.infection.enabled === enabled) return current;
+    const { ['OD-03']: _dropped, ...others } = current.rulesetAcknowledgments;
+    const rulesetAcknowledgments = enabled ? { ...others, 'OD-03': survivalChoice(current.infection.requiresSurvival) } : others;
+    return { ...current, infection: { ...current.infection, enabled }, rulesetAcknowledgments };
+  });
 }
 
 export function setInfectionAnnouncement(draft: GameConfiguration, announcement: GameConfiguration['infection']['announcement']): GameConfiguration {
@@ -300,16 +312,27 @@ export function setInfectionSuccesses(draft: GameConfiguration, maxSuccesses: nu
   });
 }
 
+/** The survival rule is the OD-03 choice. Picking it, even the current one, records the acknowledgement. */
 export function setRequiresSurvival(draft: GameConfiguration, requiresSurvival: boolean): GameConfiguration {
   return editSettings(draft, (current) => {
-    if (current.infection.requiresSurvival === requiresSurvival) return current;
-    const choice = requiresSurvival ? 'SURVIVAL_REQUIRED' : 'CONVERT_BEFORE_DEATH';
+    const choice = survivalChoice(requiresSurvival);
+    const acknowledged = current.rulesetAcknowledgments['OD-03'];
+    if (current.infection.requiresSurvival === requiresSurvival && (!current.infection.enabled || acknowledged === choice)) return current;
     const rulesetAcknowledgments =
-      current.rulesetAcknowledgments['OD-03'] === undefined
-        ? current.rulesetAcknowledgments
-        : { ...current.rulesetAcknowledgments, 'OD-03': choice };
+      current.infection.enabled || acknowledged !== undefined ? { ...current.rulesetAcknowledgments, 'OD-03': choice } : current.rulesetAcknowledgments;
     return { ...current, infection: { ...current.infection, requiresSurvival }, rulesetAcknowledgments };
   });
+}
+
+/**
+ * Seats one Alpha Wolf for infection. It takes a Villager's seat when there is one, so the seat
+ * total holds. Without a Villager it adds a seat and the role-count check explains the overflow.
+ */
+export function seatAlphaWolf(draft: GameConfiguration): GameConfiguration {
+  if (modeLocked(draft) || roleCount(draft, 'alpha_wolf') > 0) return draft;
+  const villagers = roleCount(draft, 'normal_villager');
+  const freed = villagers > 0 ? setRoleCount(draft, 'normal_villager', villagers - 1) : draft;
+  return setRoleCount(freed, 'alpha_wolf', 1);
 }
 
 export function setVotingFlag(

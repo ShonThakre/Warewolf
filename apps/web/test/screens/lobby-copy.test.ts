@@ -22,6 +22,13 @@ describe('lobby copy', () => {
   });
 
   it('explains a low wolf cap and a short role list', () => {
+    expect(explainIssue({ code: 'DECISION_UNSET', message: 'OD-03 (x) needs an acknowledgement before start.', decisionIds: ['OD-03'] })).toBe(
+      'Choose what happens when an infected player is also killed that night. It is under Infection on the Settings step.',
+    );
+    expect(explainIssue({ code: 'DECISION_UNSET', message: 'raw', decisionIds: ['OD-01'] })).toBe(
+      'Choose a rule for "how wolf submissions become one final kill target" on the Settings step.',
+    );
+    expect(explainIssue({ code: 'INFECTION_WITHOUT_ALPHA', message: 'raw' })).toContain('no Alpha Wolf is seated');
     expect(explainIssue({ code: 'WOLF_CAP', message: 'The wolf cap (0) is below the starting pack (1).' })).toBe(
       'Raise the wolf cap from 0 to at least 1. 1 wolf is dealt at the start. The cap is the most wolves allowed, including players who turn into wolves during the game. Change it on the Settings step.',
     );
