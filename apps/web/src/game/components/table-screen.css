@@ -738,24 +738,61 @@
 
 .ww-game-layout[data-stage='day'] .ww-morning-controls .MuiButton-root {
   min-width: min(14rem, 100%);
+  min-height: var(--hit);
 }
 
-@media (max-width: 1099px) {
-  .ww-game-layout[data-stage='day'] .ww-day-seats {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
+.ww-game-layout[data-stage='day'][data-layout='portrait'] .ww-day-seats,
+.ww-game-layout[data-stage='day'][data-layout='phone-landscape'] .ww-day-seats,
+.ww-game-layout[data-stage='day'][data-layout='narrow-landscape'] .ww-day-seats {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-@media (max-width: 799px) {
-  .ww-game-layout[data-stage='day'] .ww-day-seats {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
+.ww-game-layout[data-stage='day'][data-layout='tablet'] .ww-day-seats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-@media (max-width: 599px) {
-  .ww-game-layout[data-stage='day'] .ww-day-seats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+.ww-game-layout[data-stage='day'][data-layout='compact'] .ww-day-seats {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+/* Short landscape day / morning: crush chrome so Continue stays on screen. */
+.ww-game-layout[data-stage='day'][data-layout='phone-landscape'] .ww-game-status,
+.ww-game-layout[data-stage='day'][data-layout='narrow-landscape'] .ww-game-status,
+.ww-game-layout[data-stage='night-results'][data-layout='phone-landscape'] .ww-game-status,
+.ww-game-layout[data-stage='night-results'][data-layout='narrow-landscape'] .ww-game-status {
+  min-height: 0;
+  padding-block: 0.35rem;
+  padding-inline: 0.55rem;
+}
+
+.ww-game-layout[data-stage='day'][data-layout='phone-landscape'] .ww-status-guide,
+.ww-game-layout[data-stage='day'][data-layout='narrow-landscape'] .ww-status-guide,
+.ww-game-layout[data-stage='night-results'][data-layout='phone-landscape'] .ww-status-guide,
+.ww-game-layout[data-stage='night-results'][data-layout='narrow-landscape'] .ww-status-guide {
+  display: none;
+}
+
+.ww-game-layout[data-stage='day'][data-layout='phone-landscape'] .ww-action.is-day,
+.ww-game-layout[data-stage='day'][data-layout='narrow-landscape'] .ww-action.is-day,
+.ww-game-layout[data-stage='night-results'][data-layout='phone-landscape'] .ww-action.is-morning,
+.ww-game-layout[data-stage='night-results'][data-layout='narrow-landscape'] .ww-action.is-morning {
+  min-height: 0;
+  gap: 0.35rem 0.55rem;
+  padding: 0.4rem 0.55rem;
+  align-items: center;
+}
+
+.ww-game-layout[data-stage='day'][data-layout='phone-landscape'] .ww-day-guide-body,
+.ww-game-layout[data-stage='day'][data-layout='narrow-landscape'] .ww-day-guide-body {
+  display: none;
+}
+
+.ww-game-layout[data-stage='day'][data-layout='phone-landscape'] .ww-morning-controls .MuiButton-root,
+.ww-game-layout[data-stage='day'][data-layout='narrow-landscape'] .ww-morning-controls .MuiButton-root,
+.ww-game-layout[data-stage='night-results'][data-layout='phone-landscape'] .ww-morning-controls .MuiButton-root,
+.ww-game-layout[data-stage='night-results'][data-layout='narrow-landscape'] .ww-morning-controls .MuiButton-root {
+  min-height: var(--hit);
+  min-width: min(12rem, 100%);
 }
 
 /* Night seats and the private action bar. Public cards stay name, seat, and life. */
@@ -1671,7 +1708,7 @@
 
 .ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-vote-submit-btn.MuiButton-root,
 .ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-vote-submit-btn.MuiButton-root {
-  min-height: 2.25rem;
+  min-height: var(--hit);
 }
 
 .ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-vote-privacy,

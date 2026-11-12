@@ -1,0 +1,48 @@
+/* Compact session chrome on phone layout modes (UX-MOBILE). */
+
+.ww-app[data-chrome='session'] .ww-app-nav {
+  flex-wrap: nowrap;
+  height: var(--bar-lobby);
+  min-height: var(--bar-lobby);
+  box-sizing: border-box;
+  gap: calc(var(--space) / 2);
+}
+
+.ww-app[data-chrome='session'] .ww-wordmark {
+  margin-right: auto;
+  font-size: var(--text-nav);
+  min-width: 0;
+}
+
+.ww-app[data-chrome='session'] .ww-wordmark-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ww-app[data-chrome='session'] .ww-emblem {
+  width: 1.75rem;
+  height: 1.75rem;
+  flex: none;
+}
+
+.ww-app[data-chrome='session'] .ww-session-menu-btn {
+  color: var(--text);
+  flex: none;
+}
+
+.ww-app[data-chrome='session'].is-home .ww-app-nav {
+  height: var(--bar-lobby);
+  min-height: var(--bar-lobby);
+  padding-left: max(var(--space), env(safe-area-inset-left));
+  padding-right: max(var(--space), env(safe-area-inset-right));
+  background: var(--bg);
+  border-bottom: 1px solid color-mix(in srgb, var(--neutral) 22%, var(--border));
+}
+
+/* Short phone landscape: keep a single tight bar. */
+.ww-app[data-chrome='session'][data-layout='phone-landscape'] .ww-app-nav,
+.ww-app[data-chrome='session'][data-layout='narrow-landscape'] .ww-app-nav {
+  height: var(--bar);
+  min-height: var(--bar);
+}

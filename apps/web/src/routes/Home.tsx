@@ -7,6 +7,7 @@ import { sceneArtUrl, uiArtUrl } from '../assets/art';
 import { useGetRolePacksQuery } from '../api/lobby';
 import { CreateGameDialog, JoinGameDialog } from '../game/components/SeatDialogs';
 import { MODE_LABEL, returnSeatLabel } from '../game/components/lobbyCopy';
+import { useLayoutMode } from '../game/layout';
 import { useLobby, useSeat } from '../game/state/lobby';
 import { gamePath } from '../game/state/role';
 import '../game/components/home-scene.css';
@@ -124,9 +125,16 @@ export function Home() {
   const seat = useSeat();
   const { lobby, isLoading } = useLobby();
   const packs = useGetRolePacksQuery();
+  const layout = useLayoutMode();
   const [createOpen, setCreateOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
   const [modesOpen, setModesOpen] = useState(false);
+  const homeLayout =
+    layout.mode === 'phone-landscape' || layout.mode === 'narrow-landscape'
+      ? 'short'
+      : layout.mode === 'portrait' || (layout.mode === 'tablet' && !layout.landscape)
+        ? 'stack'
+        : 'wide';
 
   const modes =
     packs.data && packs.data.length > 0
@@ -145,7 +153,7 @@ export function Home() {
   const returnLabel = returnSeatLabel(lobby?.status ?? null);
 
   return (
-    <div className="ww-home">
+    <div className="ww-home" data-layout={layout.mode} data-home={homeLayout}>
       <div className="ww-home-wash" aria-hidden="true">
         {homeScene ? <img src={homeScene} alt="" fetchPriority="high" /> : null}
       </div>

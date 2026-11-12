@@ -164,6 +164,7 @@ function HostScreen() {
         section={section}
         onSection={setSection}
         oneStep={layout.mode === 'portrait'}
+        layoutMode={layout.mode}
         canvas={
           <>
             <HostCanvas

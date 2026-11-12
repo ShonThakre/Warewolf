@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Button } from '@mui/material';
+import type { LayoutMode } from '../layout';
 import { SETUP_STEPS, type SetupStep } from './setupDraft';
 import { STEP_HINT, STEP_LABEL } from './setupCopy';
 import './setup-layout.css';
@@ -9,18 +10,19 @@ export interface SetupLayoutProps {
   onStep: (step: SetupStep) => void;
   /** Portrait: the summary stacks above the canvas. Wider screens keep it beside the canvas. */
   oneStep: boolean;
+  layoutMode: LayoutMode;
   summary: ReactNode;
   canvas: ReactNode;
   action: ReactNode;
 }
 
 /** Step pills, the canvas, and the configuration card. Counts stay in the summary. */
-export function SetupLayout({ step, onStep, oneStep, summary, canvas, action }: SetupLayoutProps) {
+export function SetupLayout({ step, onStep, oneStep, layoutMode, summary, canvas, action }: SetupLayoutProps) {
   const index = SETUP_STEPS.indexOf(step);
   const previous = SETUP_STEPS[index - 1];
   const next = SETUP_STEPS[index + 1];
   return (
-    <div className="ww-setup" data-setup="" data-steps={oneStep ? 'one' : 'rail'}>
+    <div className="ww-setup" data-setup="" data-layout={layoutMode} data-steps={oneStep ? 'one' : 'rail'}>
       <nav className="ww-setup-rail" aria-label="Setup steps">
         {SETUP_STEPS.map((id, position) => (
           <span key={id} className="ww-setup-step-slot">

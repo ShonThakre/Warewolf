@@ -15,7 +15,7 @@ import './game-layout.css';
  * templates, sizes, and colors are WEB-04's stylesheet.
  *
  * The top navigation is not a region here: `AppShell` renders it above every
- * route, so the wordmark and nav do not move between screens.
+ * route (marketing nav on desktop/tablet; session chrome on phone modes).
  */
 
 export interface GameLayoutLabels {

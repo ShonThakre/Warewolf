@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Button } from '@mui/material';
+import type { LayoutMode } from '../layout';
 import { HOST_SECTIONS, SECTION_LABEL, type HostSection } from './dashboardCopy';
 import './host-screen.css';
 
@@ -8,14 +9,15 @@ export interface HostShellProps {
   onSection: (section: HostSection) => void;
   /** Portrait stacks the sections as a scrolling chip row. */
   oneStep: boolean;
+  layoutMode: LayoutMode;
   canvas: ReactNode;
   action: ReactNode;
 }
 
 /** Sidebar plus canvas. Phase controls stay in the bottom bar on every size. */
-export function HostShell({ section, onSection, oneStep, canvas, action }: HostShellProps) {
+export function HostShell({ section, onSection, oneStep, layoutMode, canvas, action }: HostShellProps) {
   return (
-    <div className="ww-host" data-steps={oneStep ? 'one' : 'rail'}>
+    <div className="ww-host" data-layout={layoutMode} data-steps={oneStep ? 'one' : 'rail'}>
       <div className="ww-host-strip">
         <h1 className="ww-host-title">Host dashboard</h1>
       </div>

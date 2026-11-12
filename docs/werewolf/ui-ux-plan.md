@@ -233,6 +233,11 @@ As built (WEB-02), with two decisions:
 - `TopNavigation` stays in `AppShell`, above every route, as the lobby already does. `GameLayout` owns the status, stage, rail, and action regions. "Nav and status share one bar" on short screens is a styling rule on `data-status-row="false"`, not a second navigation component.
 - In portrait, only a target grid moves under the "Players | rail" switch. Avatars, the night result card, and the victory banner stay over the scene, and the middle shows the rail, whose own Players tab lists the seats. Each stage's placement is `portraitForeground` in `STAGE_SPECS`. The table route also has a `reveal` stage for `ROLE_REVEAL`: the night village with avatars while players read their cards.
 
+As built (UX-MOBILE):
+
+- On phone layout modes (`portrait`, `phone-landscape`, `narrow-landscape`), `AppShell` switches to **session chrome** (`data-chrome="session"`): the Play / How to Play / Roles text links are hidden; a compact bar keeps the wordmark (→ lobby when seated, else home), the seat avatar, and a ⋯ menu with the same destinations. Desktop and tablet keep marketing nav (`data-chrome="marketing"`).
+- Home, Reveal, Setup, and Host key phone densification off `layoutMode` / `data-layout` rather than only raw media queries. Primary actions keep at least `--hit` (44px), except short-landscape scrolling seat grids which may use `--hit-grid` (40px).
+
 ### Stage modes
 
 | Phase | Scene | Foreground | Action row |

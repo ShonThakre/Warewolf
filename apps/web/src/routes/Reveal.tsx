@@ -6,6 +6,7 @@ import { sceneArtUrl, type SceneId } from '../assets/art';
 import { PhaseCloseButton } from '../game/components/PhaseCloseButton';
 import { phaseActionNote } from '../game/components/phaseCopy';
 import { RoleCard } from '../game/components/RoleCard';
+import { useLayoutMode } from '../game/layout';
 import { useSeat } from '../game/state/lobby';
 import { useClosePhase, useGameState } from '../game/state/phase';
 import { gamePath, useMyRole } from '../game/state/role';
@@ -51,6 +52,7 @@ export function Reveal() {
   const seat = useSeat();
   const { gameId } = useParams();
   const navigate = useNavigate();
+  const layout = useLayoutMode();
   const { role, isLoading, error, refetch } = useMyRole();
   const view = useGameState();
   const control = useClosePhase(view.state);
@@ -133,7 +135,12 @@ export function Reveal() {
   }
 
   return (
-    <div className="ww-reveal" data-covered={covered ? 'true' : undefined} data-faction={role && !covered ? role.currentRole.faction : undefined}>
+    <div
+      className="ww-reveal"
+      data-layout={layout.mode}
+      data-covered={covered ? 'true' : undefined}
+      data-faction={role && !covered ? role.currentRole.faction : undefined}
+    >
       <div className="ww-reveal-scene" aria-hidden="true">
         {picture ? <img src={picture} alt="" /> : <div className="ww-reveal-art-fallback" />}
         <div className="ww-reveal-wash" />

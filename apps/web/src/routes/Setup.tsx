@@ -171,6 +171,7 @@ function SetupScreen() {
         step={step}
         onStep={setStep}
         oneStep={layout.mode === 'portrait'}
+        layoutMode={layout.mode}
         summary={
           <ConfigSummary
             mode={draft.mode}

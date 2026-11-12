@@ -20,6 +20,11 @@
   border-bottom-color: transparent;
 }
 
+.ww-app[data-chrome='session']:has(.ww-reveal) .ww-app-nav {
+  height: var(--bar-lobby);
+  min-height: var(--bar-lobby);
+}
+
 .ww-app:has(.ww-reveal) .ww-app-main {
   overflow: hidden;
   background: var(--bg);
@@ -290,64 +295,79 @@
   }
 }
 
-@media (max-width: 767px) {
-  .ww-app:has(.ww-reveal) .ww-app-main {
-    overflow: auto;
-  }
-
-  .ww-reveal {
-    align-items: stretch;
-    padding-bottom: 0;
-  }
-
-  .ww-reveal-panel {
-    width: min(100%, 36rem);
-    margin-top: auto;
-  }
-
-  .ww-role-body {
-    grid-template-columns: minmax(0, 1fr);
-    row-gap: var(--space);
-  }
-
-  .ww-reveal .ww-portrait[data-size='card'] {
-    width: min(100%, 16rem);
-    justify-self: center;
-  }
-
-  .ww-role-actions {
-    position: sticky;
-    bottom: 0;
-    grid-template-columns: minmax(0, 1fr);
-    padding-bottom: max(var(--space), env(safe-area-inset-bottom));
-    background: var(--surface);
-  }
+.ww-reveal[data-layout='portrait'] {
+  align-items: stretch;
+  padding-bottom: 0;
 }
 
-@media (max-height: 499px) and (orientation: landscape) {
-  .ww-role-card {
-    padding: 0.75rem 1rem;
-    gap: 0.6rem;
-  }
+.ww-app:has(.ww-reveal[data-layout='portrait']) .ww-app-main {
+  overflow: auto;
+}
 
-  .ww-role-body {
-    grid-template-columns: 7.5rem minmax(0, 1fr);
-    column-gap: var(--space);
-  }
+.ww-reveal[data-layout='portrait'] .ww-reveal-panel {
+  width: min(100%, 36rem);
+  margin-top: auto;
+}
 
-  .ww-reveal .ww-portrait[data-size='card'] {
-    max-height: 9.5rem;
-    aspect-ratio: 3 / 4;
-  }
+.ww-reveal[data-layout='portrait'] .ww-role-body {
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: var(--space);
+}
 
-  .ww-role-badge {
-    font-size: var(--text-title);
-  }
+.ww-reveal[data-layout='portrait'] .ww-portrait[data-size='card'] {
+  width: min(100%, 16rem);
+  justify-self: center;
+}
 
-  .ww-reveal-hide.MuiButton-root.MuiButton-outlined,
-  .ww-reveal-go.MuiButton-root {
-    min-height: var(--hit);
-  }
+.ww-reveal[data-layout='portrait'] .ww-role-actions {
+  position: sticky;
+  bottom: 0;
+  grid-template-columns: minmax(0, 1fr);
+  padding-bottom: max(var(--space), env(safe-area-inset-bottom));
+  background: var(--surface);
+}
+
+.ww-reveal[data-layout='portrait'] .ww-reveal-hide.MuiButton-root.MuiButton-outlined,
+.ww-reveal[data-layout='portrait'] .ww-reveal-go.MuiButton-root {
+  min-height: var(--hit);
+}
+
+.ww-reveal[data-layout='phone-landscape'] .ww-role-card,
+.ww-reveal[data-layout='narrow-landscape'] .ww-role-card {
+  padding: 0.75rem 1rem;
+  gap: 0.6rem;
+}
+
+.ww-reveal[data-layout='phone-landscape'] .ww-role-body,
+.ww-reveal[data-layout='narrow-landscape'] .ww-role-body {
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  column-gap: var(--space);
+}
+
+.ww-reveal[data-layout='phone-landscape'] .ww-portrait[data-size='card'],
+.ww-reveal[data-layout='narrow-landscape'] .ww-portrait[data-size='card'] {
+  max-height: 9.5rem;
+  aspect-ratio: 3 / 4;
+}
+
+.ww-reveal[data-layout='phone-landscape'] .ww-role-badge,
+.ww-reveal[data-layout='narrow-landscape'] .ww-role-badge {
+  font-size: var(--text-title);
+}
+
+.ww-reveal[data-layout='phone-landscape'] .ww-role-actions,
+.ww-reveal[data-layout='narrow-landscape'] .ww-role-actions {
+  position: sticky;
+  bottom: 0;
+  padding-bottom: max(calc(var(--space) / 2), env(safe-area-inset-bottom));
+  background: var(--surface);
+}
+
+.ww-reveal[data-layout='phone-landscape'] .ww-reveal-hide.MuiButton-root.MuiButton-outlined,
+.ww-reveal[data-layout='phone-landscape'] .ww-reveal-go.MuiButton-root,
+.ww-reveal[data-layout='narrow-landscape'] .ww-reveal-hide.MuiButton-root.MuiButton-outlined,
+.ww-reveal[data-layout='narrow-landscape'] .ww-reveal-go.MuiButton-root {
+  min-height: var(--hit);
 }
 
 @media (prefers-reduced-motion: reduce) {

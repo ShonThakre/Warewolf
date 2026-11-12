@@ -25,6 +25,14 @@ test.describe('fixture shell', () => {
   test('lobby keeps every region and the action row on screen', async ({ page }, info) => {
     const spec = specFor(info.project.name);
     await page.goto('/dev/layout/lobby');
+    const phone = spec.mode === 'portrait' || spec.mode === 'phone-landscape' || spec.mode === 'narrow-landscape';
+    await expect(page.locator('.ww-app')).toHaveAttribute('data-chrome', phone ? 'session' : 'marketing');
+    if (phone) {
+      await expect(page.getByRole('button', { name: 'Menu' })).toBeVisible();
+      await expect(page.getByRole('navigation', { name: 'Main' })).toHaveCount(0);
+    } else {
+      await expect(page.getByRole('navigation', { name: 'Main' })).toBeVisible();
+    }
     await expect(page.getByRole('region', { name: 'Game status' })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Village' })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Actions' })).toBeVisible();

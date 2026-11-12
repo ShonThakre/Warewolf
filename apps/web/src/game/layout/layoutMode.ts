@@ -9,8 +9,16 @@
 export const LAYOUT_MODES = ['full', 'compact', 'tablet', 'phone-landscape', 'narrow-landscape', 'portrait'] as const;
 export type LayoutMode = (typeof LAYOUT_MODES)[number];
 
+/** Phone viewports that use compact session chrome instead of marketing nav. */
+export const PHONE_LAYOUT_MODES = ['portrait', 'phone-landscape', 'narrow-landscape'] as const satisfies readonly LayoutMode[];
+
 /** Height at which the status line gets its own row instead of sharing the top bar. */
 export const TALL_HEIGHT = 700;
+
+/** True when the shell should hide Play / How to Play / Roles and use session chrome. */
+export function isPhoneLayout(mode: LayoutMode): boolean {
+  return (PHONE_LAYOUT_MODES as readonly LayoutMode[]).includes(mode);
+}
 
 /**
  * The six modes of section 3, checked in the table's order:

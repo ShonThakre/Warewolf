@@ -128,3 +128,31 @@
   color: var(--text-muted);
   font-size: var(--text-label);
 }
+
+.ww-game-layout[data-layout='phone-landscape'] .ww-results-stage,
+.ww-game-layout[data-layout='narrow-landscape'] .ww-results-stage {
+  gap: calc(var(--space) / 2);
+  padding: calc(var(--space) / 2);
+  justify-content: flex-start;
+}
+
+.ww-game-layout[data-layout='phone-landscape'] .ww-results-stats,
+.ww-game-layout[data-layout='narrow-landscape'] .ww-results-stats {
+  gap: 0.45rem 0.85rem;
+  padding: 0.45rem 0.75rem;
+}
+
+.ww-game-layout[data-layout='phone-landscape'] .ww-results-stat,
+.ww-game-layout[data-layout='narrow-landscape'] .ww-results-stat {
+  min-width: 3.5rem;
+}
+
+.ww-game-layout[data-layout='phone-landscape'] .ww-game-action .MuiButton-root,
+.ww-game-layout[data-layout='narrow-landscape'] .ww-game-action .MuiButton-root,
+.ww-game-layout[data-layout='portrait'] .ww-game-action .MuiButton-root {
+  min-height: var(--hit);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-results-stage {
+  padding-bottom: max(var(--space), env(safe-area-inset-bottom));
+}

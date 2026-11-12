@@ -304,104 +304,88 @@
   font-weight: 800;
 }
 
-/* Phone portrait: panel fills the width. Both actions stay reachable. */
-@media (max-width: 899px) {
-  .ww-app.is-home .ww-app-nav {
-    height: auto;
-    min-height: var(--bar);
-    padding-left: max(var(--space), env(safe-area-inset-left));
-    padding-right: max(var(--space), env(safe-area-inset-right));
-  }
-
-  .ww-home {
-    overflow: auto;
-    padding: var(--space);
-    padding-bottom: max(var(--space), env(safe-area-inset-bottom));
-  }
-
-  .ww-home-wash img {
-    object-position: 70% 22%;
-  }
-
-  .ww-home-card {
-    position: relative;
-    left: auto;
-    top: auto;
-    width: min(100%, 36rem);
-    height: auto;
-    margin-inline: auto;
-    padding: 1.25rem var(--space) 1.1rem;
-    overflow: visible;
-  }
-
-  .ww-home-mark {
-    width: 7.5rem;
-    height: 7.5rem;
-  }
-
-  .ww-home-actions {
-    grid-template-columns: 1fr;
-  }
-
-  .ww-home-actions .MuiButton-root,
-  .ww-home-return .MuiButton-root {
-    min-height: max(var(--hit), 3.25rem);
-  }
+/* Portrait / upright tablet: panel fills the width. Both actions stay reachable. */
+.ww-home[data-home='stack'] {
+  overflow: auto;
+  padding: var(--space);
+  padding-bottom: max(var(--space), env(safe-area-inset-bottom));
 }
 
-/* Short landscape: scene stays on the left and both actions stay on screen. */
-@media (max-height: 499px) {
-  .ww-app.is-home .ww-app-nav {
-    height: auto;
-    min-height: var(--bar);
-  }
+.ww-home[data-home='stack'] .ww-home-wash img {
+  object-position: 70% 22%;
+}
 
-  .ww-home {
-    overflow: hidden;
-    padding: 0;
-  }
+.ww-home[data-home='stack'] .ww-home-card {
+  position: relative;
+  left: auto;
+  top: auto;
+  width: min(100%, 36rem);
+  height: auto;
+  margin-inline: auto;
+  padding: 1.25rem var(--space) 1.1rem;
+  overflow: visible;
+}
 
-  .ww-home-wash img {
-    object-position: 30% 50%;
-  }
+.ww-home[data-home='stack'] .ww-home-mark {
+  width: 7.5rem;
+  height: 7.5rem;
+}
 
-  .ww-home-card {
-    position: absolute;
-    left: auto;
-    right: 0;
-    top: 0;
-    width: min(48vw, 28rem);
-    height: 100%;
-    border-radius: 0;
-    border-top: 0;
-    border-bottom: 0;
-    border-right: 0;
-    padding: var(--space);
-    padding-bottom: max(var(--space), env(safe-area-inset-bottom));
-    overflow: auto;
-    gap: calc(var(--space) / 2);
-  }
+.ww-home[data-home='stack'] .ww-home-actions {
+  grid-template-columns: 1fr;
+}
 
-  .ww-home-mark {
-    width: 3.25rem;
-    height: 3.25rem;
-    margin-top: 0;
-    align-self: flex-start;
-  }
+.ww-home[data-home='stack'] .ww-home-actions .MuiButton-root,
+.ww-home[data-home='stack'] .ww-home-return .MuiButton-root {
+  min-height: max(var(--hit), 3.25rem);
+}
 
-  .ww-home-title {
-    font-size: var(--text-title);
-  }
+/* Phone / narrow landscape: scene on the left; both actions stay on screen. */
+.ww-home[data-home='short'] {
+  overflow: hidden;
+  padding: 0;
+}
 
-  .ww-home-actions {
-    grid-template-columns: 1fr 1fr;
-    margin-top: 0;
-  }
+.ww-home[data-home='short'] .ww-home-wash img {
+  object-position: 30% 50%;
+}
 
-  .ww-home-actions .MuiButton-root,
-  .ww-home-return .MuiButton-root {
-    min-height: var(--hit);
-  }
+.ww-home[data-home='short'] .ww-home-card {
+  position: absolute;
+  left: auto;
+  right: 0;
+  top: 0;
+  width: min(48vw, 28rem);
+  height: 100%;
+  border-radius: 0;
+  border-top: 0;
+  border-bottom: 0;
+  border-right: 0;
+  padding: var(--space);
+  padding-bottom: max(var(--space), env(safe-area-inset-bottom));
+  overflow: auto;
+  gap: calc(var(--space) / 2);
+}
+
+.ww-home[data-home='short'] .ww-home-mark {
+  width: 3.25rem;
+  height: 3.25rem;
+  margin-top: 0;
+  align-self: flex-start;
+}
+
+.ww-home[data-home='short'] .ww-home-title {
+  font-size: var(--text-title);
+}
+
+.ww-home[data-home='short'] .ww-home-actions {
+  grid-template-columns: 1fr 1fr;
+  margin-top: 0;
+}
+
+.ww-home[data-home='short'] .ww-home-actions .MuiButton-root,
+.ww-home[data-home='short'] .ww-home-return .MuiButton-root {
+  min-height: var(--hit);
 }
 
 @media (prefers-reduced-motion: reduce) {

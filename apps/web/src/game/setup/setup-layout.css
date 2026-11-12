@@ -421,36 +421,74 @@ fieldset.ww-setup-fields {
   font-weight: 700;
 }
 
-@media (max-width: 899px) {
-  .ww-setup:not([data-steps='one']) {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
-    grid-template-areas:
-      'rail'
-      'head'
-      'summary'
-      'canvas'
-      'action';
-  }
-
-  .ww-setup:not([data-steps='one']) .ww-setup-summary {
-    margin: 0 var(--space);
-  }
-
-  .ww-setup .ww-role-grid {
-    grid-template-columns: 1fr;
-  }
+.ww-setup[data-layout='portrait'] .ww-role-grid,
+.ww-setup[data-layout='phone-landscape'] .ww-role-grid,
+.ww-setup[data-layout='narrow-landscape'] .ww-role-grid {
+  grid-template-columns: 1fr;
 }
 
-@media (max-height: 499px) {
-  .ww-setup-grid {
-    display: flex;
-    overflow: auto;
-  }
+.ww-setup[data-layout='phone-landscape'],
+.ww-setup[data-layout='narrow-landscape'] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'rail'
+    'head'
+    'summary'
+    'canvas'
+    'action';
+}
 
-  .ww-setup-role {
-    flex: 0 0 clamp(7rem, 18vw, 11rem);
-  }
+.ww-setup[data-layout='phone-landscape'] .ww-setup-summary,
+.ww-setup[data-layout='narrow-landscape'] .ww-setup-summary {
+  margin: 0 var(--space);
+}
+
+.ww-setup[data-layout='phone-landscape'] .ww-setup-rail,
+.ww-setup[data-layout='narrow-landscape'] .ww-setup-rail {
+  padding-block: 0.35rem;
+}
+
+.ww-setup[data-layout='phone-landscape'] .ww-setup-step.MuiButton-root,
+.ww-setup[data-layout='narrow-landscape'] .ww-setup-step.MuiButton-root {
+  min-height: var(--hit);
+  padding-inline: 0.65rem;
+}
+
+.ww-setup[data-layout='phone-landscape'] .ww-setup-head,
+.ww-setup[data-layout='narrow-landscape'] .ww-setup-head {
+  padding-block: 0.15rem;
+}
+
+.ww-setup[data-layout='phone-landscape'] .ww-setup-title,
+.ww-setup[data-layout='narrow-landscape'] .ww-setup-title {
+  font-size: var(--text-nav);
+}
+
+.ww-setup[data-layout='phone-landscape'] .ww-setup-copy,
+.ww-setup[data-layout='narrow-landscape'] .ww-setup-copy {
+  display: none;
+}
+
+.ww-setup[data-layout='phone-landscape'] .ww-setup-action,
+.ww-setup[data-layout='narrow-landscape'] .ww-setup-action {
+  padding-bottom: max(calc(var(--space) / 2), env(safe-area-inset-bottom));
+}
+
+.ww-setup[data-layout='phone-landscape'] .ww-setup-action .MuiButton-root,
+.ww-setup[data-layout='narrow-landscape'] .ww-setup-action .MuiButton-root {
+  min-height: var(--hit);
+}
+
+.ww-setup[data-layout='phone-landscape'] .ww-setup-grid,
+.ww-setup[data-layout='narrow-landscape'] .ww-setup-grid {
+  display: flex;
+  overflow: auto;
+}
+
+.ww-setup[data-layout='phone-landscape'] .ww-setup-role,
+.ww-setup[data-layout='narrow-landscape'] .ww-setup-role {
+  flex: 0 0 clamp(7rem, 18vw, 11rem);
 }
 
 .ww-setup-progress {
@@ -581,8 +619,3 @@ fieldset.ww-setup-fields {
   }
 }
 
-@media (max-width: 899px) {
-  .ww-setup .ww-role-grid {
-    grid-template-columns: 1fr;
-  }
-}

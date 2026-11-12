@@ -176,10 +176,21 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 | BUG-02 | `events.integration.test.ts` was red on `main` (it predates `PHASE_CHANGED`). Assertion fixed | Claude | COMPLETED | — |
 | BUG-03 | **High.** Phone landscape 844×390: ballot seat buttons cannot be brought into view (or sit under the header), so nobody can vote by tapping a seat; End the day is cut off. See `docs/werewolf/e2e-report.md` | Cursor | COMPLETED | — |
 | UX-R1 | Results banner: stat row and subtitle unreadable over the scene; empty ribbon (fold into UX-14) | Cursor | COMPLETED | — |
+| UX-MOBILE | Mobile-native full journey: phone session chrome (hide marketing nav), densify Home→Host for portrait + phone/narrow landscape | Cursor | COMPLETED | — |
 
 ---
 
 ## Task details
+
+### UX-MOBILE — Mobile-native full journey
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** On phone layout modes (`portrait`, `phone-landscape`, `narrow-landscape`), replace the AppShell marketing nav with compact session chrome (emblem, wordmark → lobby/home, seat avatar, ⋯ menu for Lobby / How to Play / Roles). Densify Home, Lobby, Setup, Reveal, Table phases, Results, and Host so primaries stay on screen, hit targets meet 44px (40px short-landscape grids), and there is no horizontal page scroll. One `GameLayout` / one client — no second mobile UI.
+- **Files:** `apps/web/src/shell/{AppShell.tsx,app-shell.css}`, `apps/web/src/game/layout/{game-layout.css,layoutMode.ts,index.ts}`, `apps/web/src/game/components/{home-scene,reveal-screen,table-screen,results-screen}.css`, `apps/web/src/game/setup/{SetupLayout.tsx,setup-layout.css}`, `apps/web/src/game/host/{HostShell.tsx,host-screen.css}`, `apps/web/src/routes/{Home,Reveal,Setup,Host}.tsx`, `apps/web/test/**`, `apps/web/e2e/layout.spec.ts`, `docs/werewolf/ui-ux-plan.md` §4, `docs/AI-TASK-BOARD.md`
+- **Checked:** `pnpm --filter @warewolf/web typecheck`. `pnpm --filter @warewolf/web test` 389/389. `PW_CHANNEL=chrome` Playwright `e2e/layout.spec.ts` on desktop-fhd, phone-land, phone-portrait (9/9). Session chrome: `data-chrome=session` on phone modes; Menu opens Play/How to Play/Roles.
+- **Avoid:** HOST-01 deploy files; GAP-06 connection indicator. WW-1605 APK status-bar theming still separate.
+
 
 
 ### Cursor handoff — BUG-03, GAP-02, HOWTO-01, UX-13/14, UX-R1, table notes, GAP-05, E2E-03 (12 November 2026)

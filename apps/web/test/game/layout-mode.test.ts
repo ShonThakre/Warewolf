@@ -4,9 +4,11 @@ import { SCENE_IDS } from '../../src/assets/art';
 import {
   LAYOUT_MODES,
   NARROW_LANDSCAPE_CHECK,
+  PHONE_LAYOUT_MODES,
   PRIORITY_VIEWPORTS,
   STAGE_MODES,
   STAGE_SPECS,
+  isPhoneLayout,
   layoutInfo,
   layoutMode,
   stageModeFor,
@@ -52,6 +54,18 @@ describe('layoutMode', () => {
     const seen = new Set<string>();
     for (let w = 300; w <= 2600; w += 20) for (let h = 300; h <= 1600; h += 20) seen.add(layoutMode(w, h));
     expect([...seen].sort()).toEqual([...LAYOUT_MODES].sort());
+  });
+});
+
+describe('isPhoneLayout', () => {
+  it('marks only portrait and phone/narrow landscape for session chrome', () => {
+    expect(PHONE_LAYOUT_MODES).toEqual(['portrait', 'phone-landscape', 'narrow-landscape']);
+    expect(isPhoneLayout('portrait')).toBe(true);
+    expect(isPhoneLayout('phone-landscape')).toBe(true);
+    expect(isPhoneLayout('narrow-landscape')).toBe(true);
+    expect(isPhoneLayout('full')).toBe(false);
+    expect(isPhoneLayout('compact')).toBe(false);
+    expect(isPhoneLayout('tablet')).toBe(false);
   });
 });
 

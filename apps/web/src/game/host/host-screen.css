@@ -419,29 +419,51 @@
   border: 0;
 }
 
-@media (max-width: 599px) {
-  .ww-host:not([data-steps='one']) {
-    grid-template-columns: auto minmax(0, 1fr);
-  }
+.ww-host[data-layout='phone-landscape']:not([data-steps='one']),
+.ww-host[data-layout='narrow-landscape']:not([data-steps='one']) {
+  --host-rail: 3.5rem;
+  --host-strip: 2.75rem;
+  --host-action: auto;
+  grid-template-columns: var(--host-rail) minmax(0, 1fr);
+}
 
-  .ww-host-section-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
+.ww-host[data-layout='phone-landscape'] .ww-host-section-label,
+.ww-host[data-layout='narrow-landscape'] .ww-host-section-label,
+.ww-host[data-layout='portrait'] .ww-host-section-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
 
-  .ww-host-action-buttons {
-    margin-left: 0;
-    width: 100%;
-  }
+.ww-host[data-layout='phone-landscape'] .ww-host-section.MuiButton-root,
+.ww-host[data-layout='narrow-landscape'] .ww-host-section.MuiButton-root {
+  justify-content: center;
+  padding-inline: 0.35rem;
+  min-width: var(--hit);
+}
 
-  .ww-host-action-buttons .MuiButton-root {
-    flex: 1 1 auto;
-  }
+.ww-host[data-layout='phone-landscape'] .ww-host-action,
+.ww-host[data-layout='narrow-landscape'] .ww-host-action,
+.ww-host[data-layout='portrait'] .ww-host-action {
+  padding-bottom: max(calc(var(--space) / 2), env(safe-area-inset-bottom));
+}
+
+.ww-host[data-layout='phone-landscape'] .ww-host-action-buttons,
+.ww-host[data-layout='narrow-landscape'] .ww-host-action-buttons,
+.ww-host[data-layout='portrait'] .ww-host-action-buttons {
+  margin-left: 0;
+  width: 100%;
+}
+
+.ww-host[data-layout='phone-landscape'] .ww-host-action-buttons .MuiButton-root,
+.ww-host[data-layout='narrow-landscape'] .ww-host-action-buttons .MuiButton-root,
+.ww-host[data-layout='portrait'] .ww-host-action-buttons .MuiButton-root {
+  flex: 1 1 auto;
+  min-height: var(--hit);
 }
