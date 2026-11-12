@@ -179,10 +179,20 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 | UX-R1 | Results banner: stat row and subtitle unreadable over the scene; empty ribbon (fold into UX-14) | Cursor | COMPLETED | — |
 | UX-MOBILE | Mobile-native full journey: phone session chrome (hide marketing nav), densify Home→Host for portrait + phone/narrow landscape | Cursor | COMPLETED | — |
 | UX-PHONE | Portrait phone screens matched to `*-phone.png` mockups (Phase 0 shared tokens/primitives, then Home→Results 01–12) | Claude | COMPLETED | UX-MOBILE |
+| SETUP-MODE | Setup: confirm before a mode or preset replaces edited roles, Custom starts from the current roles, edited-preset card with reset | Claude | COMPLETED | — |
 
 ---
 
 ## Task details
+
+### SETUP-MODE — Mode and preset switching on Game setup
+
+- **Agent:** Claude
+- **Status:** COMPLETED (12 November 2026)
+- **Description:** Picking a mode or preset no longer silently replaces a hand-edited role list. Re-clicking the current mode does nothing. Custom starts from the current roles and rules. An edited setup shows a highlighted "Custom, based on <preset>" card with a role summary and "Reset to <preset>".
+- **Files:** `apps/web/src/game/setup/{setupDraft.ts,setupCopy.ts,SetupMode.tsx,setup-layout.css}`, `apps/web/src/routes/Setup.tsx`, `apps/web/test/screens/{setup-draft.test.ts,setup.test.tsx}`.
+- **Interfaces:** `setupDraft.ts` adds `toCustom`, `hasHandEdits`, `basePackOf` (infers the preset of a saved custom draft by role overlap), and `roleSummary`. `applyMode` is a no-op for the current mode and calls `toCustom` for CUSTOM. `SetupMode` takes `basePackId`, which `Setup.tsx` keeps in state. No domain, contract, or server change.
+- **Checked:** `pnpm --filter @warewolf/web typecheck`. `pnpm --filter @warewolf/web test` 400/400. Live API in Chrome at 1440×900 and 390×844: edit Classic → edited card and summary; Expanded asks first and Keep editing leaves the list; save and reload still names Classic; Custom carries the roles without asking.
 
 ### UX-PHONE — Portrait phone mockup pass
 

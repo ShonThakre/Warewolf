@@ -883,3 +883,33 @@ fieldset.ww-setup-fields {
   align-items: flex-start;
   text-align: left;
 }
+
+/* SETUP-MODE: the hand-edited setup, shown first in the preset list with a role summary and Reset. */
+.ww-setup-edited {
+  gap: 0.3rem;
+  border: 2px solid var(--primary);
+  background: var(--surface-raised);
+}
+
+.ww-setup-edited .ww-catalog-name,
+.ww-setup-edited .ww-catalog-power {
+  margin: 0;
+}
+
+.ww-setup-edited-summary {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-label);
+  line-height: 1.4;
+}
+
+.ww-setup-edited-reset.MuiButton-root {
+  min-height: var(--hit);
+  margin-top: auto;
+  padding-inline: 0.5rem;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-role.ww-setup-edited {
+  border: 2px solid var(--primary);
+  background: var(--surface-raised);
+}

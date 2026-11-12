@@ -15,7 +15,7 @@ import { SetupMode } from '../game/setup/SetupMode';
 import { SetupRoles } from '../game/setup/SetupRoles';
 import { SetupSettings } from '../game/setup/SetupSettings';
 import { lockedModeCopy } from '../game/setup/setupCopy';
-import { sameConfiguration, type SetupStep } from '../game/setup/setupDraft';
+import { basePackOf, sameConfiguration, type SetupStep } from '../game/setup/setupDraft';
 import { useLobby, useSeat } from '../game/state/lobby';
 import { gamePath } from '../game/state/role';
 
@@ -45,6 +45,8 @@ function SetupScreen() {
   const [step, setStep] = useState<SetupStep>('mode');
   const [draft, setDraft] = useState<GameConfiguration | null>(null);
   const [baseline, setBaseline] = useState<GameConfiguration | null>(null);
+  /** The preset an edited setup came from, for the Mode step's "based on" card and Reset. */
+  const [basePackId, setBasePackId] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<ApiErrorInfo | null>(null);
   const [justSaved, setJustSaved] = useState(false);
   const [startError, setStartError] = useState<ApiErrorInfo | null>(null);
@@ -59,6 +61,7 @@ function SetupScreen() {
     const next = structuredClone(serverDraft) as GameConfiguration;
     setDraft(next);
     setBaseline(structuredClone(serverDraft) as GameConfiguration);
+    setBasePackId(basePackOf(next)?.id ?? null);
   }, [serverDraft, baseline]);
 
   useEffect(() => {
@@ -127,6 +130,10 @@ function SetupScreen() {
   const startDisabled = !editable || dirty || !validation.valid || !lobby.start.ready || busy;
 
   function onDraft(next: GameConfiguration) {
+    // A preset becomes the base. A hand edit or a switch to Custom keeps the preset it came from.
+    if (next.rolePackId !== 'custom') setBasePackId(next.rolePackId);
+    else if (next.roles.length === 0) setBasePackId(null);
+    else if (draft && draft.rolePackId !== 'custom') setBasePackId(draft.rolePackId);
     setDraft((current) => (current === next ? current : next));
     setSaveError(null);
     setJustSaved(false);
@@ -183,7 +190,7 @@ function SetupScreen() {
         }
         canvas={
           <>
-            {step === 'mode' ? <SetupMode draft={draft} editable={editable} onDraft={onDraft} /> : null}
+            {step === 'mode' ? <SetupMode draft={draft} editable={editable} basePackId={basePackId} onDraft={onDraft} /> : null}
             {step === 'roles' ? <SetupRoles draft={draft} editable={editable} onDraft={onDraft} /> : null}
             {step === 'settings' ? <SetupSettings draft={draft} editable={editable} onDraft={onDraft} /> : null}
             {step === 'review' ? (

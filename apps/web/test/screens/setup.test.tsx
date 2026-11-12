@@ -144,4 +144,47 @@ describe('configuration browser', () => {
     expect(savedPack).toBe('classic-10');
     expect((screen.getByRole('button', { name: 'Start game' }) as HTMLButtonElement).disabled).toBe(true);
   });
+
+  it('asks before a preset replaces edited roles, and offers a reset', async () => {
+    setViewport(1024, 768);
+    renderApp(`/lobby/${GAME}/setup`, { seat: hostSeat, fetchFn: fetchSetup('classic-10', true) });
+    expect(await screen.findByRole('navigation', { name: 'Setup steps' })).toBeTruthy();
+    const modes = () => within(screen.getByRole('group', { name: 'Game mode' }));
+
+    // No edits: a mode switch needs no confirmation, and re-clicking the current mode changes nothing.
+    fireEvent.click(modes().getByRole('button', { name: 'Classic' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.queryByText(/Custom, based on/)).toBeNull();
+
+    fireEvent.click(screen.getByRole('button', { name: '2. Roles' }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Add one Villager' }));
+    fireEvent.click(screen.getByRole('button', { name: '1. Mode and players' }));
+    expect(await screen.findByText('Custom, based on Classic')).toBeTruthy();
+    expect(screen.getByText('2 Pack Wolf · 1 Seeker · 1 Doctor · 7 Villager · 1 more than the 10 seats')).toBeTruthy();
+
+    // Switching mode asks first. Keep editing leaves the list alone.
+    fireEvent.click(modes().getByRole('button', { name: 'Expanded' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Replace your edited setup?' });
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Keep editing' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(modes().getByRole('button', { name: 'Classic' }).getAttribute('aria-pressed')).toBe('true');
+
+    // Reset goes through the same question and restores the preset.
+    fireEvent.click(screen.getByRole('button', { name: 'Reset to Classic' }));
+    fireEvent.click(within(await screen.findByRole('dialog')).getByRole('button', { name: 'Replace roles' }));
+    await waitFor(() => expect(screen.queryByText(/Custom, based on/)).toBeNull());
+    const pressed = document.querySelector('.ww-setup-role-open[aria-pressed="true"] .ww-catalog-name');
+    expect(pressed?.textContent).toBe('Classic');
+  });
+
+  it('starts Custom from the current roles without asking', async () => {
+    setViewport(1024, 768);
+    renderApp(`/lobby/${GAME}/setup`, { seat: hostSeat, fetchFn: fetchSetup('classic-10', true) });
+    expect(await screen.findByRole('navigation', { name: 'Setup steps' })).toBeTruthy();
+    fireEvent.click(within(screen.getByRole('group', { name: 'Game mode' })).getByRole('button', { name: 'Custom' }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(await screen.findByText('Custom, based on Classic')).toBeTruthy();
+    expect(screen.getByText('2 Pack Wolf · 1 Seeker · 1 Doctor · 6 Villager')).toBeTruthy();
+    expect((screen.getByRole('spinbutton', { name: 'Players' }) as HTMLInputElement).value).toBe('10');
+  });
 });

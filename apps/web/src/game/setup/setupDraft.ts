@@ -44,8 +44,70 @@ export function sameConfiguration(left: GameConfiguration, right: GameConfigurat
   return canonical(left) === canonical(right);
 }
 
+/**
+ * Picks a mode. The current mode is a no-op, so a second click never wipes edits.
+ * Custom keeps the current roles and rules as an editable copy; any other mode loads its default preset.
+ */
 export function applyMode(draft: GameConfiguration, mode: GameMode): GameConfiguration {
+  if (mode === draft.mode) return draft;
+  if (mode === 'CUSTOM') return toCustom(draft);
   return applyPack(draft, DEFAULT_PACK_BY_MODE[mode]);
+}
+
+/** The current roles, profiles, overrides, and rules as a Custom setup. The count is clamped to Custom's bounds. */
+export function toCustom(draft: GameConfiguration): GameConfiguration {
+  const bounds = MODE_BOUNDS.CUSTOM;
+  const next = cloneConfiguration(draft);
+  const playerCount = Math.min(bounds.max, Math.max(bounds.min, next.playerCount));
+  return coverStartingPack({ ...next, mode: 'CUSTOM', rolePackId: 'custom', playerCount });
+}
+
+/** True when the host's own role list would be lost by loading a preset. */
+export function hasHandEdits(draft: GameConfiguration): boolean {
+  return draft.rolePackId === 'custom' && draft.roles.some((entry) => entry.count > 0);
+}
+
+/**
+ * The preset an edited setup came from. A saved custom draft does not record it,
+ * so this picks the preset of the same mode that shares the most role seats.
+ */
+export function basePackOf(draft: GameConfiguration): RolePack | null {
+  if (draft.rolePackId !== 'custom') return getPack(draft.rolePackId) ?? null;
+  if (draft.mode === 'CUSTOM') return null;
+  const candidates = packsForMode(draft.mode);
+  let best: RolePack | null = null;
+  let bestOverlap = -1;
+  for (const pack of candidates) {
+    const overlap = pack.config.roles.reduce((sum, entry) => sum + Math.min(entry.count, roleCount(draft, entry.roleId)), 0);
+    if (overlap > bestOverlap) {
+      best = pack;
+      bestOverlap = overlap;
+    }
+  }
+  return bestOverlap > 0 ? best : (getPack(DEFAULT_PACK_BY_MODE[draft.mode]) ?? null);
+}
+
+const SUMMARY_ORDER: readonly Faction[] = ['WOLF_PACK', 'VILLAGE', 'NEUTRAL', 'INDEPENDENT'];
+
+/** "2 Pack Wolf · 1 Seeker · 6 Villager · 2 seats open". Wolves first, then Village, Neutral, Independent; list order within a team. */
+export function roleSummary(config: GameConfiguration): string {
+  const rows: { name: string; count: number; rank: number }[] = [];
+  for (const entry of config.roles) {
+    if (entry.count <= 0) continue;
+    const role = DEFAULT_CATALOG.byId.get(entry.roleId);
+    const faction = entry.faction ?? role?.defaultFaction ?? 'VILLAGE';
+    const name = role?.displayName ?? entry.roleId;
+    const existing = rows.find((row) => row.name === name);
+    if (existing) existing.count += entry.count;
+    else rows.push({ name, count: entry.count, rank: SUMMARY_ORDER.indexOf(faction) });
+  }
+  rows.sort((a, b) => a.rank - b.rank);
+  const seated = rows.reduce((sum, row) => sum + row.count, 0);
+  const parts = rows.map((row) => `${row.count} ${row.name}`);
+  const open = config.playerCount - seated;
+  if (open > 0) parts.push(`${open} ${open === 1 ? 'seat' : 'seats'} open`);
+  if (open < 0) parts.push(`${-open} more than the ${config.playerCount} seats`);
+  return parts.length > 0 ? parts.join(' · ') : 'No roles yet';
 }
 
 export function applyPack(draft: GameConfiguration, packId: string): GameConfiguration {

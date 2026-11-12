@@ -74,3 +74,18 @@ export const CONFIG_LABEL: Record<string, string> = {
 export function configLabel(key: string): string {
   return CONFIG_LABEL[key] ?? key;
 }
+
+/** The highlighted card for a hand-edited setup on the Mode step. */
+export function editedCardTitle(baseName: string | null): string {
+  return baseName ? `Custom, based on ${baseName}` : 'Custom setup';
+}
+
+/** Confirm copy before a mode, preset, or reset replaces an edited role list. */
+export function replaceDialogCopy(current: string, targetName: string, target: string): { title: string; lines: readonly string[]; confirm: string; cancel: string } {
+  return {
+    title: 'Replace your edited setup?',
+    lines: [`Your setup: ${current}.`, `${targetName}: ${target}.`, 'Unsaved changes are lost. The saved setup stays until you press Save setup.'],
+    confirm: 'Replace roles',
+    cancel: 'Keep editing',
+  };
+}

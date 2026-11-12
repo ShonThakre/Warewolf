@@ -1,9 +1,13 @@
-import { getPack } from '@warewolf/domain';
+import { getPack, validateConfiguration } from '@warewolf/domain';
 import { describe, expect, it } from 'vitest';
 import {
   applyMode,
   applyPack,
+  basePackOf,
   configurationFromPack,
+  hasHandEdits,
+  roleSummary,
+  toCustom,
   infectionLocked,
   roleCount,
   setAbilityCharge,
@@ -69,5 +73,54 @@ describe('setup drafts', () => {
     expect(back.teams.wolfCap).toBe(2);
     expect(setWolfCap(one, 0).teams.wolfCap).toBe(1);
     expect(setWolfCap(one, 4).teams.wolfCap).toBe(4);
+  });
+
+  it('ignores a click on the current mode, so edits survive', () => {
+    const edited = setRoleCount(classic!, 'normal_villager', 7);
+    expect(applyMode(edited, 'CLASSIC')).toBe(edited);
+    expect(applyMode(infection!, 'INFECTION')).toBe(infection);
+  });
+
+  it('carries the current roles and rules into Custom', () => {
+    const edited = setRoleCount(classic!, 'normal_villager', 7);
+    const custom = applyMode(edited, 'CUSTOM');
+    expect(custom.mode).toBe('CUSTOM');
+    expect(custom.rolePackId).toBe('custom');
+    expect(custom.roles).toEqual(edited.roles);
+    expect(custom.playerCount).toBe(edited.playerCount);
+    expect(custom.wolves).toEqual(edited.wolves);
+    expect(validateConfiguration(custom).errors.map((issue) => issue.code)).toEqual(validateConfiguration(edited).errors.map((issue) => issue.code));
+    // A locked roster becomes an editable copy.
+    const fromInfection = applyMode(infection!, 'CUSTOM');
+    expect(roleCount(fromInfection, 'alpha_wolf')).toBe(1);
+    expect(setRoleCount(fromInfection, 'normal_villager', 13)).not.toBe(fromInfection);
+  });
+
+  it('clamps the carried player count to Custom bounds', () => {
+    expect(toCustom({ ...classic!, playerCount: 4 }).playerCount).toBe(6);
+    expect(toCustom({ ...classic!, playerCount: 40 }).playerCount).toBe(30);
+  });
+
+  it('knows when loading a preset would lose a hand-made list', () => {
+    expect(hasHandEdits(classic!)).toBe(false);
+    expect(hasHandEdits(infection!)).toBe(false);
+    expect(hasHandEdits(setRoleCount(classic!, 'normal_villager', 7))).toBe(true);
+    expect(hasHandEdits(configurationFromPack('custom')!)).toBe(false);
+  });
+
+  it('finds the preset an edited setup came from', () => {
+    expect(basePackOf(classic!)?.id).toBe('classic-10');
+    const investigation = configurationFromPack('investigation-15')!;
+    expect(basePackOf(setRoleCount(investigation, 'normal_villager', 9))?.id).toBe('investigation-15');
+    const unrelated = { ...classic!, rolePackId: 'custom', roles: [] };
+    expect(basePackOf(unrelated)?.id).toBe('classic-10');
+    expect(basePackOf(toCustom(classic!))).toBeNull();
+  });
+
+  it('summarises roles wolves first, then village, with open seats', () => {
+    expect(roleSummary(classic!)).toBe('2 Pack Wolf · 1 Seeker · 1 Doctor · 6 Villager');
+    expect(roleSummary(setPlayerCount(classic!, 12))).toBe('2 Pack Wolf · 1 Seeker · 1 Doctor · 6 Villager · 2 seats open');
+    expect(roleSummary(configurationFromPack('custom')!)).toBe('10 seats open');
+    expect(roleSummary(setRoleCount(classic!, 'normal_villager', 7))).toBe('2 Pack Wolf · 1 Seeker · 1 Doctor · 7 Villager · 1 more than the 10 seats');
   });
 });
