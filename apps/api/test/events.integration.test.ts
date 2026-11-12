@@ -130,7 +130,7 @@ describe('private result events (WW-804)', () => {
     expect(events.some((row) => row.type === 'NIGHT_PUBLISHED')).toBe(true);
 
     const before = events.length;
-    expect(await app.get(EventService).publishNight(game.host.gameId, 1)).toBe(0);
+    expect(await app.get(EventService).publishNight(game.host.gameId, 1)).toEqual([]);
     expect(await rows(game.host.gameId)).toHaveLength(before);
   });
 

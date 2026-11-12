@@ -37,6 +37,10 @@ export interface NightEventSource {
     readonly toRoleId: string;
     readonly reason: string;
     readonly revokedAbilityIds: readonly string[];
+    /** Living Vampire, when this conversion is a promotion. Absent for every other reason. */
+    readonly vampirePlayerId?: string | null;
+    /** Living Vampire-team members, including the new Servant. */
+    readonly teamPlayerIds?: readonly string[];
   }[];
   readonly eliminations: readonly {
     readonly playerId: string;
@@ -113,19 +117,41 @@ export function nightEventDrafts(source: NightEventSource): GameEventDraft[] {
 
   for (const row of [...source.conversions].sort((a, b) => a.playerId.localeCompare(b.playerId))) {
     const revokedAbilityIds = [...row.revokedAbilityIds].sort();
+    const team = row.reason === 'VAMPIRE'
+      ? { vampirePlayerId: row.vampirePlayerId ?? null, teamPlayerIds: [...(row.teamPlayerIds ?? [])].sort() }
+      : null;
     drafts.push({
       type: 'ROLE_CONVERTED',
       audience: 'PLAYER',
       recipientPlayerId: row.playerId,
-      payload: { roundNumber: round, roleId: row.toRoleId, revokedAbilityIds },
+      payload: { roundNumber: round, roleId: row.toRoleId, revokedAbilityIds, ...(team ?? {}) },
       dedupeKey: `night:${round}:conversion:${row.playerId}:player`,
     });
     drafts.push({
       type: 'ROLE_CONVERTED',
       audience: 'HOST',
       recipientPlayerId: null,
-      payload: { roundNumber: round, playerId: row.playerId, roleId: row.toRoleId, reason: row.reason, revokedAbilityIds },
+      payload: { roundNumber: round, playerId: row.playerId, roleId: row.toRoleId, reason: row.reason, revokedAbilityIds, ...(team ?? {}) },
       dedupeKey: `night:${round}:conversion:${row.playerId}:host`,
+    });
+    if (!team) continue;
+    const notice = { roundNumber: round, servantPlayerId: row.playerId, vampirePlayerId: team.vampirePlayerId, teamPlayerIds: team.teamPlayerIds };
+    for (const memberId of team.teamPlayerIds) {
+      if (memberId === row.playerId) continue;
+      drafts.push({
+        type: 'VAMPIRE_TEAM_JOIN',
+        audience: 'PLAYER',
+        recipientPlayerId: memberId,
+        payload: notice,
+        dedupeKey: `night:${round}:vampire-team:${row.playerId}:${memberId}`,
+      });
+    }
+    drafts.push({
+      type: 'VAMPIRE_TEAM_JOIN',
+      audience: 'HOST',
+      recipientPlayerId: null,
+      payload: notice,
+      dedupeKey: `night:${round}:vampire-team:${row.playerId}:host`,
     });
   }
 

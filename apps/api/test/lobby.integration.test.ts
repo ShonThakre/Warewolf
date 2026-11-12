@@ -113,7 +113,7 @@ describe('create and join', () => {
     for (let i = 2; i <= 10; i++) await join(host.roomCode, `Player ${i}`);
     const res = await api().post('/api/v1/games/join').send({ roomCode: host.roomCode, displayName: 'Eleventh' }).expect(409);
     expect(errorCode(res.body)).toBe('ROOM_FULL');
-    expect((await lobby(host)).start).toEqual({ ready: true, blockers: [], requiresWarningAcknowledgement: true });
+    expect((await lobby(host)).start).toEqual({ ready: true, blockers: [], requiresWarningAcknowledgement: false });
   });
 
   it('closes join after start', async () => {
@@ -253,7 +253,7 @@ describe('configuration drafts', () => {
     expect(asHost.draft).toEqual(classic);
     expect(asHost.editable).toBe(true);
     expect(asGuest.editable).toBe(false);
-    expect(asHost.validation.warnings.map((w) => w.code)).toEqual(['UNCONFIRMED_PRESET']);
+    expect(asHost.validation.warnings.map((w) => w.code)).toEqual([]);
   });
 
   it('saves an invalid draft and keeps start closed', async () => {
@@ -369,7 +369,8 @@ describe('role catalog and packs', () => {
     const packs = rolePackListSchema.parse((await api().get('/api/v1/role-packs').expect(200)).body);
     expect(packs).toHaveLength(10);
     expect(packs.find((p) => p.id === 'infection-core')).toMatchObject({ status: 'CONFIRMED', errorCodes: [], warningCodes: [] });
-    expect(packs.find((p) => p.id === 'chaos-15')).toMatchObject({ status: 'RECOMMENDED', blockedBy: [], errorCodes: [] });
+    expect(packs.find((p) => p.id === 'chaos-15')).toMatchObject({ status: 'CONFIRMED', blockedBy: [], errorCodes: [] });
+    expect(packs.find((p) => p.id === 'ultimate-20')).toMatchObject({ status: 'CONFIRMED', errorCodes: [] });
     expect((await api().get('/api/v1/role-packs/classic-10').expect(200)).body.config.playerCount).toBe(10);
     await api().get('/api/v1/role-packs/nope').expect(404);
   });

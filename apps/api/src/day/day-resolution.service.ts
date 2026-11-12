@@ -1,21 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { parseGameConfiguration } from '@warewolf/contracts';
 import {
+  nightShields,
+  resolveShots,
   tallyDay,
   voteWeight,
+  type NightProtection,
   type Ballot,
   type DayResolution,
   type GameConfiguration,
   type TallyInput,
   type TallyVote,
 } from '@warewolf/domain';
-import { and, eq } from 'drizzle-orm';
+import { and, asc, eq, inArray, sql } from 'drizzle-orm';
 import type { Transaction } from '../db/database.js';
 import {
   abilityInstances,
+  dayTallies,
   eliminationRecords,
   gamePlayers,
   games,
+  nightActions,
+  resolutionRuns,
   roleAssignments,
   scheduledEffects,
   votes,
@@ -48,7 +54,7 @@ export class DayResolutionService {
     const diedNow = new Set<string>();
     const diedByVote: string[] = [];
 
-    const kill = async (playerId: string, causes: { type: 'POISON' | 'DAY_VOTE'; actorIds: string[] }, revengeTarget: string | null) => {
+    const kill = async (playerId: string, causes: { type: 'POISON' | 'DAY_VOTE' | 'SNIPER'; actorIds: string[] }, revengeTarget: string | null) => {
       if (life.get(playerId) !== 'ALIVE') return;
       const immortal = abilities.find(
         (a) => a.playerId === playerId && a.config.capability === 'SURVIVE_DEATH' && a.status === 'ACTIVE' && a.chargesRemaining !== 0,
@@ -70,7 +76,7 @@ export class DayResolutionService {
         roleAtDeath: assignment.currentRoleId,
         originalRoleId: assignment.originalRoleId,
         factionAtDeath: assignment.currentFaction,
-        causes: [{ type: causes.type, via: 'EFFECT', actorIds: [...causes.actorIds].sort() }],
+        causes: [{ type: causes.type, via: causes.type === 'SNIPER' ? 'ABILITY' : 'EFFECT', actorIds: [...causes.actorIds].sort() }],
         revealedPublicly: config.voting.revealOnDayElimination === 'CURRENT_ROLE',
       });
       if (assignment.currentRoleId === 'alpha_wolf') {
@@ -79,6 +85,14 @@ export class DayResolutionService {
       if (causes.type === 'DAY_VOTE') diedByVote.push(playerId);
       await avenge(tx, game, abilities, life, playerId, revengeTarget);
     };
+
+    // Day shots (OD-29) resolve when discussion closes, before voting opens, or at the day's end when voting is off.
+    if (ballot === 'DISCUSSION' || ballot === 'NONE') await this.fireShots(tx, game, abilities, life, kill);
+    if (ballot === 'DISCUSSION') {
+      await inheritDoctors(tx, game, assignments, abilities, life, diedNow);
+      // A shot never wins a Jester: only a day vote does.
+      return { gameOver: await applyVictory(tx, game, []), tied: false };
+    }
 
     const due = await tx
       .select()
@@ -103,6 +117,38 @@ export class DayResolutionService {
 
     let tied = false;
     if (ballot === 'FIRST' || ballot === 'REVOTE') {
+      const chaosRows = await tx
+        .select()
+        .from(scheduledEffects)
+        .where(
+          and(
+            eq(scheduledEffects.gameId, game.id),
+            eq(scheduledEffects.status, 'ACTIVE'),
+            eq(scheduledEffects.kind, 'CHAOS_DAY'),
+            eq(scheduledEffects.duePhase, 'DAY'),
+            eq(scheduledEffects.dueRound, game.roundNumber),
+          ),
+        );
+      const dayChaos = chaosRows.flatMap((row) => {
+        if (row.chaosKind !== 'NO_VOTE' && row.chaosKind !== 'SWAP_VOTES' && row.chaosKind !== 'DOUBLE_VOTE') return [];
+        return [{ row, effect: { kind: row.chaosKind, playerIds: row.playerIds ?? [] } }];
+      });
+      const mindRows = await tx
+        .select()
+        .from(nightActions)
+        .where(
+          and(
+            eq(nightActions.gameId, game.id),
+            eq(nightActions.roundNumber, game.roundNumber),
+            eq(nightActions.phase, 'DAY_DISCUSSION'),
+            eq(nightActions.status, 'LOCKED'),
+          ),
+        );
+      const mindControl = mindRows.flatMap((row) => {
+        const ability = abilities.find((item) => item.id === row.abilityInstanceId);
+        if (ability?.config.capability !== 'MODIFY_VOTING' || row.targetPlayerIds.length < 2) return [];
+        return [{ row, control: { voterId: row.targetPlayerIds[0]!, targetId: row.targetPlayerIds[1]! } }];
+      });
       const number = ballot === 'FIRST' ? 1 : 2;
       const tallyVotes = (rows: typeof cast): TallyVote[] => rows.map((v) => ({ voterId: v.voterPlayerId, targetId: v.targetPlayerId }));
       const input = (dayBallot: 'FIRST' | 'REVOTE', rows: typeof cast): TallyInput => ({
@@ -112,6 +158,8 @@ export class DayResolutionService {
         assignments: assignments.map((a) => ({ playerId: a.playerId, currentRoleId: a.currentRoleId, currentProfileId: a.currentProfileId })),
         abilities: abilities.map((a) => ({ playerId: a.playerId, status: a.status, config: a.config })),
         votes: tallyVotes(rows),
+        ...(dayChaos.length > 0 ? { chaosEffects: dayChaos.map((item) => item.effect) } : {}),
+        ...(mindControl.length > 0 ? { mindControl: mindControl.map((item) => item.control) } : {}),
         ...(config.voting.deadMayVote ? { countDeadVotes: true } : {}),
       });
 
@@ -120,6 +168,20 @@ export class DayResolutionService {
       const active = cast.filter((v) => v.ballot === number && (allowed === null || v.targetPlayerId === null || allowed.has(v.targetPlayerId)));
       const result = tallyDay(input(ballot, active));
       tied = result.tied.length > 0;
+      // The public tally (OD-85): the totals that decided this ballot, with no voter ids.
+      const counted = (voterId: string) => config.voting.deadMayVote || life.get(voterId) === 'ALIVE';
+      await tx.insert(dayTallies).values({
+        gameId: game.id,
+        roundNumber: game.roundNumber,
+        ballot: number,
+        counts: Object.entries(result.counts)
+          .filter(([, total]) => total > 0)
+          .map(([targetPlayerId, total]) => ({ targetPlayerId, total }))
+          .sort((a, b) => b.total - a.total || (a.targetPlayerId < b.targetPlayerId ? -1 : 1)),
+        abstentions: active.filter((v) => v.targetPlayerId === null && counted(v.voterPlayerId)).length,
+        votedOutPlayerId: result.eliminated,
+        tiedPlayerIds: [...result.tied],
+      });
       if (result.eliminated) {
         const voters = active.filter((v) => v.targetPlayerId === result.eliminated);
         const leader = uniqueLeader(voters, abilities);
@@ -128,11 +190,91 @@ export class DayResolutionService {
       for (const vote of active) {
         await tx.update(votes).set({ weight: voteWeight(vote.voterPlayerId, input(ballot, active).abilities) }).where(eq(votes.id, vote.id));
       }
+      const opensRevote = ballot === 'FIRST' && result.tied.length > 0;
+      let credit = 0;
+      for (let i = 0; i < dayChaos.length; i++) {
+        const item = dayChaos[i]!;
+        if (!result.chaosOutcomes[i]?.applied || item.row.chaosCounted) continue;
+        credit += 1;
+        await tx.update(scheduledEffects).set({ chaosCounted: true }).where(eq(scheduledEffects.id, item.row.id));
+      }
+      if (credit > 0) {
+        await tx.update(games).set({ chaosSuccesses: sql`${games.chaosSuccesses} + ${credit}` }).where(eq(games.id, game.id));
+      }
+      if (!opensRevote) {
+        for (const item of dayChaos) {
+          await tx.update(scheduledEffects).set({ status: 'SPENT', closedRound: game.roundNumber }).where(eq(scheduledEffects.id, item.row.id));
+        }
+        for (const item of mindControl) {
+          await tx.update(nightActions).set({ status: 'RESOLVED', rejectedReason: null }).where(eq(nightActions.id, item.row.id));
+        }
+      }
     }
 
     await inheritDoctors(tx, game, assignments, abilities, life, diedNow);
     const gameOver = await applyVictory(tx, game, diedByVote);
     return { gameOver, tied: gameOver ? false : tied };
+  }
+
+  /**
+   * Resolves this day's locked Sniper shots in submission order (WW-1003b).
+   * A protection that resolved on the target last night and cancels `SNIPER`
+   * stops the shot; an Immortal survives it inside `kill`. Every shot is spent
+   * when it is fired, hit or not, and its action is marked RESOLVED.
+   */
+  private async fireShots(
+    tx: Transaction,
+    game: GameRow,
+    abilities: AbilityInstanceRow[],
+    life: Map<string, GamePlayerRow['lifeStatus']>,
+    kill: (playerId: string, causes: { type: 'SNIPER'; actorIds: string[] }, revengeTarget: string | null) => Promise<void>,
+  ): Promise<void> {
+    const byId = new Map(abilities.map((a) => [a.id, a]));
+    const locked = await tx
+      .select()
+      .from(nightActions)
+      .where(and(eq(nightActions.gameId, game.id), eq(nightActions.roundNumber, game.roundNumber), eq(nightActions.phase, 'DAY_DISCUSSION'), eq(nightActions.status, 'LOCKED')))
+      .orderBy(asc(nightActions.createdAt));
+    const shotRows = locked.filter((row) => {
+      const config = byId.get(row.abilityInstanceId)?.config;
+      return config?.capability === 'KILL' && config.attackType === 'SNIPER' && row.targetPlayerIds.length === 1;
+    });
+    if (shotRows.length === 0) return;
+
+    const lastNight = await tx
+      .select()
+      .from(nightActions)
+      .where(
+        and(
+          eq(nightActions.gameId, game.id),
+          eq(nightActions.roundNumber, game.roundNumber),
+          inArray(nightActions.phase, ['NIGHT_SUBMIT', 'NIGHT_REACTION']),
+          eq(nightActions.status, 'RESOLVED'),
+        ),
+      );
+    const protections: NightProtection[] = lastNight.flatMap((row) => {
+      const config = byId.get(row.abilityInstanceId)?.config;
+      if (!config) return [];
+      return [{ cancels: config.cancels, targetPlayerIds: row.targetPlayerIds, onFinalWolfTarget: config.target.kind === 'FINAL_WOLF_TARGET' }];
+    });
+    const [run] = await tx
+      .select({ result: resolutionRuns.result })
+      .from(resolutionRuns)
+      .where(and(eq(resolutionRuns.gameId, game.id), eq(resolutionRuns.roundNumber, game.roundNumber), eq(resolutionRuns.phaseKind, 'NIGHT')));
+    const finalWolfTarget = (run?.result as { finalWolfTarget?: string | null } | undefined)?.finalWolfTarget ?? null;
+    const shielded = nightShields(protections, finalWolfTarget);
+
+    const outcomes = resolveShots(
+      shotRows.map((row) => ({ actionId: row.id, actorId: row.playerId, targetId: row.targetPlayerIds[0]! })),
+      life,
+      shielded,
+    );
+    for (const shot of outcomes) {
+      if (shot.outcome === 'HIT') await kill(shot.targetId, { type: 'SNIPER', actorIds: [shot.actorId] }, shot.actorId);
+      await tx.update(nightActions).set({ status: 'RESOLVED' }).where(eq(nightActions.id, shot.actionId));
+      const ability = byId.get(shotRows.find((r) => r.id === shot.actionId)!.abilityInstanceId);
+      if (ability) await spend(tx, ability);
+    }
   }
 }
 

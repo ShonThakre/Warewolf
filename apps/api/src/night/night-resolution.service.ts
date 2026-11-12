@@ -1,7 +1,10 @@
-import { createHash } from 'node:crypto';
+import { createHash, randomInt } from 'node:crypto';
 import { Injectable, Logger } from '@nestjs/common';
 import {
   canonicalJson,
+  chaosSuccessCount,
+  drawChaos,
+  rememberChaosKind,
   resolveNight,
   type AbilityUpdate,
   type InvestigationResult,
@@ -70,7 +73,10 @@ export class NightResolutionService {
       .where(and(eq(resolutionRuns.gameId, game.id), eq(resolutionRuns.roundNumber, round), eq(resolutionRuns.phaseKind, 'NIGHT')));
     if (already) throw errors.phaseConflict();
 
-    const input = await loadNightInput(tx, game);
+    const loaded = await loadNightInput(tx, game);
+    const demonActs = loaded.actions.some((action) => loaded.abilities.find((ability) => ability.id === action.abilityInstanceId)?.config.capability === 'CHAOS');
+    const living = loaded.players.filter((player) => player.lifeStatus === 'ALIVE').map((player) => player.id);
+    const input = demonActs ? { ...loaded, chaos: drawChaos(game.chaosUsedKinds, living, randomInt) } : loaded;
     const result = resolveNight(input);
     const hash = inputHash(input, game.catalogHash);
     // First write, so a duplicate fails before anything else is touched.
@@ -186,15 +192,36 @@ export class NightResolutionService {
     }
 
     if (result.newEffects.length > 0) {
-      await tx.insert(scheduledEffects).values(result.newEffects.map((e) => ({ ...e, gameId: game.id, attackTypes: [...e.attackTypes] })));
+      await tx.insert(scheduledEffects).values(
+        result.newEffects.map((e) => ({
+          gameId: game.id,
+          kind: e.kind,
+          sourcePlayerId: e.sourcePlayerId,
+          sourceAbilityInstanceId: e.sourceAbilityInstanceId,
+          targetPlayerId: e.targetPlayerId,
+          createdRound: e.createdRound,
+          dueRound: e.dueRound,
+          duePhase: e.duePhase,
+          attackTypes: [...e.attackTypes],
+          chaosKind: e.chaosKind ?? null,
+          playerIds: [...(e.playerIds ?? [])],
+        })),
+      );
     }
     for (const closed of result.closedEffects) {
       await tx.update(scheduledEffects).set({ status: closed.status, closedRound: round }).where(eq(scheduledEffects.id, closed.effectId));
     }
 
+    const revivedBy = [...new Set([...game.revivedBy, ...result.revivals.map((revival) => revival.actorId)])];
     await tx
       .update(games)
-      .set({ infectionSuccesses: result.infectionState.successes, infectionSealed: result.infectionState.sealed })
+      .set({
+        infectionSuccesses: result.infectionState.successes,
+        infectionSealed: result.infectionState.sealed,
+        chaosSuccesses: game.chaosSuccesses + (result.chaosEvent ? chaosSuccessCount(result.chaosEvent.success) : 0),
+        chaosUsedKinds: result.chaosEvent ? rememberChaosKind(game.chaosUsedKinds, result.chaosEvent.kind) : game.chaosUsedKinds,
+        revivedBy,
+      })
       .where(eq(games.id, game.id));
   }
 

@@ -1,5 +1,5 @@
 import { randomInt, randomUUID } from 'node:crypto';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import {
   AVATAR_COUNT,
   ROOM_CODE_ALPHABET,
@@ -21,6 +21,7 @@ import { hashToken, newSeatToken } from '../auth/seat.js';
 import { DATABASE, isUniqueViolation, type Database, type Transaction } from '../db/database.js';
 import { gamePlayers, games, type GamePlayerRow, type GameRow } from '../db/schema.js';
 import { errors } from '../http/api-error.js';
+import { PlayGateway } from '../realtime/play.gateway.js';
 
 /** A 6-character code from the unambiguous alphabet. `pick` is injectable for tests. */
 export function generateRoomCode(pick: (max: number) => number = randomInt): string {
@@ -63,7 +64,10 @@ function chooseAvatar(taken: readonly number[], requested: number | undefined): 
 export class LobbyService {
   private readonly logger = new Logger('Lobby');
 
-  constructor(@Inject(DATABASE) private readonly db: Database) {}
+  constructor(
+    @Inject(DATABASE) private readonly db: Database,
+    @Optional() @Inject(PlayGateway) private readonly play?: PlayGateway,
+  ) {}
 
   /** POST /games. Creates the room and the host seat in one transaction. */
   async create(displayName: string, mode: GameMode, avatarId?: number): Promise<SeatCredentials> {
@@ -186,7 +190,10 @@ export class LobbyService {
       }
       await tx.delete(gamePlayers).where(eq(gamePlayers.id, you.id));
       await this.bump(tx, game.id);
-      return { gameCancelled: false };
+      return { gameCancelled: false, movedHost: you.isHost && hostPlayerId ? hostPlayerId : null };
+    }).then(({ movedHost, ...result }) => {
+      if (movedHost) this.play?.moveHost(gameId, seat.id, movedHost);
+      return result;
     });
   }
 
@@ -216,6 +223,8 @@ export class LobbyService {
       await this.transferLocked(tx, game.id, you, playerId, 'playerId');
       await this.bump(tx, game.id);
     });
+    // After commit: the old host's live sockets leave the host room and the new host's join it (WW-1303).
+    this.play?.moveHost(gameId, seat.id, playerId);
     return this.projection(gameId, seat.id);
   }
 

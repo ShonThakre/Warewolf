@@ -4,6 +4,8 @@ import {
   ACTION_WINDOWS,
   ATTACK_TYPES,
   ABILITY_STATUSES,
+  CHAT_MAX_LENGTH,
+  CHAT_OPEN_PHASES,
   CAPABILITIES,
   CONNECTION_STATUSES,
   CONVERSION_REASONS,
@@ -17,12 +19,14 @@ import {
   INFECTION_FAILURES,
   LIFE_STATUSES,
   NIGHT_ACTION_STATUSES,
+  CHAOS_KINDS,
   NIGHT_EFFECT_KINDS,
   RESOLUTION_KINDS,
   RESULT_KINDS,
   type AbilityDefinition,
   type ActionRejection,
   type AttackType,
+  type ChaosKind,
   type ConversionReason,
   type DeathCause,
   type EffectStatus,
@@ -90,6 +94,14 @@ export const games = pgTable(
     infectionSuccesses: integer('infection_successes').notNull().default(0),
     /** True once the Alpha has died: no further infection (C-09). */
     infectionSealed: boolean('infection_sealed').notNull().default(false),
+    /** Chaos events that changed the game. A draw that fizzled does not increment this. */
+    chaosSuccesses: integer('chaos_successes').notNull().default(0),
+    /** Stays true after CHAOS_THREE_AND_FINAL_FIVE has been achieved. */
+    chaosAchieved: boolean('chaos_achieved').notNull().default(false),
+    /** Kinds drawn and resolved, without replacement, until the pool resets. */
+    chaosUsedKinds: text('chaos_used_kinds').array().$type<ChaosKind[]>().notNull().default(sql`'{}'::text[]`),
+    /** Necromancers who have returned at least one player. */
+    revivedBy: uuid('revived_by').array().notNull().default(sql`'{}'::uuid[]`),
     createdAt: timestamptz('created_at').notNull().defaultNow(),
     updatedAt: timestamptz('updated_at')
       .notNull()
@@ -536,6 +548,12 @@ export const scheduledEffects = pgTable(
     dueRound: integer('due_round'),
     duePhase: text('due_phase').$type<ResolutionKind>(),
     attackTypes: text('attack_types').array().$type<AttackType[]>().notNull(),
+    /** Set on a CHAOS_DAY effect. Null for every other kind. */
+    chaosKind: text('chaos_kind').$type<ChaosKind>(),
+    /** Players a Chaos event named. Empty when the event names nobody. */
+    playerIds: uuid('player_ids').array().notNull().default(sql`'{}'::uuid[]`),
+    /** True once a day Chaos event has already been counted as a success. */
+    chaosCounted: boolean('chaos_counted').notNull().default(false),
     status: text('status').$type<EffectStatus>().notNull().default('ACTIVE'),
     closedRound: integer('closed_round'),
     createdAt: timestamptz('created_at').notNull().defaultNow(),
@@ -546,6 +564,7 @@ export const scheduledEffects = pgTable(
     check('scheduled_effects_status_ck', sql`status in (${inList(EFFECT_STATUSES)})`),
     check('scheduled_effects_due_phase_ck', sql`due_phase in (${inList(RESOLUTION_KINDS)})`),
     check('scheduled_effects_attack_types_ck', sql`attack_types <@ array[${inList(ATTACK_TYPES)}]::text[]`),
+    check('scheduled_effects_chaos_kind_ck', sql`chaos_kind is null or chaos_kind in (${inList(CHAOS_KINDS)})`),
     check('scheduled_effects_due_ck', sql.raw(`(due_round is null) = (due_phase is null)`)),
     check('scheduled_effects_closed_ck', sql.raw(`(status = 'ACTIVE') = (closed_round is null)`)),
   ],
@@ -674,3 +693,91 @@ export const gameEvents = pgTable(
 );
 
 export type GameEventRow = typeof gameEvents.$inferSelect;
+
+/**
+ * Table chat (WW-1104, OD-72). A separate table, not `game_events`: chat is
+ * not a game fact, the host can delete a message, and every message is
+ * deleted when the game finishes or is cancelled. A trigger written by hand
+ * in drizzle/0011_chat.sql does that deletion, so no code path that ends a
+ * game can forget it.
+ *
+ * `seq` is a global identity. It orders messages within a game and is never
+ * reused, even after a deletion.
+ */
+export const chatMessages = pgTable(
+  'chat_messages',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    seq: bigint('seq', { mode: 'number' }).generatedAlwaysAsIdentity().notNull(),
+    gameId: uuid('game_id')
+      .notNull()
+      .references(() => games.id, { onDelete: 'cascade' }),
+    playerId: uuid('player_id')
+      .notNull()
+      .references(() => gamePlayers.id, { onDelete: 'cascade' }),
+    body: text('body').notNull(),
+    roundNumber: integer('round_number').notNull(),
+    /** The phase the message was posted in. Only chat phases. */
+    phase: text('phase').$type<(typeof CHAT_OPEN_PHASES)[number]>().notNull(),
+    createdAt: timestamptz('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('chat_messages_seq_uq').on(t.seq),
+    index('chat_messages_game_seq_idx').on(t.gameId, t.seq),
+    check('chat_messages_body_ck', sql.raw(`char_length(body) between 1 and ${CHAT_MAX_LENGTH}`)),
+    check('chat_messages_phase_ck', sql`phase in (${inList(CHAT_OPEN_PHASES)})`),
+    check('chat_messages_round_ck', sql.raw('round_number >= 1')),
+  ],
+);
+
+export type ChatMessageRow = typeof chatMessages.$inferSelect;
+
+/** Seats the host has muted (WW-1104). A row means muted; unmuting deletes it. */
+export const chatMutes = pgTable(
+  'chat_mutes',
+  {
+    gameId: uuid('game_id')
+      .notNull()
+      .references(() => games.id, { onDelete: 'cascade' }),
+    playerId: uuid('player_id')
+      .notNull()
+      .references(() => gamePlayers.id, { onDelete: 'cascade' }),
+    createdAt: timestamptz('created_at').notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ name: 'chat_mutes_pk', columns: [t.gameId, t.playerId] })],
+);
+
+export type ChatMuteRow = typeof chatMutes.$inferSelect;
+
+/**
+ * One closed ballot's public result (WW-904, OD-85). Written in the day
+ * resolution from the same tally that decided the elimination, so the
+ * published counts can never disagree with the outcome. Who voted for whom
+ * stays in `votes`, which only the host reads.
+ */
+export const dayTallies = pgTable(
+  'day_tallies',
+  {
+    gameId: uuid('game_id')
+      .notNull()
+      .references(() => games.id, { onDelete: 'cascade' }),
+    roundNumber: integer('round_number').notNull(),
+    /** 1 is the first ballot, 2 the revote. */
+    ballot: integer('ballot').notNull(),
+    /** Weighted totals, highest first: `{ targetPlayerId, total }`. */
+    counts: jsonb('counts').$type<{ targetPlayerId: string; total: number }[]>().notNull(),
+    abstentions: integer('abstentions').notNull(),
+    /** The player the ballot named, or null for a tie or no votes. An Immortal may survive it. */
+    votedOutPlayerId: uuid('voted_out_player_id').references(() => gamePlayers.id, { onDelete: 'cascade' }),
+    tiedPlayerIds: uuid('tied_player_ids').array().notNull().default(sql`'{}'::uuid[]`),
+    createdAt: timestamptz('created_at').notNull().defaultNow(),
+  },
+  (t) => [
+    primaryKey({ name: 'day_tallies_pk', columns: [t.gameId, t.roundNumber, t.ballot] }),
+    check('day_tallies_ballot_ck', sql.raw('ballot in (1, 2)')),
+    check('day_tallies_round_ck', sql.raw('round_number >= 1')),
+    check('day_tallies_abstentions_ck', sql.raw('abstentions >= 0')),
+  ],
+);
+
+export type DayTallyRow = typeof dayTallies.$inferSelect;

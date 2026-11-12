@@ -175,9 +175,22 @@ describe('POST /games/:gameId/start', () => {
   it('requires the host to acknowledge warnings when the draft has them', async () => {
     const seats = await fullRoom('CLASSIC', 10);
     const host = seats[0]!;
+    // Three information roles in 10 seats is above the suggested two (INFO_ROLE_DENSITY).
+    const { draft } = configurationResponseSchema.parse((await api().get(`/api/v1/games/${host.gameId}/configuration`).set(bearer(host)).expect(200)).body);
+    const roles = draft.roles.map((e) => (e.roleId === 'normal_villager' ? { ...e, count: e.count - 2 } : e));
+    await api()
+      .put(`/api/v1/games/${host.gameId}/configuration`)
+      .set(bearer(host))
+      .send({ ...draft, roles: [...roles, { roleId: 'detective', count: 1 }, { roleId: 'seer', count: 1 }] })
+      .expect(200);
     expect(errorCode((await start(host).expect(422)).body)).toBe('WARNINGS_UNACKNOWLEDGED');
     expect(errorCode((await start(host, { acknowledgeWarnings: false }).expect(422)).body)).toBe('WARNINGS_UNACKNOWLEDGED');
     await start(host, { acknowledgeWarnings: true }).expect(200);
+  });
+
+  it('starts a confirmed preset with no warnings without an acknowledgement', async () => {
+    const seats = await fullRoom('CLASSIC', 10);
+    await start(seats[0]!).expect(200);
   });
 
   it('does not accept a seed or any other field from the client', async () => {

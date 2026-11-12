@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { hostRosterSchema, myRoleSchema, parseGameConfiguration, type HostRoster, type MyRole } from '@warewolf/contracts';
-import { and, asc, eq, ne } from 'drizzle-orm';
+import { isVampireTeamRole } from '@warewolf/domain';
+import { and, asc, eq, inArray, ne } from 'drizzle-orm';
 import { DATABASE, type Database } from '../db/database.js';
 import { gamePlayers, games, roleAssignments, type GamePlayerRow } from '../db/schema.js';
 import { errors } from '../http/api-error.js';
@@ -26,6 +27,7 @@ export class RoleViewService {
     if (!own) throw errors.phaseConflict();
 
     const visible = teammatesVisible(parseGameConfiguration(game.configSnapshot), own.assignment);
+    const vampireTeam = isVampireTeamRole(own.assignment.currentRoleId);
     // Only seats, never roles: the query does not select a single role column.
     const teammates = visible
       ? await this.db
@@ -35,7 +37,9 @@ export class RoleViewService {
           .where(
             and(
               eq(roleAssignments.gameId, game.id),
-              eq(roleAssignments.currentFaction, 'WOLF_PACK'),
+              vampireTeam
+                ? and(inArray(roleAssignments.currentRoleId, ['vampire', 'vampire_servant']), eq(gamePlayers.lifeStatus, 'ALIVE'))
+                : eq(roleAssignments.currentFaction, 'WOLF_PACK'),
               ne(roleAssignments.playerId, seat.id),
             ),
           )

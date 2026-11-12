@@ -73,6 +73,34 @@ describe('night event audiences (WW-804)', () => {
     expect(drafts.find((row) => row.type === 'ACTION_BLOCKED' && row.audience === 'HOST')!.payload).toMatchObject({ actorId: 'disruptor' });
   });
 
+  it('tells a promoted Servant and the Vampire team, and not the public', () => {
+    const drafts = nightEventDrafts(
+      source({
+        conversions: [
+          {
+            playerId: 'villager',
+            toRoleId: 'vampire_servant',
+            reason: 'VAMPIRE',
+            revokedAbilityIds: [],
+            vampirePlayerId: 'vampire',
+            teamPlayerIds: ['vampire', 'villager'],
+          },
+        ],
+      }),
+    );
+    expect(drafts.some((row) => row.audience === 'PUBLIC')).toBe(false);
+    const player = drafts.find((row) => row.type === 'ROLE_CONVERTED' && row.audience === 'PLAYER')!;
+    expect(player.recipientPlayerId).toBe('villager');
+    expect(player.payload).toMatchObject({ roleId: 'vampire_servant', vampirePlayerId: 'vampire', teamPlayerIds: ['vampire', 'villager'] });
+    const team = drafts.find((row) => row.type === 'VAMPIRE_TEAM_JOIN' && row.audience === 'PLAYER')!;
+    expect(team.recipientPlayerId).toBe('vampire');
+    expect(team.payload).toMatchObject({ servantPlayerId: 'villager', vampirePlayerId: 'vampire' });
+    expect(drafts.find((row) => row.type === 'ROLE_CONVERTED' && row.audience === 'HOST')!.payload).toMatchObject({
+      playerId: 'villager',
+      vampirePlayerId: 'vampire',
+    });
+  });
+
   it('does not tell a blocked player when informTarget is false, and skips a failed infection', () => {
     const drafts = nightEventDrafts(
       source({

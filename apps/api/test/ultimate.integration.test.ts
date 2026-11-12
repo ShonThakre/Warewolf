@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import type { INestApplication } from '@nestjs/common';
-import { errorBodySchema, gameStateSchema, seatCredentialsSchema, type SeatCredentials } from '@warewolf/contracts';
+import { errorBodySchema, gameEventsResponseSchema, gameStateSchema, myRoleSchema, seatCredentialsSchema, type SeatCredentials } from '@warewolf/contracts';
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createApp } from '../src/app.js';
@@ -122,5 +122,82 @@ describe('Ultimate 20', () => {
     const named = await submit(ghost, { abilityInstanceId: hint, targetPlayerIds: [], payload: { hint: `ask ${namedPlayer.rows[0]!.display_name}` } }).expect(422);
     expect(errorOf(named.body).code).toBe('ACTION_TARGET_ILLEGAL');
     await submit(ghost, { abilityInstanceId: hint, targetPlayerIds: [], payload: { hint: 'listen for the quiet one' } }).expect(200);
+  });
+
+  it('promotes a Vampire mark at dawn after the next night and keeps it private', async () => {
+    const created = await api().post('/api/v1/games').send({ displayName: 'Host', mode: 'ULTIMATE_20' }).expect(201);
+    const host = seatCredentialsSchema.parse(created.body);
+    const seats = [host];
+    for (let i = 2; i <= 20; i++) {
+      const joined = await api().post('/api/v1/games/join').send({ roomCode: host.roomCode, displayName: `Player ${i}` }).expect(201);
+      seats.push(seatCredentialsSchema.parse(joined.body));
+    }
+    const draft = (await api().get(`/api/v1/games/${host.gameId}/configuration`).set(bearer(host)).expect(200)).body.draft;
+    await api().put(`/api/v1/games/${host.gameId}/configuration`).set(bearer(host)).send(draft).expect(200);
+    await api().post(`/api/v1/games/${host.gameId}/start`).set(bearer(host)).send({ acknowledgeWarnings: true }).expect(200);
+
+    const seatOf = async (roleId: string) => {
+      const found = await db.pool.query<{ player_id: string }>(
+        `select player_id from role_assignments where game_id = $1 and original_role_id = $2`,
+        [host.gameId, roleId],
+      );
+      return seats.find((seat) => seat.playerId === found.rows[0]!.player_id)!;
+    };
+    const villagers = await db.pool.query<{ player_id: string }>(
+      `select player_id from role_assignments where game_id = $1 and original_role_id = 'normal_villager' order by player_id`,
+      [host.gameId],
+    );
+    const villagerId = villagers.rows.find((row) => row.player_id !== host.playerId)?.player_id ?? villagers.rows[0]!.player_id;
+    const villager = seats.find((seat) => seat.playerId === villagerId)!;
+    const vampire = await seatOf('vampire');
+    const outsider = (await Promise.all(['fox', 'oracle', 'joker', 'guardian'].map((roleId) => seatOf(roleId)))).find((seat) => seat.playerId !== host.playerId && seat.playerId !== villager.playerId && seat.playerId !== vampire.playerId)!;
+
+    await closeUntil(host, 'NIGHT_SUBMIT');
+    const mark = await db.pool.query<{ id: string }>(`select id from ability_instances where player_id = $1 and ability_id = 'vampire_mark'`, [vampire.playerId]);
+    await submit(vampire, { abilityInstanceId: mark.rows[0]!.id, targetPlayerIds: [villager.playerId] }).expect(200);
+    await close(host);
+
+    const pending = await db.pool.query<{ current_role_id: string; due_round: number }>(
+      `select a.current_role_id, e.due_round from role_assignments a
+       join scheduled_effects e on e.target_player_id = a.player_id
+       where a.player_id = $1 and e.kind = 'VAMPIRE_MARK' and e.status = 'ACTIVE'`,
+      [villager.playerId],
+    );
+    expect(pending.rows[0]).toMatchObject({ current_role_id: 'normal_villager', due_round: 2 });
+    const stillVillager = myRoleSchema.parse((await api().get(`/api/v1/games/${host.gameId}/me`).set(bearer(villager)).expect(200)).body);
+    expect(stillVillager.currentRole.id).toBe('normal_villager');
+    expect(stillVillager.teammates).toEqual([]);
+
+    await closeUntil(host, 'NIGHT_SUBMIT');
+    await close(host);
+
+    const promoted = myRoleSchema.parse((await api().get(`/api/v1/games/${host.gameId}/me`).set(bearer(villager)).expect(200)).body);
+    expect(promoted.originalRole.id).toBe('normal_villager');
+    expect(promoted.currentRole.id).toBe('vampire_servant');
+    expect(promoted.currentRole.faction).toBe('NEUTRAL');
+    expect(promoted.teammatesVisible).toBe(true);
+    expect(promoted.teammates.map((mate) => mate.playerId)).toEqual([vampire.playerId]);
+    expect(promoted.abilities.map((ability) => ability.abilityId).sort()).toEqual(['servant_kill', 'servant_mark']);
+
+    const vampireView = myRoleSchema.parse((await api().get(`/api/v1/games/${host.gameId}/me`).set(bearer(vampire)).expect(200)).body);
+    expect(vampireView.teammates.map((mate) => mate.playerId)).toEqual([villager.playerId]);
+
+    const outsiderView = myRoleSchema.parse((await api().get(`/api/v1/games/${host.gameId}/me`).set(bearer(outsider)).expect(200)).body);
+    expect(outsiderView.teammatesVisible).toBe(false);
+    expect(outsiderView.teammates).toEqual([]);
+
+    const roster = (await api().get(`/api/v1/games/${host.gameId}/host/roster`).set(bearer(host)).expect(200)).body;
+    const entry = roster.players.find((player: { playerId: string }) => player.playerId === villager.playerId);
+    expect(entry).toMatchObject({ originalRoleId: 'normal_villager', currentRoleId: 'vampire_servant', currentFaction: 'NEUTRAL' });
+
+    const seen = gameEventsResponseSchema.parse((await api().get(`/api/v1/games/${host.gameId}/events`).set(bearer(outsider)).expect(200)).body);
+    expect(seen.events.some((event) => event.type === 'ROLE_CONVERTED' || event.type === 'VAMPIRE_TEAM_JOIN')).toBe(false);
+    const told = gameEventsResponseSchema.parse((await api().get(`/api/v1/games/${host.gameId}/events`).set(bearer(villager)).expect(200)).body);
+    expect(told.events.find((event) => event.type === 'ROLE_CONVERTED')?.payload).toMatchObject({
+      roleId: 'vampire_servant',
+      vampirePlayerId: vampire.playerId,
+    });
+    const ally = gameEventsResponseSchema.parse((await api().get(`/api/v1/games/${host.gameId}/events`).set(bearer(vampire)).expect(200)).body);
+    expect(ally.events.some((event) => event.type === 'VAMPIRE_TEAM_JOIN' && event.payload.servantPlayerId === villager.playerId)).toBe(true);
   });
 });

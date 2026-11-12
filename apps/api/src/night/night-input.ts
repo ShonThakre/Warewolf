@@ -108,6 +108,8 @@ export async function loadNightInput(db: Executor, game: GameRow): Promise<Night
       dueRound: e.dueRound,
       duePhase: e.duePhase,
       attackTypes: e.attackTypes,
+      ...(e.chaosKind ? { chaosKind: e.chaosKind } : {}),
+      playerIds: e.playerIds ?? [],
     })),
   };
 }
