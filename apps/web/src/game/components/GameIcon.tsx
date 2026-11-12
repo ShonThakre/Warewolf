@@ -26,7 +26,8 @@ export type GameIconName =
   | 'copy'
   | 'play'
   | 'send'
-  | 'cross';
+  | 'cross'
+  | 'share';
 
 const paths: Record<GameIconName, ReactNode> = {
   infect: <><path d="M12 3v2M12 19v2M3 12h2m14 0h2M5.64 5.64l1.42 1.42m9.88 9.88 1.42 1.42m0-12.72-1.42 1.42m-9.88 9.88-1.42 1.42"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></>,
@@ -54,6 +55,7 @@ const paths: Record<GameIconName, ReactNode> = {
   play: <path d="M9 6.5v11l9-5.5z" />,
   send: <path d="m4.5 11.2 15-7.2-4.2 16.2-4.1-6.4-6.7-2.6z" />,
   cross: <path d="m6.5 6.5 11 11M17.5 6.5l-11 11" />,
+  share: <><circle cx="17.5" cy="5.5" r="2.5" /><circle cx="6.5" cy="12" r="2.5" /><circle cx="17.5" cy="18.5" r="2.5" /><path d="m8.7 10.8 6.6-4M8.7 13.2l6.6 4" /></>,
 };
 
 export interface GameIconProps extends Omit<SVGProps<SVGSVGElement>, 'name'> {

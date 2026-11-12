@@ -1049,114 +1049,6 @@
   padding: var(--phone-section-gap) var(--phone-page-gutter);
 }
 
-.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-head {
-  padding-bottom: 0.5rem;
-}
-
-.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-title h1 {
-  font-family: var(--font-display);
-  font-size: var(--phone-title-size);
-  font-weight: 800;
-}
-
-.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-line {
-  flex: 1 1 auto;
-  margin: 0;
-}
-
-.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-label {
-  display: inline;
-  color: var(--text-muted);
-  font-size: var(--phone-label-size);
-}
-
-.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code {
-  font-size: 1.125rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-}
-
-.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-row .MuiButton-root {
-  min-height: var(--phone-hit);
-  padding-inline: 0.75rem;
-  border-radius: var(--phone-control-radius);
-  font-size: var(--phone-label-size);
-}
-
-.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-items: center;
-  gap: 0.5rem;
-  min-height: 0;
-  height: auto;
-  margin-top: calc(var(--phone-section-gap) * -1);
-  padding: 0.6rem var(--phone-card-padding) var(--phone-card-padding);
-}
-
-.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode p {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.45rem;
-  min-width: 0;
-  padding-top: 0.6rem;
-  border-top: 1px solid var(--border);
-}
-
-.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode .ww-lobby-icon {
-  flex: none;
-  width: var(--phone-icon-size);
-  height: var(--phone-icon-size);
-  color: var(--neutral);
-}
-
-.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-fact {
-  display: grid;
-  min-width: 0;
-}
-
-.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-fact-label {
-  color: var(--text-muted);
-  font-size: var(--phone-meta-size);
-  font-weight: 700;
-}
-
-.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-fact-label::after {
-  content: none;
-}
-
-.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-fact-value {
-  overflow: hidden;
-  color: var(--text);
-  font-size: var(--phone-label-size);
-  font-weight: 800;
-  line-height: 1.25;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Team totals: one compact row of labelled counts. */
-.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-pack-strip {
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.35rem 0.5rem;
-  margin: 0;
-  padding: 0.4rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--surface) 88%, transparent);
-  font-size: var(--phone-meta-size);
-}
-
 /* Campfire seats: avatars sit on the scene, five to a row. */
 .ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-seats {
   padding: var(--phone-card-gap) 0;
@@ -1413,4 +1305,241 @@
   display: block;
   min-height: 0;
   font-weight: 700;
+}
+
+/*
+ * UX-PHONE 02 room card (Moonlit Village). One card in three bands:
+ *   name and room code, with Copy / Share beside them;
+ *   Mode / Pack / Seats facts that wrap instead of truncating;
+ *   team totals as the card's footer.
+ */
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-head,
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode,
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode + .ww-pack-strip {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--phone-content-max);
+  margin: 0 auto;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-head {
+  min-height: 0;
+  padding: var(--phone-card-padding) var(--phone-card-padding) 0.75rem;
+  border-bottom: 0;
+  border-radius: var(--phone-card-radius) var(--phone-card-radius) 0 0;
+  box-shadow: var(--shadow);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-title {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    'name actions'
+    'code actions';
+  align-items: center;
+  column-gap: 0.75rem;
+  row-gap: 0.15rem;
+  width: 100%;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-title h1 {
+  grid-area: name;
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--font-display);
+  font-size: var(--phone-title-size);
+  font-weight: 800;
+  line-height: 1.2;
+  text-shadow: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-row {
+  display: contents;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-line {
+  grid-area: code;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-label {
+  display: inline;
+  color: var(--text-muted);
+  font-size: var(--phone-label-size);
+  font-weight: 700;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code {
+  color: var(--text);
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+/* Copy and Share sit beside the name and code. On a phone, Share is a labelled icon button. */
+.ww-code-actions {
+  display: contents;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-actions {
+  grid-area: actions;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-copy.MuiButton-root,
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-share.MuiButton-root {
+  min-width: var(--phone-hit);
+  min-height: var(--phone-hit);
+  padding: 0 0.75rem;
+  border-color: color-mix(in srgb, var(--primary) 60%, var(--border));
+  border-radius: var(--phone-control-radius);
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  color: var(--text);
+  font-size: var(--phone-label-size);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-copy.MuiButton-root .MuiButton-startIcon {
+  margin-right: 0.35rem;
+  margin-left: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-share.MuiButton-root {
+  width: var(--phone-hit);
+  padding: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-share.MuiButton-root .MuiButton-startIcon {
+  margin: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-share-label,
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-copy-more {
+  display: none;
+}
+
+/* Facts: icon, small label, value. Values wrap to two lines rather than truncate. */
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0;
+  height: auto;
+  min-height: 0;
+  padding: 0 var(--phone-card-padding);
+  border-top: 0;
+  border-bottom: 0;
+  border-radius: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode-rule {
+  display: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode p {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0.4rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0.7rem 0.6rem 0.7rem 0;
+  border-top: 1px solid var(--border);
+  font-size: var(--phone-label-size);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode p + .ww-lobby-mode-rule + p {
+  padding-left: 0.6rem;
+  border-left: 1px solid var(--border);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode p:last-child {
+  padding-right: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode .ww-lobby-icon {
+  flex: none;
+  width: var(--phone-icon-size);
+  height: var(--phone-icon-size);
+  margin-top: 0.1rem;
+  color: var(--neutral);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-fact {
+  display: grid;
+  gap: 0.05rem;
+  min-width: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-fact-label {
+  color: var(--text-muted);
+  font-size: var(--phone-meta-size);
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-fact-label::after {
+  content: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-fact-value {
+  overflow: visible;
+  color: var(--text);
+  font-size: var(--phone-label-size);
+  font-weight: 800;
+  line-height: 1.25;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+}
+
+/* Team totals close the card. */
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode + .ww-pack-strip {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.85rem;
+  margin-top: calc(var(--phone-section-gap) * -1);
+  padding: 0.6rem var(--phone-card-padding) 0.7rem;
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 var(--phone-card-radius) var(--phone-card-radius);
+  font-size: var(--phone-meta-size);
+  font-weight: 800;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode {
+  margin-top: calc(var(--phone-section-gap) * -1);
+}
+
+/* The narrowest phones (under 375px): Copy joins Share as a labelled icon button so name and code keep one line each. */
+@media (max-width: 374px) {
+  .ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-copy-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-copy.MuiButton-root:has(.ww-code-copy-label) {
+    width: var(--phone-hit);
+    padding: 0;
+  }
+
+  .ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-copy.MuiButton-root .MuiButton-startIcon {
+    margin: 0;
+  }
 }

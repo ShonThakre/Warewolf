@@ -18,6 +18,7 @@ import { apiErrorOf, type ApiErrorInfo } from '../api/api';
 import { useStartGameMutation } from '../api/game';
 import { useGetConfigurationQuery, useGetRolePacksQuery, useKickPlayerMutation, useLeaveGameMutation, useTransferHostMutation } from '../api/lobby';
 import { AvatarPicker } from '../game/components/AvatarPicker';
+import { GameIcon } from '../game/components/GameIcon';
 import { PackSummary } from '../game/components/PackSummary';
 import { PlayerAvatar } from '../game/components/PlayerAvatar';
 import { PlayerCard } from '../game/components/PlayerCard';
@@ -190,14 +191,36 @@ function LobbyScreen() {
                   <p className="ww-code-line">
                     <span className="ww-code-label">Room code:</span> <span className="ww-code">{lobby.roomCode}</span>
                   </p>
-                  <Button className="ww-code-copy" variant="outlined" onClick={() => void copyCode()} aria-label={`Copy room code ${lobby.roomCode.split('').join(' ')}`}>
-                    {copyFailed ? 'Copy failed' : copied ? '✓ Copied' : 'Copy code'}
-                  </Button>
-                  {canShare ? (
-                    <Button variant="outlined" onClick={() => void shareCode()}>
-                      Share
+                  <div className="ww-code-actions">
+                    <Button
+                      className="ww-code-copy"
+                      variant="outlined"
+                      onClick={() => void copyCode()}
+                      aria-label={`Copy room code ${lobby.roomCode.split('').join(' ')}`}
+                      startIcon={copied || copyFailed ? undefined : <GameIcon name="copy" size={18} />}
+                    >
+                      {copyFailed ? (
+                        'Copy failed'
+                      ) : copied ? (
+                        '✓ Copied'
+                      ) : (
+                        <span className="ww-code-copy-label">
+                          Copy<span className="ww-code-copy-more"> code</span>
+                        </span>
+                      )}
                     </Button>
-                  ) : null}
+                    {canShare ? (
+                      <Button
+                        className="ww-code-share"
+                        variant="outlined"
+                        onClick={() => void shareCode()}
+                        aria-label="Share room code"
+                        startIcon={<GameIcon name="share" size={18} />}
+                      >
+                        <span className="ww-code-share-label">Share</span>
+                      </Button>
+                    ) : null}
+                  </div>
                   <span className="ww-sr" aria-live="polite">
                     {copied ? 'Room code copied.' : copyFailed ? 'Copy failed. Select the code to copy it.' : ''}
                   </span>
