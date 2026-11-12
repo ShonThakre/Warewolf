@@ -8,7 +8,7 @@ describe('chat copy', () => {
     expect(chatRefusalCopy('CLOSED')).toBe('Discussion is closed at night.');
     expect(chatRefusalCopy('CLOSED', 'DAY_ANNOUNCE')).toBe('Discussion will open after you continue to day.');
     expect(chatRefusalCopy('DEAD')).toBe('The dead read only.');
-    expect(chatRefusalCopy('MUTED')).toBe('The host muted you.');
+    expect(chatRefusalCopy('MUTED')).toBe('You cannot post in the discussion.');
     expect(chatRefusalCopy(null)).toBeNull();
     expect(chatRemainingCopy(checkChatDraft('').remaining)).toBe('280 characters left');
     expect(chatRemainingCopy(checkChatDraft('😀').remaining)).toBe('279 characters left');

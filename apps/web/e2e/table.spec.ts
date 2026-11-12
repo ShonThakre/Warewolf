@@ -104,7 +104,8 @@ test.describe('table phase bar', () => {
 
     const status = page.getByRole('region', { name: 'Game status' });
     await expect(status.getByRole('heading', { name: 'Night' })).toBeVisible();
-    await expect(status.getByText('Round 1', { exact: true })).toBeVisible();
+    // Night keeps the round in the polite status line so the mockup status strip stays compact.
+    await expect(status.locator('[aria-live="polite"]')).toContainText('Round 1');
     await expect(status.locator('.ww-countdown')).toHaveText('1:30');
     await expect(page.locator('.ww-game-layout')).toHaveAttribute('data-layout', spec.mode);
     await expect(page.locator('.ww-game-layout')).toHaveAttribute('data-stage', 'night');

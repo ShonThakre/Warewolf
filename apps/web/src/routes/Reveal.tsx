@@ -112,6 +112,9 @@ export function Reveal() {
             >
               I understand
             </Button>
+            <Button component={Link} to="/how-to-play" variant="text" className="ww-howto-inline">
+              How to play
+            </Button>
           </div>
           {control.canClose ? (
             <div className="ww-reveal-close">

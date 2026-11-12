@@ -1,5 +1,5 @@
 import type { SeatCredentials } from '@warewolf/contracts';
-import { cleanup, fireEvent, screen } from '@testing-library/react';
+import { cleanup, fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { gameStateFixture } from '../../src/game/fixtures/phase';
 import { hostDashboardFixture } from '../../src/game/fixtures/hostDashboard';
@@ -60,9 +60,10 @@ describe('host dashboard screen', () => {
   it('shows this round’s submissions, a failed infection, and the open ballot', async () => {
     renderApp(`/game/${GAME}/host`, { seat: host, fetchFn: dashboardFetch() });
     expect(await screen.findByRole('heading', { name: 'Host dashboard' })).toBeTruthy();
-    expect(await screen.findByText('Round 2')).toBeTruthy();
+    expect(await screen.findByText('Round number')).toBeTruthy();
+    expect(screen.getByText('2')).toBeTruthy();
     expect(screen.getByText('Voting')).toBeTruthy();
-    expect(screen.getByText('Infections 1 of 4')).toBeTruthy();
+    expect(screen.getByText('1 of 4')).toBeTruthy();
 
     fireEvent.click(screen.getByRole('button', { name: 'Night actions' }));
     const actions = screen.getByRole('region', { name: 'Submitted night actions' });
@@ -80,6 +81,19 @@ describe('host dashboard screen', () => {
 
     expect(document.body.textContent).not.toMatch(/alpha_wolf|alpha_kill|WOLF_KILL|TARGET_INELIGIBLE|WOLF_PACK/);
     expect(screen.queryByRole('combobox')).toBeNull();
+  });
+
+  it('offers Cancel game with a roles-hidden confirm, and Make host on living seats', async () => {
+    renderApp(`/game/${GAME}/host`, { seat: host, fetchFn: dashboardFetch() });
+    expect(await screen.findByRole('button', { name: 'Cancel game' })).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel game' }));
+    const cancel = screen.getByRole('dialog', { name: 'Cancel this game?' });
+    expect(cancel.textContent).toMatch(/Roles stay hidden/);
+    fireEvent.click(screen.getByRole('button', { name: 'Keep playing' }));
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Cancel this game?' })).toBeNull());
+
+    fireEvent.click(screen.getByRole('button', { name: 'Players and roles' }));
+    expect(screen.getAllByRole('button', { name: /Make .+ the host/ }).length).toBeGreaterThan(0);
   });
 
   it('opens Night actions with the kill picker and Resolve night during host confirm', async () => {

@@ -12,7 +12,7 @@ export function chatRefusalCopy(refusal: ChatRefusal | null, phase?: GamePhase |
     case 'DEAD':
       return 'The dead read only.';
     case 'MUTED':
-      return 'The host muted you.';
+      return 'You cannot post in the discussion.';
     default:
       return null;
   }

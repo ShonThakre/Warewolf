@@ -1,5 +1,17 @@
 /* Private reveal at 1586×992, matched to the centered card in 04-role-reveal.png. */
 
+.ww-reveal .ww-howto-inline.MuiButton-root {
+  color: var(--text-muted);
+  font-size: var(--text-label);
+  font-weight: 700;
+  text-transform: none;
+}
+
+.ww-reveal .ww-howto-inline.MuiButton-root:hover,
+.ww-reveal .ww-howto-inline.MuiButton-root:focus-visible {
+  color: var(--accent);
+}
+
 .ww-app:has(.ww-reveal) .ww-app-nav {
   height: var(--bar-home);
   min-height: var(--bar-home);

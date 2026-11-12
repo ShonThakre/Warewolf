@@ -30,7 +30,7 @@ export interface LobbyState {
 
 /**
  * The current lobby, polled every `LOBBY_POLL_MS` while the tab is focused.
- * Polling stops once the game leaves the lobby. Realtime events replace it in Phase 11.
+ * Polling stops once the game leaves the lobby. Realtime keeps the table current after start.
  */
 export function useLobby(): LobbyState {
   const seat = useSeat();

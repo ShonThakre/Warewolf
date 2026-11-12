@@ -258,7 +258,9 @@ function TableScreen() {
   const report = notes.length > 0 ? (
     <ul className="ww-report" aria-label="Your report">
       {notes.map((line) => (
-        <li key={line}>{line}</li>
+        <li key={line} data-note={noteTone(line)}>
+          {line}
+        </li>
       ))}
     </ul>
   ) : null;
@@ -282,6 +284,9 @@ function TableScreen() {
               Host controls
             </Button>
           ) : null}
+          <Button component={Link} to="/how-to-play" variant="text" className="ww-howto-inline">
+            How to play
+          </Button>
         </>
       }
       foreground={
@@ -497,13 +502,8 @@ function TableScreen() {
                 {submitLabel({ hasStored: active.action != null, stored, submitting: submission.isSubmitting })}
               </Button>
             ) : null}
-            {state.status === 'CANCELLED' ? (
-              <Button component={Link} to="/" variant="contained" color="secondary">
-                Play again
-              </Button>
-            ) : null}
           </div>
-          {control.canClose && state.status !== 'CANCELLED' ? (
+          {control.canClose ? (
             <div
               className={morning || dayTalk ? 'ww-morning-controls' : 'ww-host-controls'}
               role="group"
@@ -584,19 +584,12 @@ function StageForeground({
         {privateNotes.length > 0 ? (
           <ul className="ww-report" aria-label="Your report">
             {privateNotes.map((line) => (
-              <li key={line}>{line}</li>
+              <li key={line} data-note={noteTone(line)}>
+                {line}
+              </li>
             ))}
           </ul>
         ) : null}
-      </article>
-    );
-  }
-
-  if (stage === 'results') {
-    return (
-      <article className="ww-morning" aria-label="Result">
-        <h2>This game was cancelled</h2>
-        <p className="ww-status-copy">Roles stay hidden.</p>
       </article>
     );
   }
@@ -660,4 +653,12 @@ function StageForeground({
       </ul>
     </>
   );
+}
+
+/** Public Seeker publications and Ghost hints get a distinct tone in the report. */
+function noteTone(line: string): string {
+  if (/published a result/i.test(line)) return 'published';
+  if (/hint from beyond/i.test(line)) return 'ghost';
+  if (/silenced today/i.test(line)) return 'silenced';
+  return 'note';
 }

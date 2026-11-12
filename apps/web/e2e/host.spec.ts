@@ -60,7 +60,8 @@ test.describe('host dashboard', () => {
     if (info.project.name === 'phone-land-sm') await page.setViewportSize({ width: 568, height: 320 });
     await openDashboard(page, hostSeat);
     await expect(page.getByRole('heading', { name: 'Host dashboard' })).toBeVisible();
-    await expect(page.getByText('Infections 1 of 4')).toBeVisible();
+    await expect(page.getByText('Infections used / max')).toBeVisible();
+    await expect(page.getByText('1 of 4')).toBeVisible();
     const close = page.getByRole('button', { name: 'End the day' });
     await inView(page, close);
     for (const name of ['Players and roles', 'Infection history', 'Night actions', 'Doctor', 'Votes', 'Eliminations', 'Victory flags', 'Event log', 'Configuration']) {

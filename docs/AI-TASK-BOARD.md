@@ -111,6 +111,7 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 | WW-1602 | Sideload `app-debug.apk`: INTERNET only, build-time API origin, LAN debug | Claude | COMPLETED | WW-1601, WW-1501 |
 | WW-1402 | 10,000 Infection games on the approved Doctor mode, report under docs | Claude | COMPLETED | WW-1401, OD-02 |
 | WW-1604 | Install smoke test: open APK, create or join, restore session after restart | Claude | COMPLETED | WW-1602, WW-1603 |
+| WW-1605 | Installable web app (manifest, home-screen icons, full screen) and an APK against the Render server with the app icon | Claude | BLOCKED | WW-1602, HOST-01 |
 | OD-74 | Confirm that night windows are fixed by the configuration | Product owner | COMPLETED | — |
 | WEB-08 | Day ballot on the table: living seats, abstain, confirm, replace until close | Cursor | COMPLETED | WW-901, WW-604 |
 | WW-1204 | `GameLayout` viewport pass for reveal, night results, day, voting, and results | Cursor | COMPLETED | WW-1201, WW-604 |
@@ -156,25 +157,83 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 | UX-09 | Morning results matched to `07-morning-results.png` at 1586×992 | Cursor | COMPLETED | UX-08 |
 | UX-10 | Day discussion matched to `08-day-discussion.png` at 1586×992 | Cursor | COMPLETED | UX-09 |
 | HOST-01 | Host on Render (free plans): one Docker web service where the API serves the built client (`WEB_DIST_DIR`), plus Render Postgres. Merged to `main` (PR #2, then 0fb9894 for the free plans). Blueprint applied; Render redeploys on every push to `main`, so `main` must pass `pnpm typecheck`. Files: `Dockerfile`, `render.yaml`, `apps/api/src/{app,config}.ts`, `apps/api/src/http/web-client.ts`, `apps/api/test/static-web.test.ts`, `README.md`, `.env.example` | Claude | IN_PROGRESS | WW-1501 |
-| E2E-01 | Black-box game driver package `tools/e2e` (`@warewolf/e2e-tools`): HTTP driver, scripted scenarios, per-phase invariants, socket listener. Files: `tools/e2e/**`, `pnpm-lock.yaml` | Claude | IN_PROGRESS | — |
-| E2E-02 | Every pack played to a result through the API: `apps/api/test/modes.integration.test.ts`, root `e2e:api` script. Files: `apps/api/test/modes.integration.test.ts`, `apps/api/package.json`, `package.json` | Claude | IN_PROGRESS | E2E-01 |
-| E2E-03 | Browser flows against the real API: `apps/web/playwright.live.config.ts`, `apps/web/e2e-live/**`, `e2e:live` script. Cursor reviews | Claude | READY | E2E-01 |
-| E2E-04 | Run E2E and write `docs/werewolf/e2e-report.md` (mode × scenario matrix, new `BUG-` tasks) | Claude | READY | E2E-02, E2E-03 |
-| HOWTO-01 | How to Play page replaces the placeholder: `apps/web/src/game/howto/**`, `apps/web/src/routes/HowToPlay.tsx`, `apps/web/src/routes.tsx`, `docs/werewolf/how-to-play.md`. Cursor polishes visuals | Claude | READY | — |
-| GAP-01 | Seeker publishes a stored result in day discussion (domain step, day resolution, public event, client data) | Claude | READY | — |
-| GAP-02 | In-game cancel, host transfer, and leave (API check, hooks; Cursor: buttons) | Claude + Cursor | READY | UX-09 |
-| GAP-03 | Ultimate 20 deliveries: Ghost hint, Necromancer return, Alchemist silence in chat, chaos/rewind/copy private events | Claude | READY | — |
-| GAP-04 | Play again clears the old seat; remove the unreachable Table play-again and cancelled stage | Claude | BACKLOG | UX-09 |
-| GAP-05 | Stale copy: Lobby "Chat is not open in this version.", old Phase 11 comments | Cursor | READY | — |
-| GAP-06 | Connection indicator on the table (hook by Claude, visual by Cursor) | Claude + Cursor | BACKLOG | UX-09 |
-| GAP-07 | Coverage: Servant `WITH_VAMPIRE` win test; simulator runs for `classic-10`, `chaos-15`, `ultimate-20` | Claude | READY | — |
+| E2E-01 | Black-box game driver package `tools/e2e` (`@warewolf/e2e-tools`): HTTP driver, scripted policies, per-phase invariants, socket listener | Claude | COMPLETED | — |
+| E2E-02 | Every pack played to a result through the API (35 scenarios): `apps/api/test/modes.integration.test.ts`, `pnpm e2e:api` | Claude | COMPLETED | E2E-01 |
+| E2E-03 | Browser flows against the real API (Classic journey, Infection host confirm, tie, reload, How to Play, cancel × desktop-fhd and phone-land): `apps/web/playwright.live.config.ts`, `apps/web/e2e-live/**`, `e2e:live` | Cursor | COMPLETED | E2E-01 |
+| E2E-04 | E2E report with the mode × scenario matrix and every defect: `docs/werewolf/e2e-report.md` | Claude | COMPLETED | E2E-02, E2E-03 |
+| HOWTO-01 | How to Play page replaces the placeholder; same text in `docs/werewolf/how-to-play.md`. Functional styling done; visual pass is Cursor's | Cursor | COMPLETED | — |
+| GAP-01 | Seeker publishes a stored result in day discussion: refused without a result, public `RESULT_PUBLISHED`, table note. Migration 0014 | Claude | COMPLETED | — |
+| GAP-02 | In-game Cancel game and Make host buttons on the Host dashboard (API and `useCancelGameMutation` already exist). Leaving a started game waits on a product decision | Cursor | COMPLETED | — |
+| GAP-03 | Ultimate 20 deliveries: `GHOST_HINT`, `PLAYER_RETURNED`, `SILENCED` (chat refuses the seat), `REWIND_RESULT`, `ABILITY_COPIED`, `CHAOS_EVENT`, table notes | Claude | COMPLETED | — |
+| GAP-04 | Play again clears the old seat (done). The unreachable Table play-again and cancelled stage are left for Cursor's next `Table.tsx` pass | Claude | COMPLETED | — |
+| GAP-05 | Stale copy: Lobby "Chat is not open in this version.", old Phase 11 comments | Cursor | COMPLETED | — |
+| GAP-06 | Connection indicator on the table (hook by Claude, visual by Cursor) | Claude + Cursor | READY | — |
+| GAP-07 | Coverage: Servant `WITH_VAMPIRE` win was already tested (`victory.test.ts`); 10,000-game simulations for `classic-10`, `chaos-15`, `ultimate-20` | Claude | COMPLETED | — |
 | UX-11 | Voting matched to `09-voting.png` at 1586×992 | Cursor | COMPLETED | UX-10 |
 | UX-12 | Revote matched to `10-revote.png` at 1586×992 | Cursor | COMPLETED | UX-11 |
-| UX-13 to UX-14 | Mockups 11–12: host overview, game results | Cursor | BACKLOG | UX-12 |
+| UX-13 to UX-14 | Mockups 11–12: host overview, game results | Cursor | COMPLETED | UX-12 |
+| BUG-01 | A Custom setup with no wolf could start. New validation error `NO_WOLVES` | Claude | COMPLETED | — |
+| BUG-02 | `events.integration.test.ts` was red on `main` (it predates `PHASE_CHANGED`). Assertion fixed | Claude | COMPLETED | — |
+| BUG-03 | **High.** Phone landscape 844×390: ballot seat buttons cannot be brought into view (or sit under the header), so nobody can vote by tapping a seat; End the day is cut off. See `docs/werewolf/e2e-report.md` | Cursor | COMPLETED | — |
+| UX-R1 | Results banner: stat row and subtitle unreadable over the scene; empty ribbon (fold into UX-14) | Cursor | COMPLETED | — |
 
 ---
 
 ## Task details
+
+
+### Cursor handoff — BUG-03, GAP-02, HOWTO-01, UX-13/14, UX-R1, table notes, GAP-05, E2E-03 (12 November 2026)
+
+- **Agent:** Cursor
+- **Status:** COMPLETED (checks below)
+- **BUG-03:** Phone/narrow landscape voting densifies seats (horizontal 2-col cards), shrinks nav/status/action chrome, and keeps the stage scrollable so every seat and "End the day" stay reachable at 844×390, 667×375, and 568×320. Removed `test.fail` from `classic-journey.spec.ts`. Classic live e2e green on desktop-fhd and phone-land.
+- **GAP-02:** Host dashboard Cancel game (confirm: roles stay hidden) + Make host on living seats. Live `e2e-live/cancel.spec.ts` added.
+- **HOWTO-01:** Restyled `/how-to-play` with mode card art, tokens only, MUI actions; optional How to play links on Reveal and Table (hidden on short status strips).
+- **UX-13 / UX-14 / UX-R1:** Host Overview labeled fact rows; Results title sits in the ribbon; reason + stats on surface plates over the scene. Removed unreachable Table Play again / cancelled stage (GAP-04 leftover).
+- **Table notes:** Report items tone `published` / `ghost` / `silenced`. Locked composer when `canPost` is false; MUTED copy is "You cannot post in the discussion."
+- **GAP-05:** Lobby chat placeholder updated; Phase 11 comments cleared in `api/lobby.ts` and `game/state/lobby.ts`.
+- **E2E-03 review (brittle spots):**
+  1. `hostClose` falls back to "Begin the night" when the host-control group is missing — label drift breaks pacing.
+  2. `appears(..., 1500)` for optional confirm/warn dialogs is short on a cold Vite/API.
+  3. `seatButton` regex is tied to exact night (`N. Name`) vs ballot (`Seat N • Name`) copy.
+  4. Classic journey hard-codes a small `ROLE_NAMES` map; Expanded/Ultimate roles would show raw ids.
+  5. Parallel fixture + live Playwright both claim `:5173` and abort navigations — run them serially.
+  6. Cancel spec role-name regex can false-positive if a display name matches a role word.
+  7. `voteInBrowser(null)` used to click Abstain without Submit — failed when the host was the voted wolf. Fixed to always Submit after selecting.
+- **Checked:** `pnpm typecheck`, `pnpm test`, fixture Playwright phone-land+desktop-fhd, `PW_CHANNEL=chrome e2e:live` 12/12 (no expected-fail).
+- **Files (Cursor):** `game-layout.css`, `table-screen.css`, `Host.tsx`, `HostCanvas.tsx`, `host-screen.css`, `HowToPlay.tsx`, `how-to-play.css`, `VictoryBanner.tsx`, `scene-art.css`, `results-screen.css`, `Table.tsx`, `Reveal.tsx`, `DiscussionPanel.tsx`, `chatCopy.ts`, `Lobby.tsx`, `api/lobby.ts`, `game/state/lobby.ts`, `e2e-live/cancel.spec.ts`, `classic-journey.spec.ts`, fixture e2e host/table tweaks, `playwright.config.ts` (`PW_CHANNEL`), tests under `test/screens/{host,chat-copy}.test.*`, this board.
+- **Do not commit Claude's uncommitted tree** (`tools/e2e`, API migration 0014, etc.). Commit Cursor files separately.
+
+### E2E-01 to E2E-04, GAP-01, GAP-03, BUG-01, HOWTO-01 — End-to-end pass, fixes, and How to Play
+
+- **Agent:** Claude
+- **Status:** E2E-01, E2E-02, E2E-04, GAP-01, GAP-03, GAP-04, GAP-07, BUG-01, BUG-02 COMPLETED. E2E-03 and HOWTO-01 in REVIEW for Cursor.
+- **Report:** `docs/werewolf/e2e-report.md` has the full matrix, every defect, and the plan to finish.
+- **Checked:** `pnpm typecheck` clean. `pnpm test` all pass. `pnpm test:integration` 297/297. `pnpm e2e:api` 35/35 against the dev server. `e2e:live` 10/10 (phone-land Classic is an expected failure for BUG-03).
+- **Files:**
+  - Driver: `tools/e2e/**`.
+  - API: `apps/api/test/modes.integration.test.ts`, `apps/api/src/day/publications.ts`, `apps/api/src/{action/action.service,chat/chat.service,events/event.service,events/night-events,phase/phase.service,db/schema}.ts`.
+  - Migrations: `apps/api/drizzle/{0014_published_results.sql,down/0014_published_results.sql,meta/0013_snapshot.json,meta/0014_snapshot.json,meta/_journal.json}`.
+  - Domain: `packages/domain/src/config/validate.ts`.
+  - Web: `apps/web/src/game/components/tableNotes.ts`, `apps/web/src/routes/{HowToPlay,Results}.tsx`, `apps/web/src/game/howto/**`, `apps/web/src/routes.tsx` (`Placeholder.tsx` removed), `apps/web/playwright.live.config.ts`, `apps/web/e2e-live/**`.
+  - Docs: `how-to-play.md`, `e2e-report.md`, `ultimate-20-rules.md`, `role-configuration.md`, `simulation/README.md` plus three reports.
+- **Migration note:** `meta/0013_snapshot.json` was a copy of 0012 (same id and parent), so `db:generate` failed. It now has its own id. The 0014 snapshot is the full current schema. The 0014 SQL is only the `published_round` column.
+
+**Handoff to Cursor**
+
+- **BUG-03 (high).** At 844×390 the ballot grid has about one row of height, and seat buttons cannot be brought into view or sit under the app header. Repro: `PW_CHANNEL=chrome pnpm --filter @warewolf/web e2e:live --project=phone-land classic`. When it passes, remove the `test.fail` line in `apps/web/e2e-live/classic-journey.spec.ts`.
+- **HOWTO-01 visual pass.**
+  - Structure: `/how-to-play` renders `HowToPlay.tsx`. It has four step sections (`.ww-howto-section`, `.ww-howto-steps`) and a grid of mode cards (`.ww-howto-card`).
+  - Starting roles sit under one `.ww-team-chip` per team. The chip always shows the team word.
+  - All copy and every number come from `apps/web/src/game/howto/howToPlayCopy.ts` (`GOAL`, `ROUND`, `YOUR_ROLE`, `HOST`, `modeGuides()`). Keep the headings and the list labels, because the tests use them.
+  - `how-to-play.css` uses only existing tokens; replace it freely.
+  - Ideas: scene art per mode, a link from Reveal and Table.
+- **New table notes.** `tableNotes.ts` now writes sentences for `RESULT_PUBLISHED` (public), `GHOST_HINT` (public), `PLAYER_RETURNED` (public), `SILENCED`, `REWIND_RESULT`, `ABILITY_COPIED`, and `CHAOS_EVENT` (private). They flow through the existing notes surface. Style them if they need a distinct look.
+- **Silenced seat.** `GET /chat` returns `you.canPost: false` and posting returns 403 `CHAT_MUTED`, the same as a host mute. The composer already handles that.
+- **GAP-02.** Add Cancel game (with a confirm) and Make host to the Host dashboard. Use `useCancelGameMutation` and the transfer mutation in `apps/web/src/api/lobby.ts`; both work during a game. Leaving a started game is refused by the API (`GAME_STARTED`) until the product owner decides what it means.
+- **GAP-04 leftover.** `Table.tsx` still has a Play again button and a cancelled stage that cannot be reached, because the Table sends FINISHED and CANCELLED games to Results. Remove them on your next `Table.tsx` pass.
+- **UX-R1.** On Results, the stat row and the subtitle over the scene are unreadable, and the ribbon is empty. Fold this into UX-14.
+- **E2E-03 review.** Please review `apps/web/e2e-live/*` and add a `cancel` flow once GAP-02 lands.
 
 ### UX-12 — Revote pixel match
 
@@ -1121,6 +1180,29 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 - **Note:** `aapt` also lists `com.warewolf.werewolf.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`. AndroidX core adds this app-private, signature-level permission; the user is never asked for it. It is left in because AndroidX uses it.
 - **Tests:** API unit 53, including `cors.test.ts` 3. Web 318, including 6 Android project checks. `pnpm typecheck` passes.
 - **Handoff to WW-1604 (Claude, needs a phone or an emulator):** run the API with `CORS_ORIGINS=http://localhost` on the LAN, build with that LAN origin, `adb install -r apps/web/android/app/build/outputs/apk/debug/app-debug.apk`, then create or join, kill the app, reopen, and confirm the seat returns (WW-1603).
+
+### WW-1605 — Installable web app and Render APK
+
+- **Agent:** Claude
+- **Status:** BLOCKED (12 November 2026) on one deploy step by the owner: Render needs `CORS_ORIGINS=https://localhost` (in `render.yaml` here, or set in the dashboard) before the APK can create or join a game. Everything else is built and checked.
+- **Description:** In a phone browser the game installs to the home screen and opens without browser chrome (iOS: Add to Home Screen; Android Chrome: Install app). A debug APK calls the deployed Render service over HTTPS and uses `art/ui/app_icon.png` as its launcher icon.
+- **Files:** `apps/web/public/` (`manifest.webmanifest`, `icon-192.png`, `icon-512.png`, `apple-touch-icon.png`), `apps/web/index.html`, `apps/web/scripts/android-icons.sh`, `apps/web/android/app/src/main/res/` (launcher icons, `values/ic_launcher_background.xml`), `apps/web/test/pwa/web-manifest.test.ts`, `apps/web/test/android/android-project.test.ts`, `render.yaml` (`CORS_ORIGINS`, shared with HOST-01), `README.md`, `docs/werewolf/ui-ux-plan.md` section 11.
+- **Checked:**
+  - Chromium (Pixel 7 profile) parses the manifest with no errors. Its only installability error is `in-incognito`, which every Playwright context has.
+  - Express static, the same server the API uses, sends `manifest.webmanifest` as `application/manifest+json`.
+  - The APK is built from `HEAD` (10526ca, the commit `origin/main` and Render run) plus only these files, in a separate worktree, so the client matches the deployed API. `aapt` shows `com.warewolf.werewolf`, label Werewolf, INTERNET, and the adaptive icon. The bundle has the Render origin. The WebView is served from `https://localhost`.
+  - On the emulator the launcher shows the wolf icon, and the app opens to the home screen.
+  - Render's preflight from `Origin: https://localhost` currently answers 404 with no CORS header. That is the blocker above.
+- **Tests:** `pnpm typecheck` passes. `pnpm test` passes in the worktree: domain 406, contracts 105, art 13, API 63, web 375, including `test/pwa/web-manifest.test.ts` (4) and 2 new launcher-icon checks. Two `table.test.tsx` cases timed out once when two suites ran in parallel, and pass when run alone.
+- **APK:** `~/Desktop/Werewolf.apk`, a debug build signed with the debug key.
+- **To finish:**
+  - Once Render has the variable, confirm the preflight returns `access-control-allow-origin: https://localhost`.
+  - Create a game from the APK.
+  - Add to Home Screen on an iPhone and confirm there are no Safari bars.
+- **Handoff to Cursor (visual, seen in the APK at 1080×2400 portrait):**
+  - Below the home card the page shows a light band instead of the night scene.
+  - The status bar area is light, against a dark app.
+  - In the iOS standalone mode (black-translucent), the top of each screen sits under the status bar, padded by `env(safe-area-inset-top)` in `AppShell`. Check it on a notched iPhone.
 
 ### WW-1604 — Install smoke test
 

@@ -149,7 +149,8 @@ export function DiscussionPanel({
       ) : null}
       {channelClosed ? null : (
         <form
-          className="ww-discussion-composer"
+          className={`ww-discussion-composer${!canPost ? ' is-locked' : ''}`}
+          data-locked={!canPost || undefined}
           onSubmit={(event) => {
             event.preventDefault();
             if (canPost && sendable && !sending) onSend();
@@ -159,12 +160,12 @@ export function DiscussionPanel({
             className="ww-chat-field"
             size="small"
             label="Message"
-            placeholder="Type a message…"
+            placeholder={canPost ? 'Type a message…' : 'Chat locked'}
             value={draft}
             disabled={!canPost || sending}
             onChange={(event) => onDraft(event.target.value)}
             helperText={helper}
-            slotProps={{ htmlInput: { 'aria-label': 'Message' } }}
+            slotProps={{ htmlInput: { 'aria-label': 'Message', 'aria-disabled': !canPost } }}
           />
           {sendError ? (
             <p className="ww-action-alert" role="alert">

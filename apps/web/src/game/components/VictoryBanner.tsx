@@ -29,22 +29,30 @@ export interface VictoryBannerProps {
 }
 
 /**
- * Victory title over the result scene. The ribbon is decorative and sits behind the title.
- * Without a ribbon file, the title is the banner.
+ * Victory scene with the outcome title in the ribbon, then a readable reason
+ * on a surface plate (UX-R1). Without a ribbon file, the title stays plain.
  */
 export function VictoryBanner({ title, reason, outcome }: VictoryBannerProps) {
   const scene = outcome ? sceneArtUrl(SCENE[outcome]) : null;
   const ribbon = outcome ? uiArtUrl(RIBBON[outcome]) : null;
   return (
-    <article className="ww-victory" aria-label="Result">
+    <article className="ww-victory" aria-label="Result" data-outcome={outcome ?? 'none'}>
       {scene ? (
         <div className="ww-victory-scene" aria-hidden="true">
           <img src={scene} alt="" />
         </div>
       ) : null}
-      {ribbon ? <img className="ww-victory-ribbon" src={ribbon} alt="" /> : null}
-      <h2 className="ww-victory-title">{title}</h2>
-      <p className="ww-victory-reason">{reason}</p>
+      <div className="ww-victory-copy">
+        {ribbon ? (
+          <div className="ww-victory-ribbon-wrap">
+            <img className="ww-victory-ribbon" src={ribbon} alt="" />
+            <h2 className="ww-victory-title">{title}</h2>
+          </div>
+        ) : (
+          <h2 className="ww-victory-title">{title}</h2>
+        )}
+        <p className="ww-victory-reason">{reason}</p>
+      </div>
     </article>
   );
 }

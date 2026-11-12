@@ -371,7 +371,13 @@ function LobbyScreen() {
               {tab === 'log' ? (
                 <>
                   <p className="ww-log-empty">No public events yet. The log starts once the game leaves the lobby.</p>
-                  <TextField label="Table chat" placeholder="Chat is not open in this version." disabled fullWidth helperText="The table talks out loud. A written log arrives with the game." />
+                  <TextField
+                    label="Table chat"
+                    placeholder="Chat opens when the game starts."
+                    disabled
+                    fullWidth
+                    helperText="Talk at the table for now. In-game chat opens once the night begins."
+                  />
                 </>
               ) : null}
               {tab === 'info' ? (

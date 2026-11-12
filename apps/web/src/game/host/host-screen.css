@@ -168,7 +168,47 @@
   min-width: 0;
 }
 
-.ww-host-facts li,
+.ww-host-facts {
+  gap: 0;
+  max-width: 42rem;
+  padding: 0.25rem 0;
+  border: 1px solid var(--border);
+  border-radius: calc(var(--radius) * 1.05);
+  background: color-mix(in srgb, var(--surface) 94%, transparent);
+  box-shadow: var(--shadow);
+}
+
+.ww-host-facts li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  min-width: 0;
+  padding: 0.95rem 1.1rem;
+  border-bottom: 1px solid var(--border);
+  overflow-wrap: anywhere;
+  font-size: var(--text-body);
+}
+
+.ww-host-facts li:last-child {
+  border-bottom: 0;
+}
+
+.ww-host-fact-label {
+  color: var(--text-muted);
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.ww-host-fact-value {
+  justify-self: end;
+  text-align: right;
+  font-size: var(--text-body);
+  font-weight: 800;
+  color: var(--text);
+}
+
 .ww-host-list li {
   min-width: 0;
   overflow-wrap: anywhere;
@@ -178,12 +218,18 @@
 .ww-host-list li {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: calc(var(--space) / 4);
 }
 
 .ww-host-list span {
   color: var(--text-muted);
   font-size: var(--text-label);
+}
+
+.ww-host-list .ww-host-transfer.MuiButton-root {
+  margin-top: calc(var(--space) / 8);
+  align-self: flex-start;
 }
 
 .ww-host-table-wrap {

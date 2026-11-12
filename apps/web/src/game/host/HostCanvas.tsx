@@ -1,9 +1,15 @@
 import type { GameEvent, HostDashboard } from '@warewolf/contracts';
+import { Button } from '@mui/material';
 import { PlayerAvatar } from '../components/PlayerAvatar';
 import { PHASE_LABEL, lifeLabel } from '../components/phaseCopy';
 import { eventSentence } from '../state/hostEvents';
 import { dashboardSeat, openBallot } from '../state/hostDashboard';
 import { abilityWord, causeWord, factionWord, failureWord, roleWord, seatName, submissionWord, victoryWord, type HostSection } from './dashboardCopy';
+
+export interface HostTransferTarget {
+  readonly playerId: string;
+  readonly displayName: string;
+}
 
 /** One secret section. Nothing here is rendered on a player route. */
 export function HostCanvas({
@@ -11,14 +17,24 @@ export function HostCanvas({
   dashboard,
   events,
   eventsError,
+  transferBusy = false,
+  onMakeHost,
 }: {
   section: HostSection;
   dashboard: HostDashboard;
   events: readonly GameEvent[];
   eventsError: string | null;
+  transferBusy?: boolean;
+  onMakeHost?: (player: HostTransferTarget) => void;
 }) {
   if (section === 'overview') return <Overview dashboard={dashboard} />;
-  if (section === 'players') return <Players dashboard={dashboard} />;
+  if (section === 'players') {
+    return onMakeHost ? (
+      <Players dashboard={dashboard} transferBusy={transferBusy} onMakeHost={onMakeHost} />
+    ) : (
+      <Players dashboard={dashboard} transferBusy={transferBusy} />
+    );
+  }
   if (section === 'infections') return <Infections dashboard={dashboard} />;
   if (section === 'actions') return <Actions dashboard={dashboard} />;
   if (section === 'doctor') return <Doctor dashboard={dashboard} />;
@@ -33,28 +49,49 @@ export function HostCanvas({
 
 function Overview({ dashboard }: { dashboard: HostDashboard }) {
   const { overview } = dashboard;
+  const infection = overview.infection.enabled
+    ? `${overview.infection.successes} of ${overview.infection.max}${overview.infection.sealed ? ' · Sealed' : ''}`
+    : 'Off';
   return (
     <ul className="ww-host-facts" aria-label="Overview">
-      <li>Round {overview.roundNumber}</li>
-      <li>{PHASE_LABEL[overview.phase]}</li>
-      <li>{overview.alive} alive</li>
       <li>
-        {overview.wolfAlignedAlive} Wolf
+        <span className="ww-host-fact-label">Round number</span>
+        <strong className="ww-host-fact-value">{overview.roundNumber}</strong>
       </li>
       <li>
-        Infections {overview.infection.successes} of {overview.infection.max}
-        {overview.infection.sealed ? '. Sealed' : ''}
-        {overview.infection.enabled ? '' : '. Off'}
+        <span className="ww-host-fact-label">Current phase</span>
+        <strong className="ww-host-fact-value">{PHASE_LABEL[overview.phase]}</strong>
+      </li>
+      <li>
+        <span className="ww-host-fact-label">Alive count</span>
+        <strong className="ww-host-fact-value">{overview.alive} alive</strong>
+      </li>
+      <li>
+        <span className="ww-host-fact-label">Wolf-aligned alive</span>
+        <strong className="ww-host-fact-value">{overview.wolfAlignedAlive} Wolf</strong>
+      </li>
+      <li>
+        <span className="ww-host-fact-label">Infections used / max</span>
+        <strong className="ww-host-fact-value">{infection}</strong>
       </li>
     </ul>
   );
 }
 
-function Players({ dashboard }: { dashboard: HostDashboard }) {
+function Players({
+  dashboard,
+  transferBusy = false,
+  onMakeHost,
+}: {
+  dashboard: HostDashboard;
+  transferBusy?: boolean;
+  onMakeHost?: (player: HostTransferTarget) => void;
+}) {
   return (
     <ul className="ww-host-list">
       {dashboard.roster.players.map((player) => {
         const changed = player.originalRoleId !== player.currentRoleId;
+        const canTransfer = Boolean(onMakeHost && !player.isHost && player.lifeStatus === 'ALIVE');
         return (
           <li key={player.playerId}>
             <strong>{player.displayName}</strong>
@@ -62,6 +99,18 @@ function Players({ dashboard }: { dashboard: HostDashboard }) {
               {roleWord(player.originalRoleId)}
               {changed ? `, now ${roleWord(player.currentRoleId)}` : ''}. {factionWord(player.currentFaction)}. {lifeLabel(player.lifeStatus)}.
             </span>
+            {canTransfer ? (
+              <Button
+                className="ww-host-transfer"
+                size="small"
+                variant="outlined"
+                disabled={transferBusy}
+                aria-label={`Make ${player.displayName} the host`}
+                onClick={() => onMakeHost?.({ playerId: player.playerId, displayName: player.displayName })}
+              >
+                Make host
+              </Button>
+            ) : null}
           </li>
         );
       })}

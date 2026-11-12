@@ -19,7 +19,7 @@ import type { GameConfiguration } from '@warewolf/domain';
 import { cleared, hostChanged, seated } from '../session/sessionSlice';
 import { api } from './api';
 
-/** Lobby polling interval until realtime events replace it in Phase 11. */
+/** Lobby polling interval while the seat is in the lobby. */
 export const LOBBY_POLL_MS = 2000;
 
 /** Replaces the cached lobby with the projection a mutation returned, so screens update without a refetch. */

@@ -1,5 +1,24 @@
 /* Table contents. The grid lives on GameLayout. Status and action rows reuse the lobby classes. */
 
+.ww-howto-inline.MuiButton-root {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: var(--text-label);
+  font-weight: 700;
+  text-transform: none;
+  white-space: nowrap;
+}
+
+.ww-howto-inline.MuiButton-root:hover,
+.ww-howto-inline.MuiButton-root:focus-visible {
+  color: var(--accent);
+}
+
+/* Short status strips: keep phase + round readable; the nav already has How to Play. */
+.ww-game-layout[data-status-row='false'] .ww-howto-inline {
+  display: none;
+}
+
 .ww-countdown {
   font-weight: 800;
   font-variant-numeric: tabular-nums;
@@ -36,6 +55,37 @@
   background: color-mix(in srgb, var(--surface) 88%, transparent);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+}
+
+.ww-report {
+  display: grid;
+  gap: calc(var(--space) * 0.45);
+}
+
+.ww-report > li {
+  margin: 0;
+  padding: 0.55rem 0.7rem;
+  border-radius: calc(var(--radius) * 0.75);
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface-raised) 80%, transparent);
+  font-size: var(--text-body);
+  font-weight: 700;
+}
+
+.ww-report > li[data-note='published'] {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+}
+
+.ww-report > li[data-note='ghost'] {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--border));
+  background: color-mix(in srgb, var(--primary) 16%, var(--surface));
+  font-style: italic;
+}
+
+.ww-report > li[data-note='silenced'] {
+  border-color: color-mix(in srgb, var(--text-muted) 45%, var(--border));
+  color: var(--text-muted);
 }
 
 .ww-morning-card {
@@ -403,6 +453,18 @@
   flex-wrap: wrap;
   gap: calc(var(--space) / 2);
   margin-top: calc(var(--space) / 4);
+}
+
+.ww-discussion-composer.is-locked {
+  opacity: 0.92;
+  border: 1px dashed var(--border);
+  border-radius: calc(var(--radius) * 0.85);
+  padding: 0.45rem;
+  background: color-mix(in srgb, var(--surface-raised) 70%, transparent);
+}
+
+.ww-discussion-composer.is-locked .ww-chat-field .MuiInputBase-root {
+  background: color-mix(in srgb, var(--bg) 55%, transparent);
 }
 
 .ww-discussion-composer {
@@ -1487,4 +1549,179 @@
   .ww-game-layout[data-stage='voting'] .ww-revote-seats {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+/* BUG-03: short landscape ballots — dense horizontal seats, compact nominee bar. */
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-game-status,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-game-status {
+  min-height: 0;
+  padding-block: 0.35rem;
+  padding-inline: 0.55rem;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-status-pack,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-status-pack {
+  gap: 0.35rem 0.55rem;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-status-guide,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-status-guide {
+  display: none;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-game-foreground,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-game-foreground {
+  justify-content: flex-start;
+  gap: calc(var(--space) * 0.45);
+  padding: calc(var(--space) * 0.45);
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-vote-seats,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-vote-seats {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(var(--space) * 0.4);
+  align-content: start;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-vote-seats .ww-seat .ww-target.MuiButton-root,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-vote-seats .ww-seat .ww-target.MuiButton-root {
+  min-height: 3.25rem;
+  height: auto;
+  padding: 0.4rem 0.55rem;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.45rem;
+  text-align: left;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-vote-seats .ww-avatar,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-vote-seats .ww-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-vote-seats .ww-seat-copy,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-vote-seats .ww-seat-copy {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-seat-name,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-seat-name {
+  text-align: left;
+  font-size: var(--text-label);
+  line-height: 1.2;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-seat-life,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-seat-life {
+  justify-self: start;
+  padding: 0.05rem 0.4rem;
+  font-size: var(--text-label);
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-target-check,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-target-check {
+  top: -0.25rem;
+  right: -0.25rem;
+  width: 1.15rem;
+  height: 1.15rem;
+  min-width: 1.15rem;
+  font-size: 0.7rem;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-action.is-voting,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-action.is-voting {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.35rem 0.55rem;
+  min-height: 0;
+  padding: 0.4rem 0.55rem;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-vote-nominee,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-vote-nominee {
+  gap: 0.2rem;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-vote-nominee-label,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-vote-nominee-label {
+  font-size: var(--text-label);
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-vote-nominee-card,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-vote-nominee-card {
+  gap: 0.4rem;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-vote-nominee-card .ww-avatar,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-vote-nominee-card .ww-avatar {
+  width: 1.85rem;
+  height: 1.85rem;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-vote-submit,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-vote-submit {
+  min-width: min(10rem, 100%);
+  gap: 0.2rem;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-vote-submit-btn.MuiButton-root,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-vote-submit-btn.MuiButton-root {
+  min-height: 2.25rem;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-vote-privacy,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-vote-privacy {
+  font-size: var(--text-label);
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-host-controls,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-host-controls {
+  grid-column: 1 / -1;
+  justify-content: flex-end;
+  padding-top: 0.15rem;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-action.is-revote,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-action.is-revote {
+  min-height: 0;
+  align-items: center;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-revote-title,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-revote-title {
+  font-size: clamp(1.15rem, 3.2vw, 1.5rem);
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-revote-board,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-revote-board {
+  gap: calc(var(--space) * 0.55);
+  padding: 0;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-revote-seats,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-revote-seats {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: calc(var(--space) * 0.4);
+  margin-top: calc(var(--space) * 0.45);
+  max-width: none;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-revote-seats .ww-seat .ww-target.MuiButton-root,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-revote-seats .ww-seat .ww-target.MuiButton-root {
+  min-height: 3.25rem;
+  padding: 0.4rem 0.55rem;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-action.is-voting {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-vote-seats,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-revote-seats {
+  grid-template-columns: minmax(0, 1fr);
 }

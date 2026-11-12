@@ -481,3 +481,67 @@
 .ww-game-layout[data-stage='voting'] .ww-game-foreground {
   overflow: auto;
 }
+
+/*
+ * Phone / narrow landscape voting: the desktop mockup bars (tall status +
+ * 9.4rem nominee footer) leave ~one seat row at 844×390 and clip "End the
+ * day". Compact the chrome so the stage can scroll every seat and the
+ * action row stays fully on screen (BUG-03).
+ */
+.ww-app:has(.ww-game-layout[data-stage='voting'][data-layout='phone-landscape']) .ww-app-nav,
+.ww-app:has(.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape']) .ww-app-nav,
+.ww-app:has(.ww-game-layout[data-stage='night'][data-layout='phone-landscape']) .ww-app-nav,
+.ww-app:has(.ww-game-layout[data-stage='night'][data-layout='narrow-landscape']) .ww-app-nav {
+  height: var(--bar-lobby);
+  min-height: var(--bar-lobby);
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'],
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] {
+  box-sizing: border-box;
+  gap: 0.35rem;
+  padding: 0.35rem;
+  background: var(--bg);
+  --rail: clamp(10rem, 30vw, 14rem);
+  grid-template-columns: minmax(0, 1fr) var(--rail);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    'status rail'
+    'stage rail'
+    'action rail';
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] {
+  --rail: 0;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'status'
+    'stage'
+    'action';
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'][data-rail-open='true'] {
+  grid-template-areas:
+    'status'
+    'stage'
+    'action';
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-game-status,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-game-status,
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-game-action,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-game-action {
+  min-height: 0;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-game-stage,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-game-stage {
+  min-height: 0;
+}
+
+.ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-game-foreground,
+.ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-game-foreground {
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
