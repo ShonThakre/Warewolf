@@ -59,6 +59,17 @@ Drizzle has no down migrations. Each `apps/api/drizzle/<tag>.sql` needs a hand-w
 - API routes live under `/api/v1`. Errors use `{ "error": { "code", "message" } }` with generic messages. Exception text is logged and never returned.
 - Database `CHECK` constraints are generated from the domain enumerations. If you change an enumeration, run `db:generate`. A drift test fails until you do.
 
+## Hosting on Render
+
+`render.yaml` is a Render Blueprint: one Docker web service built from the root `Dockerfile`, and one PostgreSQL 17 database. The image builds the web client and the API, and the API serves the client (`WEB_DIST_DIR`), so pages, `/api`, and Socket.IO share one origin. Migrations run before the API listens. Render redeploys on every push to `main`.
+
+1. In the Render dashboard choose **New > Blueprint**, connect GitHub, and pick this repository. Render reads `render.yaml`, shows the two resources and their monthly cost, and creates them on **Apply**.
+2. When the first deploy is live, the game is at `https://warewolf-<suffix>.onrender.com`. `GET /api/v1/health/ready` should answer `{"status":"ok","database":"ok"}`.
+
+Keep the service at one instance. Phase deadlines are in-process timers and Socket.IO rooms are in memory. The default plans are always-on (`starter` and `basic-256mb`). A free web service sleeps after 15 idle minutes and a free database is deleted after 30 days.
+
+To try the same image locally: `docker build -t warewolf .`, then run it with `-p 3000:3000 -e DATABASE_URL=...`. `compose.prod.yaml`, the two-container nginx stack, still works as before.
+
 ## Android debug APK
 
 The APK is the same web client in a WebView (OD-71). A phone cannot reach `localhost` on your computer, so the build names the API by its address on your network.

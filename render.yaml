@@ -1,0 +1,33 @@
+# Render Blueprint (HOST-01). One Docker web service and one PostgreSQL.
+# Apply it in the Render dashboard: New > Blueprint > this repository.
+#
+# Keep exactly one instance. Phase deadlines are in-process timers and
+# Socket.IO rooms live in memory, so a second instance would split games.
+services:
+  - type: web
+    name: warewolf
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    # Always on. "free" also works, but it sleeps after 15 idle minutes, so
+    # open sockets drop and the first visit waits about a minute.
+    plan: starter
+    region: singapore
+    numInstances: 1
+    branch: main
+    autoDeployTrigger: commit
+    healthCheckPath: /api/v1/health/ready
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: warewolf-db
+          property: connectionString
+
+databases:
+  - name: warewolf-db
+    # "free" expires after 30 days and its data is deleted.
+    plan: basic-256mb
+    region: singapore
+    databaseName: warewolf
+    user: warewolf
+    postgresMajorVersion: "17"
