@@ -66,11 +66,11 @@ Then send each line below as its own message, as "Role: <description>". Save eac
 | ✅ `mayor` | A proud town mayor wearing a gold chain of office over a fine coat with an emerald sash, holding a ledger book. Slightly pompous smile. |
 | ✅ `bard` | A cheerful bard with a feathered cap, a lute held across the chest and an emerald vest, mid-song. |
 | ✅ `healer_assistant` | A young apprentice healer carrying a wicker basket of herbs and rolled bandages, with an emerald apron, earnest and eager. |
-| `shadow_wolf` | A wolf standing half in moonlight and half in solid shadow, crimson cloak, one visible amber eye, the other side of the face featureless dark. Crimson accent. |
-| `vampire` | A pale, elegant figure in a high-collared black coat with a lavender lining, faint fangs, and a calm, hungry smile. Lavender accent. |
-| `vampire_servant` | A villager with glassy eyes and a thin lavender ribbon at the throat, posture slightly turned toward someone off-frame, as if listening. Lavender accent. |
-| `joker` | A grinning figure in a lavender coat and a tilted playing-card collar, one eye winked, holding a single blank card. Lavender accent. |
-| `time_wizard` | An elderly village mage in an emerald robe, holding a small brass hourglass that glows warm gold, white hair lifted as if by a breeze. Emerald accent. |
+| ✅ `shadow_wolf` | A wolf standing half in moonlight and half in solid shadow, crimson cloak, one visible amber eye, the other side of the face featureless dark. Crimson accent. |
+| ✅ `vampire` | A pale, elegant figure in a high-collared black coat with a lavender lining, faint fangs, and a calm, hungry smile. Lavender accent. |
+| ✅ `vampire_servant` | A villager with glassy eyes and a thin lavender ribbon at the throat, posture slightly turned toward someone off-frame, as if listening. Lavender accent. |
+| ✅ `joker` | A grinning figure in a lavender coat and a tilted playing-card collar, one eye winked, holding a single blank card. Lavender accent. |
+| ✅ `time_wizard` | An elderly village mage in an emerald robe, holding a small brass hourglass that glows warm gold, white hair lifted as if by a breeze. Emerald accent. |
 | `guardian` | A broad-shouldered village protector in an emerald cloak and a round shield held across the chest, calm and immovable. Emerald accent. |
 | `alchemist` | A village scholar in an emerald apron, three small potion bottles on a bandolier: one green, one violet, one silver. Focused expression. Emerald accent. |
 | `fox` | A clever human figure with fox-orange hair and a silver-blue scarf, a small fox mask pushed up onto the forehead, knowing half-smile. Silver-blue accent. |

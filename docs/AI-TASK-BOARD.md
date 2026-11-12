@@ -13,7 +13,7 @@ Statuses: `BACKLOG` (dependencies open), `READY` (can start), `IN_PROGRESS`, `BL
 
 Ids starting with `WW-` match [werewolf/implementation-checklist.md](./werewolf/implementation-checklist.md). A checklist task split between agents gets a letter suffix. `WEB-` ids are client foundation tasks added by this board.
 
-Last updated: 11 November 2026. Phases 0 to 7, WEB-07, WEB-08, WW-604, WW-801, WW-802, WW-804, WW-901, WW-902, WW-1101, WW-1204, WW-1301, WW-1302, WW-1401, and WW-1403 are complete. Claude's session stopped during WW-803a. WW-1102 can start (WW-804 and WW-1101 are done). WW-1402 still waits on OD-02. OD-74 is in review. WW-903 is blocked on a public results projection.
+Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-ALL): all presets except the Pack 2 reconstruction are CONFIRMED; Hermit, Priest, Confuser, and Bard stay out of version 1. Claude: WW-1303 and the decision passes complete. Cursor: role-catalog status column and the art test need a pass.
 
 ---
 
@@ -50,6 +50,9 @@ Last updated: 11 November 2026. Phases 0 to 7, WEB-07, WEB-08, WW-604, WW-801, W
 | WW-1301 | Token hashing, generic errors, and join rate limits | Cursor |
 | WW-1302 | Boot recovery after a resolved night | Cursor |
 | WW-1401 | Seeded Infection simulator, 1,000 games | Cursor |
+| WW-803b | Host kill-target picker and the Doctor's target line on the table | Cursor |
+| WW-1206 | Live composer in the discussion rail, with the host moderation controls | Cursor |
+| WW-903 | Public results screen: original and final roles, cancelled seats and reason, no tally | Cursor |
 | WW-1403 | Deal-count tests for the five presets | Cursor |
 
 ---
@@ -96,14 +99,40 @@ Last updated: 11 November 2026. Phases 0 to 7, WEB-07, WEB-08, WW-604, WW-801, W
 | WW-802 | Night resolution in the phase close: transaction, records, `resolution_run` | Claude | COMPLETED | WW-801, WW-501 |
 | WW-901 | Ballots, weights, abstain, replace, close, revote | Cursor | COMPLETED | WW-501 |
 | WW-902 | Victory evaluator with team and individual records | Cursor | COMPLETED | WW-801 |
-| WW-803a | Host kill target: storage, API, close guard, the informed Doctor's target, client data layer | Claude | IN_PROGRESS | WW-802, WW-503 |
-| WW-803b | Host kill-target picker and the Doctor's target line on the table | Cursor | BACKLOG | WW-803a |
-| OD-74 | Confirm that night windows are fixed by the configuration | Product owner | REVIEW | — |
+| WW-803a | Host kill target: storage, API, close guard, the informed Doctor's target, client data layer | Cursor | COMPLETED | WW-802, WW-503 |
+| WW-803b | Host kill-target picker and the Doctor's target line on the table | Cursor | COMPLETED | WW-803a |
+| WW-1104 | Chat: message contract, storage, send endpoint, socket fan-out, host moderation, client data layer | Claude | COMPLETED | WW-1102, OD-72 |
+| WW-1206 | Live composer in the discussion rail, with the host moderation controls | Cursor | COMPLETED | WW-1104, WW-1204 |
+| WW-1601 | Capacitor in `apps/web`, Vite build synced into `apps/web/android` | Claude | COMPLETED | WW-1204 |
+| WW-1603 | Seat token in Capacitor Preferences in the APK, sessionStorage on web | Claude | COMPLETED | WW-1601 |
+| WW-1602 | Sideload `app-debug.apk`: INTERNET only, build-time API origin, LAN debug | Claude | COMPLETED | WW-1601, WW-1501 |
+| WW-1402 | 10,000 Infection games on the approved Doctor mode, report under docs | Claude | COMPLETED | WW-1401, OD-02 |
+| WW-1604 | Install smoke test: open APK, create or join, restore session after restart | Claude | COMPLETED | WW-1602, WW-1603 |
+| OD-74 | Confirm that night windows are fixed by the configuration | Product owner | COMPLETED | — |
 | WEB-08 | Day ballot on the table: living seats, abstain, confirm, replace until close | Cursor | COMPLETED | WW-901, WW-604 |
 | WW-1204 | `GameLayout` viewport pass for reveal, night results, day, voting, and results | Cursor | COMPLETED | WW-1201, WW-604 |
-| WW-903 | Public tally and results screen | Cursor | BLOCKED | WW-901, WW-902 |
+| WW-903 | Public tally and results screen | Cursor | COMPLETED | WW-901, WW-902, WW-903a |
+| WW-903a | Results projection: `GET /games/:gameId/results`, contract, client data layer | Claude | COMPLETED | WW-902 |
+| WW-1202a | Host dashboard projection: `GET /games/:gameId/host/dashboard`, contract, client data layer | Claude | COMPLETED | WW-1103, WW-803 |
+| WW-1202 | Host dashboard screen on `ResponsiveSidebar` | Cursor | COMPLETED | WW-1202a |
+| WW-1203 | Results recap viewport pass, including 568×320 | Cursor | COMPLETED | WW-903 |
+| WEB-09 | One shared `/play` socket for the phase signal and chat | Claude | COMPLETED | WW-1104, WW-1206 |
+| WW-1503 | Request ids in logs and a readiness check | Claude | COMPLETED | WW-1501 |
+| WW-904 | Public vote tally after each ballot closes (OD-85): storage, event, route, recap, client data layer | Claude | COMPLETED | WW-901 |
+| WW-904b | Show the public tally on the table after each ballot, and in the results recap | Cursor | COMPLETED | WW-904 |
+| WW-1003b | Sniper day shot (OD-29): resolution at the close of day discussion | Claude | COMPLETED | WW-904 |
+| WW-1303 | Audit of every host route: guards, secrets, and a test per route | Claude | COMPLETED | WW-1202 |
+| DEC-ROLES | Role decisions accepted (OD-05 to OD-38, OD-46, OD-48, OD-58): roles and six presets CONFIRMED | Claude | COMPLETED | Product owner |
+| DEC-ALL | Remaining decisions accepted as built (OD-39 to OD-84); Ultimate 20 CONFIRMED; four powerless roles kept out | Claude | COMPLETED | Product owner |
+| WW-1102 | Emit stored events after commit and support `afterSeq` | Cursor | COMPLETED | WW-804, WW-1101 |
+| WW-1103 | Phase banners update from the public phase signal | Cursor | COMPLETED | WW-1102, WW-604 |
+| WW-1205 | Playwright coverage for the seven viewports | Cursor | COMPLETED | WW-1204 |
+| WW-1304 | Structured logs with ids only | Cursor | COMPLETED | WW-1301 |
+| WW-1501 | Production Compose file for web, api, and PostgreSQL | Cursor | COMPLETED | WW-1302 |
+| WW-1502 | Migrations on startup | Cursor | COMPLETED | WW-1501 |
 | U20-ENG | Ultimate 20 mode: catalog, pack, lock, submission rules, day tally, victory evaluator, resolver steps, API submit, web data layer, art manifest, docs | Cursor | COMPLETED | WW-802 |
 | U20-UI | Ultimate 20 screens and copy: locked setup copy, hint field, exclusive-choice note, Mind Controller day prompt, portraits | Cursor | COMPLETED | U20-ENG |
+| U20-PLAY | Playable image rules: mark timeline, Vampire team kill-or-mark, private promotion, Chaos pool, victory | Cursor | COMPLETED | U20-ENG |
 | WW-804 | Private result events after the night commit | Cursor | COMPLETED | WW-802 |
 | WW-1101 | Socket authentication and rooms | Cursor | COMPLETED | WW-403 |
 | WW-1301 | Token hashing, generic errors, rate limits | Cursor | COMPLETED | WW-302, WW-601 |
@@ -114,6 +143,16 @@ Last updated: 11 November 2026. Phases 0 to 7, WEB-07, WEB-08, WW-604, WW-801, W
 ---
 
 ## Task details
+
+### U20-PLAY — Playable Ultimate 20 image rules
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Make the image-described Ultimate 20 rules playable. Infection Edition stays as it is. The Vampire mark promotes at dawn after the next night. The Vampire team chooses kill or mark, not both. Promotion and teammates stay private. Chaos uses the six image events and counts a success only when the effect changes state. Mind Controller's win stays unresolved (OD-76). Whether a Servant keeps the original ability stays the current conversion rule (OD-79).
+- **Handoff (12 November 2026):** A mark placed on night N is due night N+1 and promotes only if both players are still alive. The team submits one kill or one mark; the Vampire's choice wins, otherwise the lowest player id. Promotion is a private `ROLE_CONVERTED` for the new Servant and a private `VAMPIRE_TEAM_JOIN` for the other living team members. `GET /me` lists living Vampire-team teammates. Chaos is drawn with `crypto.randomInt`, remembered when the Demon's action resolves, and counted only when the effect changes the night or the ballot. Migration `0013_ultimate_play` stores the counters and revival ids. There is no Vampire faction and no extra chat channel (OD-72). Image rules that stay unresolved: OD-75, OD-76, OD-77's draw procedure, OD-78, OD-79, OD-80, OD-81, OD-82, OD-83, OD-84. Fourteen Ultimate portraits are still listed and not generated.
+- **Tests:** Domain `night-ultimate`, `victory`, `day-tally`, catalog, night, and night-golden. API `night-events`, `schema-drift`, `ultimate.integration`, `vote.integration`, `migrations.integration`. `tsc --noEmit` for domain, API, and web. Web `test/screens/ultimate-copy.test.ts` checks the locked setup sentence and the night exclusive-choice note. The live setup screen and a seated night were not opened: the API watcher exited with EMFILE, and the night note needs a seated Ultimate night.
+- **Files:** `packages/domain/src/catalog/definitions/ultimate.ts`, `packages/domain/src/catalog/types.ts`, `packages/domain/src/night/{resolve,chaos,types}.ts`, `packages/domain/src/day/tally.ts`, `packages/domain/src/victory/evaluate.ts`, `packages/domain/src/index.ts`, `packages/domain/test/{night-ultimate,victory,day-tally,ultimate}.test.ts`, `apps/api/src/db/schema.ts`, `apps/api/drizzle/0013_ultimate_play.sql` and its down file and snapshot, `apps/api/src/night/{night-resolution.service,night-input}.ts`, `apps/api/src/day/day-resolution.service.ts`, `apps/api/src/victory/apply-victory.ts`, `apps/api/src/events/{night-events,event.service}.ts`, `apps/api/src/assignment/{projections,role-view.service}.ts`, `apps/api/test/{ultimate.integration,night-events,migrations.integration}.test.ts`, `apps/web/src/game/components/{actionCopy,NightActionPanel}.tsx` and `setupCopy.ts`, `apps/web/test/screens/ultimate-copy.test.ts`, `docs/werewolf/{ultimate-20-rules,night-resolution,open-decisions,data-model,api-design,role-catalog}.md`, `docs/AI-TASK-BOARD.md`.
+- **Avoid:** WW-1303 is complete. Do not edit the host-route audit test except if a new route appears. This task adds no route.
 
 ### U20-ENG — Ultimate 20 mode (engineering)
 
@@ -160,7 +199,7 @@ Last updated: 11 November 2026. Phases 0 to 7, WEB-07, WEB-08, WW-604, WW-801, W
 - **Depends on:** U20-ENG
 - **Files:** `apps/web/src/routes/Setup.tsx` and the setup step components (`SetupMode`, `SetupRoles`, `SetupSettings`), `apps/web/src/routes/Table.tsx`, `NightActionPanel`, `apps/web/src/routes/Home.tsx` (`FALLBACK_MODES`), portraits after they exist.
 - **Handoff (11 November 2026):** Cursor took U20-ENG as well after Claude's session stopped. The locked setup copy, hint field, exclusive-choice note, Mind Controller prompt, Chaos wording, and `FALLBACK_MODES` are in the screens. Fourteen portraits are listed in the manifest and are not generated.
-- **Still unwired:** persist rewinds, the chaos draw and counter, used chaos kinds, revivals, silences, and hints; call `drawChaos` with a CSPRNG. Phase close already calls `tallyDay` and `evaluateVictory`, and that call does not yet receive `revivedBy`, `chaosSuccesses`, or `chaosAchieved`.
+- **Still unwired at the time of this handoff:** persist rewinds, the chaos draw and counter, used chaos kinds, revivals, silences, and hints; call `drawChaos` with a CSPRNG. Phase close already calls `tallyDay` and `evaluateVictory`, and that call does not yet receive `revivedBy`, `chaosSuccesses`, or `chaosAchieved`. U20-PLAY later stored the Chaos draw, the success count, and revival ids, and passes them into victory. Silences and hints stay on the night result.
 
 ### WEB-08 — Day ballot on the table
 
@@ -186,9 +225,151 @@ Last updated: 11 November 2026. Phases 0 to 7, WEB-07, WEB-08, WW-604, WW-801, W
 ### WW-903 — Public tally and results screen
 
 - **Agent:** Cursor
-- **Status:** BLOCKED
-- **Depends on:** WW-901, WW-902
-- **Handoff to Claude:** `GET /state` has no winner, no original or final roles, and no public tally. The results route must not invent one. Needs a finished-game projection: team, draw, individual winners, and each seat's original and final role. A cancelled game stays role-free. After that projection exists, Cursor binds `VictoryBanner` and the recap (WW-1203).
+- **Status:** COMPLETED
+- **Description:** The results route binds `VictoryBanner` and the recap to `useResults`. A finished game shows catalog names for the original and final roles, the winning team or a draw or individual wins, infections, and deaths. A cancelled game shows seats and the reason only. There is no public vote tally and no invented duration.
+- **Files:** `apps/web/src/routes/Results.tsx`, `apps/web/src/game/components/ResultsRecap.tsx`, `apps/web/src/game/components/resultsCopy.ts`, `apps/web/src/game/components/results-screen.css`, `apps/web/src/routes/Table.tsx` (finished and cancelled leave for the results route), `apps/web/src/game/state/results.ts` (`refetch` only), `apps/web/src/game/state/role.ts` (`gamePath` sends a cancelled game here), `apps/web/test/screens/results.test.tsx`, `apps/web/test/screens/results-copy.test.ts`, `apps/web/test/screens/table.test.tsx`, `apps/web/test/routes.test.tsx`, `apps/web/test/state/role.test.tsx`, `apps/web/e2e/results.spec.ts`, `docs/werewolf/implementation-checklist.md`, `docs/AI-TASK-BOARD.md`.
+- **Depends on:** WW-901, WW-902, WW-903a
+- **Acceptance (met):** A finished game shows original and final roles by catalog name, never a role id. A cancelled game shows seats and "The host cancelled the game." and no role. A results error shows the server message and does not invent a winner. Chat is not mounted. Team colour comes with Wolf, Village, Neutral, or Independent.
+- **Tests:** `pnpm --filter @warewolf/web typecheck`. `pnpm --filter @warewolf/web test` (326). `pnpm --filter @warewolf/web exec playwright test e2e/results.spec.ts`: Wolf wins, the recap, and Play again stay on screen at 1920×1080, 1024×768, and 390×844. A cancelled game at 1024×768 lists seats and no role id. No horizontal page scroll.
+- **Handoff to WW-1203 (Cursor):** The stat row (Rounds, Infections, Eliminations) sits under the banner on the stage. The recap is the rail, labelled Recap. A village win uses `square_day`; every other finish uses `square_dusk`. `useResults` now returns `refetch`. WW-1203 still owns the dedicated seven-viewport pass, including 568×320. No ballot tally was added.
+
+### DEC-ALL — Every open decision settled (12 November 2026)
+
+- **Agent:** Claude (decisions by the product owner)
+- **Status:** COMPLETED
+- **Decisions:** OD-39 to OD-42, OD-45, OD-47, OD-49 to OD-57, OD-59, OD-61 to OD-70 accepted as built. Ultimate 20, OD-75 to OD-84, accepted as built: the Joker's win continues the game, the Mind Controller wins if alive at the end, the Chaos events are a shuffled deck, conversions follow `lostOnInfection`, the Necromancer may return a player twice. Hermit, Priest, Confuser, and Bard (OD-11, OD-17, OD-18, OD-20) are kept out of version 1. Every entry in `open-decisions.md` now has a dated decision line; none is open.
+- **Code:** every Ultimate 20 role and the profiles `alpha_ultimate` and `oracle_alignment` are CONFIRMED, and so is the `ultimate-20` preset. No role is RECOMMENDED any more; only the four powerless roles are UNRESOLVED, and `expanded-infection-20` stays a RECONSTRUCTION (OD-61). No behaviour changed: every rule was already built this way.
+- **Files:** `docs/werewolf/open-decisions.md`, `packages/domain/src/catalog/definitions/{ultimate,core,investigation}.ts`, `packages/domain/src/config/packs.ts`, `packages/domain/test/{confirmed-presets,validate,ultimate}.test.ts`, `apps/api/test/lobby.integration.test.ts`.
+- **Tests:** Domain 406, API unit 59, `pnpm typecheck` clean. API integration 259 passed; failures were the known stale `events.integration.test.ts` line 129, and `event-replay.integration.test.ts`, which passed 3 of 3 runs alone (a timing flake under the parallel run). Web 346 passed; `test/assets/art.test.ts` fails because new art landed (`art/roles/vampire.png` and others, untracked) and the test still expects the Vampire to have none.
+- **For Cursor:** `role-catalog.md` still shows RECOMMENDED in its status column; every role there except Hermit, Priest, Confuser, and Bard is now CONFIRMED. The art test needs the new role art reflected. The Ultimate setup copy can drop any "recommended rules" wording.
+
+### DEC-ROLES — Role decisions accepted (12 November 2026)
+
+- **Agent:** Claude (decisions by the product owner)
+- **Status:** COMPLETED
+- **Decisions accepted as recommended:** OD-05 to OD-10, OD-12 to OD-16, OD-19, OD-21 to OD-28, OD-30 to OD-38, OD-46, OD-48, OD-58. OD-09 is variant A (mark) only; OD-16 is variant B (item). Hermit, Priest, Confuser, and Bard (OD-11, OD-17, OD-18, OD-20) stay out of every preset. Ultimate 20 (OD-75 to OD-84) is not part of this.
+- **Code:** 24 roles move from RECOMMENDED to CONFIRMED (Pack Wolf, Assassin, Cursed Villager, Lone Wolf, Immortal, Avenger, the eight investigators, Bodyguard, Shieldbearer, Trapper, Poisoner, Disruptor, Shapeshifter, Spy, Blacksmith, Elder, Mayor, Healer Assistant), plus the profiles `oracle`, `doctor_blind`, `doctor_limited`, `assassin_mark`, `blacksmith_item`. Presets `classic-10`, `investigation-15`, `protection-15`, `chaos-15`, `expanded-24`, `expanded-30` are CONFIRMED. `ultimate-20` stays RECOMMENDED and `expanded-infection-20` stays RECONSTRUCTION. Effect: those presets no longer carry the `UNCONFIRMED_PRESET` warning, so Classic and Expanded 24 start without a warning acknowledgement; density warnings still apply.
+- **Files:** `packages/domain/src/catalog/definitions/{core,investigation,special,support,protection,offense}.ts`, `packages/domain/src/config/packs.ts`, `packages/domain/test/confirmed-presets.test.ts`, `packages/domain/test/validate.test.ts`, `apps/api/test/{lobby.test,lobby.integration.test,assignment.integration.test}.ts`, `docs/werewolf/open-decisions.md`.
+- **Tests:** Domain 404 passed; the one failure is `victory.test.ts` "records each Ultimate trigger", from U20-PLAY's in-progress `evaluate.ts`. API unit 59, lobby and assignment integration 50, web 345. `pnpm typecheck` passes.
+- **Handoff to Cursor (U20-PLAY holds these files):**
+  - `docs/werewolf/open-decisions.md`: Claude added a "**Decided 12 November 2026: accepted as recommended.**" line under each decision above and four rows to the approval table, before seeing that U20-PLAY lists this file. Please keep them when you save.
+  - `docs/werewolf/role-catalog.md`: the status column still says RECOMMENDED for the 24 roles above. Please set them to CONFIRMED in your pass.
+  - Your in-progress work currently fails `apps/api/test/migrations.integration.test.ts` (the rollback order needs `0013_ultimate_play`) and `packages/domain/test/victory.test.ts` (the dead-Servant case). Both pass after U20-PLAY. The role-catalog status column was not updated in that pass.
+  - The setup screen will now show these presets without the "recommended rules" warning; no UI change is required.
+
+### WW-1303 — Host route audit
+
+- **Agent:** Claude
+- **Status:** COMPLETED (12 November 2026)
+- **Description:** Every route classified and checked by a test that reads the server's live route table. Host routes refuse a missing token, another game's token, and a guest. A source scan proves only the start, the resolvers, and the victory evaluator write roles or winners. Host write bodies are strict. Host-only events never reach a guest. Details and findings: `docs/werewolf/api-design.md`, "Host route audit".
+- **Findings fixed:** (1) a host transfer during a game left the old host's socket in the host room, still receiving host-only events; the rooms now move on transfer and `join-session` re-reads the seat. (2) `POST /host/transfer` silently dropped unknown fields; its body is now strict.
+- **Files:** `apps/api/test/host-routes.integration.test.ts`, `apps/api/test/host-transfer-socket.integration.test.ts`, `apps/api/src/realtime/play.gateway.ts` (`moveHost`, seat re-read on `join-session`), `apps/api/src/lobby/lobby.service.ts` (moves the host room after a transfer or a host leave), `packages/contracts/src/lobby.ts` (`transferHostRequestSchema` strict), `docs/werewolf/api-design.md`.
+- **Acceptance (met):** No route writes a role or a winner directly.
+- **Tests:** The audit is 85 checks; the socket test fails with the fix disabled. API integration 258 passed with only the known `events.integration.test.ts` line-129 failure. API unit 58, contracts 101, web 341. `pnpm typecheck` passes.
+- **For anyone adding a route:** add it to `INVENTORY` in `host-routes.integration.test.ts` with its access class, or the test fails.
+
+### WW-1003b — Sniper day shot
+
+- **Agent:** Claude
+- **Status:** COMPLETED (12 November 2026)
+- **Decision:** OD-29 accepted 12 November 2026. Interpretation recorded there.
+- **Description:** The Sniper submits its one shot during day discussion. When discussion closes, the shots resolve in submission order before voting opens. A Guard, Doctor, or Shieldbearer protection that resolved on the target the night before stops it (those abilities now list `SNIPER` in `cancels`); an Immortal survives it. The shot is spent either way. A hit is a DAY death caused by `SNIPER` via `ABILITY`, an Avenger shot by the Sniper takes revenge on the Sniper, and a shot that decides the game finishes it without opening voting. A Sniper death never wins a Jester. Only games that seat a day kill change: `PhaseRules.dayShots` makes the discussion close `RESOLVE_DAY` with ballot `DISCUSSION`; every other game still advances straight to voting.
+- **Files:** `packages/domain/src/phase/machine.ts` (`dayShots`, ballot `DISCUSSION`), `packages/domain/src/day/shots.ts` (`nightShields`, `resolveShots`), `packages/domain/src/index.ts`, catalog `core.ts` (Guard, Doctor), `protection.ts` (Shieldbearer), `offense.ts` (Sniper CONFIRMED), `apps/api/src/day/day-resolution.service.ts` (`fireShots`), tests `packages/domain/test/day-shots.test.ts`, `packages/domain/test/phase.test.ts`, `packages/domain/test/catalog.test.ts`, `apps/api/test/sniper.integration.test.ts`, docs `open-decisions.md` (OD-29), `role-catalog.md` (Guard, Sniper).
+- **Acceptance (met):** A shot at night is 409 `ACTION_WRONG_PHASE`. Last night's Doctor save keeps the target alive and the shot is still spent (EXHAUSTED, action RESOLVED). A shot on the last wolf finishes the game in round 2 without voting, recorded as a SNIPER death by the Sniper, and the recap names the village. A Classic game without a Sniper still advances discussion to voting.
+- **Tests:** Domain 394. API integration: sniper 3 of 3; the full suite 173 passed with only the known `events.integration.test.ts` line-129 failure (Cursor's, see WW-1102 notes). Web 338. `pnpm typecheck` passes.
+- **Not covered:** the Blacksmith's held shield item does not stop the shot (see OD-29).
+- **Handoff to Cursor (UI, small):** In a game with a Sniper, `GET /state` reports the day discussion close as `{ next: null, resolves: 'DAY' }` instead of `{ next: 'VOTING' }`, so the host's close button should read as resolving the shot before voting, not "resolve day". The shot itself uses the existing action panel (`actionPrompts`, window `DAY_DISCUSSION`). The death appears like a day elimination; there is no separate announcement event.
+
+### WW-904 — Public vote tally
+
+- **Agent:** Claude
+- **Status:** COMPLETED (12 November 2026)
+- **Decision:** OD-85 (12 November 2026): counts per target, public after each ballot closes. Who voted for whom is never published.
+- **Description:** The day resolution stores each closed ballot's weighted counts, abstentions, the named player, and any tie in `day_tallies`, from the same tally that decided it. After commit a PUBLIC `VOTE_TALLY` event is published (boot recovery repairs a missed one). `GET /games/:gameId/tallies` lists them for any seat, and the finished recap includes them.
+- **Files:** `apps/api/src/db/schema.ts` (`day_tallies`), migration `0012_day_tallies` (+ down), `apps/api/src/day/day-resolution.service.ts`, `apps/api/src/day/tallies.ts`, `apps/api/src/events/event.service.ts` (`publishTallies`, `republishTallies`), `apps/api/src/phase/phase.service.ts`, `apps/api/src/results/results.service.ts`, `apps/api/src/app.module.ts`, `packages/contracts/src/tally.ts`, `packages/contracts/src/results.ts`, `apps/web/src/api/tallies.ts`, `apps/web/src/game/state/tallies.ts`, `apps/web/src/game/fixtures/results.ts`, tests `apps/api/test/tally.integration.test.ts`, `apps/api/test/results.integration.test.ts`, `apps/api/test/migrations.integration.test.ts`, `apps/web/test/state/tallies.test.tsx`, docs `api-design.md`, `data-model.md`, `open-decisions.md` (OD-85).
+- **Acceptance (met):** Nothing is public while the ballot is open. After the close, a 3-2 ballot with one abstention reads exactly that, names the leader, and contains none of the six voters' ids; the event reaches a player once, and a second publish inserts nothing. A 2-2 tie lists both as tied with no one named, and the revote is listed as ballot 2.
+- **Handoff to WW-904b (Cursor):** `useDayTallies(state.phase, state.stateVersion)` from `src/game/state/tallies.ts` returns `tallies`, `latest`, `isLoading`, `error`. Show `latest` after a ballot closes (for example during the following night announcement or the revote). Names come from `state.players` by id. `tallyTotal(tally)` gives the bar scale; `talliesOfRound(tallies, round)` groups a day. Show abstentions as a word, not a seat. A tie names the tied players ("Revote between …"). In the recap, `finished.tallies` is the same list. Never show counts while a ballot is open.
+
+### WW-904b — Public tally on the table and the recap
+
+- **Agent:** Cursor
+- **Status:** COMPLETED (12 November 2026)
+- **Description:** After a ballot closes, the table shows that ballot's weighted counts, the named player or the tie, and abstentions as a word. The same list is in the results recap. An open vote shows no counts.
+- **Files:** `apps/web/src/game/components/VoteTally.tsx`, `apps/web/src/game/components/tallyCopy.ts`, `apps/web/src/game/components/table-screen.css`, `apps/web/src/game/components/ResultsRecap.tsx`, `apps/web/src/routes/Table.tsx`, `apps/web/test/screens/tally-copy.test.ts`, `apps/web/test/screens/table.test.tsx`, `apps/web/test/screens/results.test.tsx`, `apps/web/e2e/table.spec.ts`, `apps/web/e2e/results.spec.ts`.
+- **Acceptance (met):** Morning shows the named player, the totals, and "2 abstentions", with no player id. Voting hides the card. A first tie reads "Revote between …". A second tie reads "Nobody was eliminated." The recap includes the same card on every priority viewport.
+- **Tests:** `test/screens/tally-copy.test.ts`, the new table screen case, the results screen case. Playwright: results on all seven viewports, and the morning card on 390×844.
+
+### WW-1503 — Request ids and readiness
+
+- **Agent:** Claude
+- **Status:** COMPLETED (12 November 2026)
+- **Description:** Every request carries an id: a well-formed incoming `X-Request-Id` is kept, anything else is replaced with a UUID, and the id is returned on the response (exposed to the APK through CORS). One log line per request holds the id, method, path without its query, status, duration, and the game id when the path names one. A 5xx is logged with its request id. `GET /api/v1/health/ready` answers 200 when PostgreSQL responds within 2 seconds and 503 otherwise; `/health` stays the liveness check. The production Compose health check uses `/health/ready`.
+- **Files:** `apps/api/src/http/request-log.ts`, `apps/api/src/http/log-line.ts` (keys `request`, `method`, `path`, `status`, `ms`), `apps/api/src/http/error.filter.ts`, `apps/api/src/app.ts`, `apps/api/src/system/readiness.controller.ts`, `apps/api/src/app.module.ts`, `packages/contracts/src/system.ts`, `compose.prod.yaml`, `README.md`, tests `apps/api/test/request-log.test.ts` and `apps/api/test/readiness.integration.test.ts`.
+- **Acceptance (met):** Logs include the request id and the game id. A token in a query string never reaches the line. An id with spaces or over 64 characters is replaced.
+- **Also fixed:** the three chat refusals (`CHAT_CLOSED`, `CHAT_READ_ONLY`, `CHAT_MUTED`) had no message in the error filter and reached players as "Something went wrong." They now carry the same words as the composer, and the message map's type now requires every error code. `apps/api/test/chat.integration.test.ts` checks the text.
+- **Tests:** API unit 58. `pnpm typecheck` passes.
+
+### WEB-09 — One shared `/play` socket
+
+- **Agent:** Claude
+- **Status:** COMPLETED (12 November 2026)
+- **Description:** The phase signal (`usePlaySession`) and chat (`useChat`) each opened a `/play` socket. Now each seat has one connection, shared by reference count: the first subscriber opens it, the last one closes it. Every event is registered once and fanned out. `join-session` is sent once per connect with the newest stored event seq, so a reconnect replays only what was missed. Chat events never move that cursor.
+- **Files:** `apps/web/src/realtime/session.ts` (`subscribePlay`), `apps/web/src/game/state/realtime.ts`, `apps/web/src/game/state/chat.ts`, `apps/web/test/realtime/session.test.ts`, `apps/web/test/state/realtime.test.tsx` and `apps/web/test/state/chat.test.tsx` (expectations: registration order, and chat no longer sends its own join).
+- **Tests:** Full web suite 35 files, 332 tests. `pnpm typecheck` passes.
+- **For new realtime features:** call `subscribePlay(token, gameId, { EVENT: handler })` from an effect and return its result as the cleanup. Do not call `connectPlay` from a hook.
+
+### WW-1202a — Host dashboard projection
+
+- **Agent:** Claude
+- **Status:** COMPLETED (12 November 2026)
+- **Description:** One host-only payload for the dashboard: overview, roster, this round's submissions, every infection attempt, every ballot with voters and weighted totals, every death with its causes, and victory flags.
+- **Files:** `packages/contracts/src/hostDashboard.ts` (+ `index.ts`), `apps/api/src/host/dashboard.service.ts`, `apps/api/src/host/dashboard.controller.ts`, `apps/api/src/app.module.ts`, `apps/api/test/dashboard.integration.test.ts`, `apps/web/src/api/hostDashboard.ts`, `apps/web/src/game/state/hostDashboard.ts`, `apps/web/src/game/fixtures/hostDashboard.ts`, `apps/web/test/state/host-dashboard.test.tsx`, `docs/werewolf/api-design.md` section 8.
+- **Acceptance (met):** A guest is 403 and the lobby is 409. Through a real Infection night: the Alpha's infect and kill show as PENDING submissions with their targets; after the night the infection is SUCCESS, the infected seat's current faction is WOLF_PACK, and the kill is a NIGHT death caused by WOLF_KILL with the Alpha as actor. During voting the open ballot lists each voter and totals 3; after the close it is closed, the voted-out seat is a DAY death with every voter as actor, and round 2 starts with no submissions.
+- **Tests:** `apps/api/test/dashboard.integration.test.ts` 2 of 2. `apps/web/test/state/host-dashboard.test.tsx` 4 of 4. `pnpm typecheck` passes.
+- **Handoff to WW-1202 (Cursor):**
+  - `useHostDashboard(state.phase, state.stateVersion)` from `src/game/state/hostDashboard.ts` returns `dashboard`, `isLoading`, `error`, `refetch`. It asks nothing for a guest or in the lobby, reads again on each new state version, and polls every 4 seconds while a submission window or a ballot is open.
+  - Sections map one to one onto the UI plan's sidebar: `overview` (Overview), `roster.players` (Players and roles), `infections` (Infection history, failures included with `failureReason`), `submissions` (Night actions and wolf submissions, this round only), `ballots` (Open and closed votes), `eliminations` (Eliminations, with `causes`), `victory` (Victory flags).
+  - Helpers: `dashboardSeat(dashboard, playerId)` for a name and seat by id; `openBallot(dashboard)`; `wolfSubmissions(dashboard)`.
+  - The Doctor prompt state is the `doctor_save` row in `submissions` during `NIGHT_REACTION`. Kill confirm stays on the existing `useKillTarget` / `useSetKillTarget` hooks. The event log is `GET /events` with the host token.
+  - Every section is a secret. Never render it on a player route, and never put it in the discussion rail.
+  - Fixture: `hostDashboardFixture()` in `src/game/fixtures/hostDashboard.ts`, round 2 voting on the 20-seat Infection deal, with one success and one failed infection, a night and a day death, and an open and a closed ballot.
+
+### WW-1202 — Host dashboard screen
+
+- **Agent:** Cursor
+- **Status:** COMPLETED (12 November 2026)
+- **Description:** `/game/:gameId/host` is a sidebar and a canvas. The host sees this round's submissions. A guest sees a refusal and the screen does not request the dashboard.
+- **Files:** `apps/web/src/routes/Host.tsx`, `apps/web/src/routes.tsx`, `apps/web/src/routes/Table.tsx` (host link only), `apps/web/src/game/host/**`, `apps/web/src/api/events.ts`, `apps/web/src/game/state/hostEvents.ts`, `apps/web/test/screens/host.test.tsx`, `apps/web/test/routes.test.tsx`, `apps/web/e2e/host.spec.ts`.
+- **Acceptance (met):** The host sees the pack submission, a failed infection in words, and the open ballot total. A guest has no sections and no dashboard request. Every section is reachable at 844×390, 390×844, and 568×320, and End the day stays on screen. There is no role dropdown.
+- **Tests:** `apps/web/test/screens/host.test.tsx` 3 of 3. Playwright `e2e/host.spec.ts` on phone-land, phone-portrait, and phone-land-sm at 568×320. `tsc --noEmit` passes.
+- **Handoff to WW-1303:** The screen writes nothing except the existing phase close and kill confirm (`useClosePhase`, `useSetKillTarget`). Configuration is a locked sentence. Event payloads are not rendered. The table status has a Host link for the host only.
+
+### WW-1203 — Results viewport pass
+
+- **Agent:** Cursor
+- **Status:** COMPLETED (12 November 2026)
+- **Description:** The existing results screen keeps the stat row and the recap inside every priority viewport, including 568×320.
+- **Files:** `apps/web/e2e/results.spec.ts`.
+- **Acceptance (met):** All seven projects show the winning team, the recap, and Play again, with no horizontal page scroll. The stat row is fully on screen at 1920×1080 and 390×844. At 568×320 the stats and Play again stay on screen, and Recap opens the rail. Cancelled games still hide roles.
+- **Tests:** Playwright `e2e/results.spec.ts`.
+- **Handoff:** WW-904 owns a public tally. These checks do not look for one. At 568×320 the recap is behind the Recap button.
+
+### WW-903a — Results projection
+
+- **Agent:** Claude
+- **Status:** COMPLETED (12 November 2026)
+- **Description:** `GET /games/:gameId/results` for any seat. A finished game reveals each seat's original and final role, death, win, and ability uses, plus the winning team or draw and the successful infections. A cancelled game returns seats and the reason, never a role. 409 while the game is in the lobby or running.
+- **Files:** `packages/contracts/src/results.ts` (+ `index.ts`), `apps/api/src/results/results.service.ts`, `apps/api/src/results/results.controller.ts`, `apps/api/src/app.module.ts`, `apps/api/test/results.integration.test.ts`, `apps/web/src/api/results.ts`, `apps/web/src/game/state/results.ts`, `apps/web/src/game/fixtures/results.ts`, `apps/web/test/state/results.test.tsx`, `docs/werewolf/api-design.md` section 5.
+- **Acceptance (met):** A Classic game played to a village win through the real resolvers returns VILLAGE, every wolf dead by DAY with `won: false`, every survivor alive, the Seeker's one resolved investigation counted, and the same body for a dead seat as a living one. A cancelled game's JSON contains no role id or faction. The lobby and a running game are 409. A token from another game is 404.
+- **Tests:** `apps/api/test/results.integration.test.ts` 3 of 3. `apps/web/test/state/results.test.tsx` 5 of 5. `pnpm typecheck` passes.
+- **Not included:** a public vote tally. No tally is stored today, and whether ballots are public is a product decision. See the decision list for 12 November 2026.
+- **Handoff to WW-903 and WW-1203 (Cursor):**
+  - `useResults(state.status)` from `src/game/state/results.ts` returns `finished`, `cancelled`, `isLoading`, `error`. It asks nothing until the status is `FINISHED` or `CANCELLED`.
+  - `resultsHeadline(finished)` gives `{ kind: 'TEAM', team }`, `{ kind: 'DRAW' }`, or `{ kind: 'INDIVIDUALS' }` for `VictoryBanner`. A team colour always comes with its word.
+  - `recapOrder(seats)` puts winners first, then seat order. `converted(seat)` marks a seat whose role changed, such as an infected villager (`originalRoleId` to `finalRoleId`).
+  - `death.phaseKind` says night or day, and `death.roleId` is the role at death. `individualWin` marks a Jester or a surviving Neutral (OD-73).
+  - A cancelled recap has no roles: show seats and the reason (`HOST` or `SURRENDER`) only.
+  - Fixtures: `finishedResultsFixture({ winningTeam, draw })` and `cancelledResultsFixture(reason)` in `src/game/fixtures/results.ts`, on the 20-seat Infection deal with one infection and three deaths.
 
 ### WW-301 — Lobby tables
 
@@ -694,7 +875,153 @@ Last updated: 11 November 2026. Phases 0 to 7, WEB-07, WEB-08, WW-604, WW-801, W
 - **Files:** `apps/api/src/realtime/play.gateway.ts`, `apps/api/src/app.module.ts`, `apps/api/test/socket.integration.test.ts`. Dependencies: `socket.io`, `socket.io-client`.
 - **Acceptance (met):** An unknown token gets `connect_error`. A token from another game acks `{ ok: false }` and joins no `game:` room. A `playerId` in the payload is ignored, so the host does not enter the guest's player room. A client `INFECTION_OCCURRED` is not relayed.
 - **Rooms:** `playRooms(gameId, playerId, isHost)` returns `game:{gameId}:public`, `game:{gameId}:player:{playerId}`, and `game:{gameId}:host` when `isHost`.
-- **Handoff to Claude (WW-1102):** `PlayGateway.io` is the Socket.IO server. Emit on `io.of('/play')` after the event rows exist. Join happens only on `join-session`, not on connect.
+- **Handoff to Claude (WW-1102):** Done. See the WW-1102 section.
+
+### WW-803a — Host kill target
+
+- **Agent:** Cursor (picked up 11 November 2026 after Claude's session stopped)
+- **Status:** COMPLETED
+- **Description:** The host chooses the night's final target among the players the pack named, or no kill. Host confirm cannot close without that choice. The informed Doctor is told the confirmed target. The client can read and replace the choice without fetch code in a screen.
+- **Files:** The API, storage, and close guard were already in the tree (`apps/api/src/night/kill-target.ts`, migration `0007_kill_decisions`, `packages/domain/src/night/killTarget.ts`, `packages/contracts/src/killTarget.ts`). This pass added the client data layer: `apps/web/src/api/killTarget.ts`, `apps/web/src/game/state/killTarget.ts`, `apps/web/src/game/fixtures/killTarget.ts`, `apps/web/src/game/fixtures/actions.ts` (`finalWolfTarget`), `apps/web/src/api/api.ts`, `apps/web/src/api/game.ts`, `apps/web/test/state/kill-target.test.tsx`.
+- **Acceptance (met):** A target no wolf named is 422 `KILL_TARGET_NOT_SUBMITTED`. Closing host confirm with no choice is 409 `KILL_TARGET_REQUIRED` and the phase stays. The informed Doctor's open save carries `finalWolfTarget`, or null when the host chose no kill. A non-host never requests the view.
+- **Tests:** `apps/web/test/state/kill-target.test.tsx`. The API cases are in `apps/api/test/night.integration.test.ts` (`host kill target`).
+- **Handoff to WW-803b:** Call `useKillTarget(state.phase, state.stateVersion)` and `useSetKillTarget()` from `src/game/state/killTarget.ts`. The view is null for a guest and outside `NIGHT_HOST_CONFIRM` and `NIGHT_REACTION`. `candidates` is the legal list, in player id order, with `submittedBy`. `choose({ targetPlayerId })` or `choose({ noKill: true })` replaces the choice while `editable` is true. Show `error.issues[0]?.message` for `KILL_TARGET_NOT_SUBMITTED`. The Doctor line is not this view: read `finalWolfTarget` on the `doctor_save` prompt from `actionPrompts` during the reaction window. Null means there is no attack. Do not put wolf names in the discussion rail.
+
+### WW-803b — Host kill-target picker
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** On the table, the host picks the night's attack from the players the pack named, or no kill, and can replace that choice until host confirm closes. The informed Doctor reads the attack on their own panel. Who submitted a name stays in the host panel.
+- **Files:** `apps/web/src/game/components/killCopy.ts`, `apps/web/src/game/components/KillTargetPanel.tsx`, `apps/web/src/game/components/NightActionPanel.tsx` (the Doctor line), `apps/web/src/game/components/table-screen.css`, `apps/web/src/routes/Table.tsx`, `apps/web/test/screens/kill-copy.test.ts`, `apps/web/test/screens/table.test.tsx`, `apps/web/e2e/table.spec.ts`, `docs/werewolf/implementation-checklist.md`, `docs/AI-TASK-BOARD.md`. Reads the choice only through `src/game/state/killTarget.ts` and `finalWolfTarget` on `actionPrompts`.
+- **Depends on:** WW-803a
+- **Acceptance (met):** Confirm stays disabled until the host picks a candidate or no kill. A stored choice reads "Submitted" and can be replaced until the window closes. A refusal shows `issues[0].message` and does not read "Submitted". A guest has no picker and never requests the view. The Doctor sees "The attack is on {name}." or "There is no attack." That line and "Named by" stay out of the discussion rail.
+- **Tests:** `pnpm --filter @warewolf/web typecheck`. `pnpm --filter @warewolf/web test` (311). `pnpm --filter @warewolf/web exec playwright test e2e/table.spec.ts`: the host confirms Diego and can switch to no kill at 1024×768, 844×390, and 390×844. Confirm target stays inside the viewport. No horizontal page scroll.
+- **Handoff:** A locked reaction window shows the attack and does not offer Confirm target. The results route still has no tally. Wolf roles are not written into the rail.
+
+### WW-1104 — Chat messages and moderation
+
+- **Agent:** Claude
+- **Status:** COMPLETED (12 November 2026). Cursor built WW-1206 on this data layer and reported no problems; the one follow-up is a shared `/play` socket.
+- **Description:** Server-side public chat under the OD-72 rules. Living players post during `DAY_DISCUSSION`, `VOTING`, and `REVOTE` only. Dead players read only. No wolf channel. The host deletes a message and mutes or unmutes a seat. 280 characters (422), 5 messages per 10 seconds per seat (429). A separate chat table, emptied when the game finishes or is cancelled. Messages fan out to the public room.
+- **Files:** Domain rule `packages/domain/src/chat/rules.ts` (+ `index.ts`, `test/chat.test.ts`). Contract `packages/contracts/src/chat.ts` (+ `index.ts`, `errors.ts` codes `CHAT_CLOSED`, `CHAT_READ_ONLY`, `CHAT_MUTED`, `test/chat.test.ts`). API `apps/api/src/chat/chat.service.ts`, `apps/api/src/chat/chat.controller.ts`, `apps/api/src/db/schema.ts` (`chat_messages`, `chat_mutes`), migration `apps/api/drizzle/0011_chat.sql` with the retention trigger, `drizzle/down/0011_chat.sql`, `drizzle/meta/`, `apps/api/src/http/api-error.ts`, `apps/api/src/realtime/play.gateway.ts` (`emitPublic`, chat events dropped from clients), `apps/api/src/app.module.ts`, tests `apps/api/test/chat.integration.test.ts`, `test/schema-drift.test.ts`, `test/migrations.integration.test.ts`. Client `apps/web/src/api/chat.ts`, `apps/web/src/api/api.ts` (`Chat` tag), `apps/web/src/game/state/chat.ts`, `apps/web/src/game/fixtures/chat.ts`, `apps/web/test/state/chat.test.tsx`. Docs `docs/werewolf/api-design.md` section 13 (plus the realtime and authorization tables), `docs/werewolf/data-model.md` (`chat_messages`, `chat_mutes`, retention).
+- **Acceptance (met):** Every seat in the game hears `CHAT_MESSAGE_POSTED`; a seat in another game does not, and a client-emitted chat event is not relayed. Night, reveal, and announcement posts are 409 `CHAT_CLOSED`. A dead seat is 403 `CHAT_READ_ONLY` and still reads. A muted seat is 403 `CHAT_MUTED`. Blank or 281 characters is 422. The sixth post in 10 seconds is 429, and the budget is per seat. Cancel and finish delete the game's messages and mutes and leave other games alone.
+- **Tests:** `pnpm typecheck` passes. Domain 388, contracts 101, API unit 50 pass. `apps/api/test/chat.integration.test.ts` 10 of 10 and `test/migrations.integration.test.ts` 35 of 35 pass. The full web suite passes, 26 files and 293 tests (the chat file also 5 runs in a row). The full API integration suite did not finish green on this machine: load average 10 to 13 on 8 cores made scattered tests in unrelated files hit the 30-second timeout, and each of those passes alone.
+- **Found, not mine:** `apps/api/test/events.integration.test.ts` line 129 expects every `PUBLIC` row to be `PLAYER_ELIMINATED`. Since WW-1103 every phase close also writes a public `PHASE_CHANGED`, so this assertion fails with or without chat. Cursor owns that file (WW-804, WW-1103). Suggested fix: filter out `PHASE_CHANGED` before that check.
+- **Handoff to WW-1206 (Cursor):**
+  - `useChat(state.phase, state.stateVersion)` from `src/game/state/chat.ts` returns `messages` (oldest first), `mutedPlayerIds`, `canPost`, `refusal`, `isLoading`, `error`. It opens its own `/play` socket and keeps the list live. No fetch or socket code in the screen.
+  - Enable the composer only when `canPost`. Disabled copy by `refusal`: `CLOSED` (chat opens in day discussion and voting), `DEAD` (the dead read only), `MUTED` (the host muted you).
+  - `checkChatDraft(text)` gives `{ remaining, sendable }` for the counter and the Send button, counting as the server counts (an emoji is one).
+  - `usePostChat().send(text)` resolves to the stored message or null. Show `error.message` for `RATE_LIMITED`, `CHAT_CLOSED`, `CHAT_READ_ONLY`, `CHAT_MUTED`, `VALIDATION_FAILED`. The sent message appears without waiting for the socket.
+  - `useChatModeration()` returns `available` (host only), `deleteMessage(messageId)`, `mute(playerId)`, `unmute(playerId)`, `isWorking`, `error`. Hide the controls when `available` is false. Mutes are public, so a muted badge is fine on any seat.
+  - Names and avatars come from `state.players` by `playerId`. A message carries no role or team, and the rail must not add one. The recap does not show chat.
+  - Fixtures: `chatViewFixture({ count, mutedPlayerIds, you })` and `chatMessageFixture(n)` in `src/game/fixtures/chat.ts`.
+  - Known cost: the chat hook opens a second `/play` socket beside `usePlaySession`. One shared socket is an engineering follow-up for Claude, not a WW-1206 concern.
+- **Checked while building WW-1206:** the client hooks match this handoff. `useChat`, `checkChatDraft`, `usePostChat`, and `useChatModeration` are what the rail calls. No change to the data layer.
+
+### WW-1206 — Discussion composer
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** The discussion rail lists the public channel and keeps a composer at the bottom. Send is enabled only when the server says the seat may post. The host can delete a message and mute or unmute another seat. The results recap does not show chat.
+- **Files:** `apps/web/src/game/components/chatCopy.ts`, `apps/web/src/game/components/DiscussionPanel.tsx`, `apps/web/src/game/components/table-screen.css`, `apps/web/src/routes/Table.tsx`, `apps/web/test/screens/chat-copy.test.ts`, `apps/web/test/screens/table.test.tsx`, `apps/web/e2e/table.spec.ts`, `docs/werewolf/implementation-checklist.md`, `docs/AI-TASK-BOARD.md`. The screen does not fetch or open a socket. `Table.tsx` is shared with WW-803b, done in the same pass.
+- **Depends on:** WW-1104, WW-1204
+- **Acceptance (met):** Day discussion and voting enable Send once the draft is legal. Night reads "Chat opens in day discussion and voting." A dead seat reads "The dead read only." and can still see messages. A muted seat reads "The host muted you." Over 280 characters disables Send. A 429 shows the server message. The host sees Delete and Mute. A guest does not. A message carries a display name and an avatar, and the rail does not add a role or a team. `/game/:id/results` has no composer.
+- **Tests:** `pnpm --filter @warewolf/web typecheck`. `pnpm --filter @warewolf/web test` (311). `pnpm --filter @warewolf/web exec playwright test e2e/table.spec.ts`: Send stays inside the viewport at all seven projects, a day message can be sent, and at 568×320 the Discussion button opens the composer onto the screen. No horizontal page scroll.
+- **Handoff to Claude:** The chat hook still opens its own `/play` socket beside `usePlaySession`. One shared socket remains the follow-up. The results recap is still WW-1203 and does not mount this panel.
+
+### WW-1601 — Capacitor and the Android project
+
+- **Agent:** Claude
+- **Status:** COMPLETED (12 November 2026)
+- **Description:** Capacitor wraps the same Vite client. `cap sync` copies the build into `apps/web/android`. Orientation stays unlocked (OD-71). No Android screens of its own.
+- **Files:** `apps/web/capacitor.config.ts` (app id `com.warewolf.werewolf`, name Werewolf, `webDir: 'dist'`), `apps/web/android/` (generated by `cap add android` 8.6.0), `apps/web/package.json` (`@capacitor/core`, `@capacitor/android`, `@capacitor/cli`, script `android:sync`), `apps/web/tsconfig.json` (typechecks the config), `apps/web/test/android/android-project.test.ts`, `pnpm-lock.yaml`, `.dockerignore` (the web image skips `apps/web/android`), `README.md`, `docs/werewolf/ui-ux-plan.md` section 11.
+- **Acceptance (met):** `pnpm --filter @warewolf/web android:sync` builds and copies `dist/` into `android/app/src/main/assets/public`; the two trees match file for file (99 assets) apart from Capacitor's cordova shims. The manifest has no `screenOrientation` and handles `orientation|screenSize` itself. The only permission is `INTERNET`.
+- **Tests:** `pnpm typecheck` passes. The full web suite passes, 27 files and 297 tests, including the 4 Android project checks.
+- **Notes:** The copied build, `capacitor.config.json`, and the cordova plugin folder are generated on every sync and ignored by the template's `android/.gitignore`. `android/capacitor.settings.gradle` points into the pnpm store by version; `cap sync` rewrites it after a Capacitor upgrade. This machine has no JDK and no Android SDK, so no Gradle build was run.
+- **Handoff to WW-1602 (Claude):** Install a JDK 21 and the Android SDK (or Android Studio), set `ANDROID_HOME`, then `cd apps/web/android && ./gradlew assembleDebug`. Build with `VITE_API_ORIGIN=http://<lan-ip>:3000 pnpm --filter @warewolf/web android:sync` first: an empty origin makes the WebView call `https://localhost`, which is the phone itself. Debug cleartext to a LAN API needs a network security config or `android:usesCleartextTraffic` on the debug build only, and the API's Socket.IO CORS currently refuses every origin (`cors: { origin: false }` in `play.gateway.ts`), so the WebView origin `https://localhost` must be allowed for the APK.
+- **Handoff to WW-1603 (Claude):** Done. See the WW-1603 section.
+
+### WW-1603 — Seat token storage in the APK
+
+- **Agent:** Claude
+- **Status:** COMPLETED (12 November 2026) in code and unit tests. The on-device restart check is WW-1604's smoke test, which needs the APK from WW-1602.
+- **Description:** The APK keeps the seat token in Capacitor Preferences so it survives a process kill. The web keeps sessionStorage, so a token stays in its tab. `/me` stays the source of truth: a stored token that gets a 401 is dropped from memory and from storage.
+- **Files:** `apps/web/src/session/storage.ts` (`KeyValueStore`, `preferencesSessionStorage`, `platformSessionStorage`), `apps/web/src/session/nativeStorage.ts` (`startupSessionStorage`, the only file that imports the native bridge), `apps/web/src/main.tsx` (reads the seat before the first render), `apps/web/package.json` (`@capacitor/preferences`), `pnpm-lock.yaml`, `apps/web/android/` (plugin registered by `cap sync`), `apps/web/test/session/storage.test.ts`, `docs/werewolf/ui-ux-plan.md` section 11.
+- **Design:** The store reads its seat synchronously, and Preferences is asynchronous. So the stored seat is read once before the app renders and held in memory, and every change is written through in order (leave then join cannot land reversed). A failed plugin call loses only persistence, never the session in memory.
+- **Acceptance:** Met in tests: a new adapter over the same preferences (the simulated process kill) restores the seat; writes keep their order; unreadable or malformed values load as no seat; a 401 clears the stored seat. Selection picks Preferences when native and sessionStorage on the web. On a device: WW-1604.
+- **Tests:** `pnpm typecheck` passes. The full web suite passes, 28 files and 302 tests.
+
+### WW-1602 — Debug APK
+
+- **Agent:** Claude
+- **Status:** COMPLETED (12 November 2026) for the build and network path. Installing on a phone is WW-1604's smoke test; no device or emulator was used.
+- **Description:** `assembleDebug` produces a sideload APK that reaches the API at a build-time origin. INTERNET is the only permission the app asks for. Cleartext HTTP to a LAN API is allowed in debug builds only. Keystores are ignored by git.
+- **Files:** `apps/web/capacitor.config.ts` (an `http://` `VITE_API_ORIGIN` serves the WebView from `http://localhost`), `apps/web/android/app/src/debug/AndroidManifest.xml` (cleartext, debug only), `apps/web/android/.gitignore` (`*.jks`, `*.keystore`), `apps/web/package.json` (`android:apk`), `apps/web/test/android/android-project.test.ts`, `apps/api/src/config.ts` (`CORS_ORIGINS`), `apps/api/src/app.ts`, `apps/api/src/realtime/play.gateway.ts`, `apps/api/test/cors.test.ts`, `.env.example`, `README.md` ("Android debug APK"), `docs/werewolf/ui-ux-plan.md` section 11.
+- **Toolchain (this Mac):** `openjdk@21` and `android-commandlinetools` from Homebrew; SDK `platform-tools`, `platforms;android-36`, `build-tools;36.0.0`, licenses accepted. `apps/web/android/local.properties` (ignored) points at the SDK.
+- **Acceptance:** `VITE_API_ORIGIN=http://192.168.1.24:3000 pnpm --filter @warewolf/web android:apk` built `app-debug.apk` (11 MB). `aapt` shows package `com.warewolf.werewolf`, label Werewolf, target 36, `INTERNET`, and `usesCleartextTraffic` true in this debug build; the bundled config has `androidScheme: http`; the origin is compiled into the bundle; the assets match `dist/`. The API started with `CORS_ORIGINS=http://localhost` answered, over the LAN address with the WebView's Origin: health 200, the create-game preflight 204, and a real create; an unlisted origin got no CORS header. That test lobby was deleted afterwards.
+- **Note:** `aapt` also lists `com.warewolf.werewolf.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`. AndroidX core adds this app-private, signature-level permission; the user is never asked for it. It is left in because AndroidX uses it.
+- **Tests:** API unit 53, including `cors.test.ts` 3. Web 318, including 6 Android project checks. `pnpm typecheck` passes.
+- **Handoff to WW-1604 (Claude, needs a phone or an emulator):** run the API with `CORS_ORIGINS=http://localhost` on the LAN, build with that LAN origin, `adb install -r apps/web/android/app/build/outputs/apk/debug/app-debug.apk`, then create or join, kill the app, reopen, and confirm the seat returns (WW-1603).
+
+### WW-1604 — Install smoke test
+
+- **Agent:** Claude
+- **Status:** COMPLETED (12 November 2026) on the Android emulator (Pixel 7 profile, Android 36, arm64). Not yet on a physical phone.
+- **Setup:** API on the Mac at `192.168.1.24:3000` with `CORS_ORIGINS=http://localhost`; APK built with `VITE_API_ORIGIN=http://192.168.1.24:3000`; `adb install -r app-debug.apk`.
+- **Checklist (passed):** The app opens to the home screen with its art. Rotating to landscape reflows the same layout without a restart (OD-71). Create Game with the name EmuHost reached the API over the LAN and opened lobby S5GVH3 as host, seat 1; the row is in the database. `am force-stop` killed the process; on reopening, the home screen showed the seat ("Return to the lobby") and returning opened the same lobby as host (WW-1603).
+- **Emulator notes:** Android's "Try out your stylus" tour took the first text focus; `settings put secure stylus_handwriting_enabled 0` on the virtual device stops it. This is the emulator, not the app.
+- **Handoff to Cursor (copy):** In the APK the home screen says "This tab already has a seat." An app has no tabs. Suggest wording that fits both, such as "You already have a seat in a game."
+
+### WW-1402 — 10,000-game Infection report
+
+- **Agent:** Claude
+- **Status:** COMPLETED (12 November 2026)
+- **Description:** 10,000 `infection-core` games under the accepted OD-02 rule (informed veto, unlimited saves), seed 1, for each of the three bot policies. The report is in `docs/werewolf/simulation/`.
+- **Files:** `docs/werewolf/simulation/README.md`, `docs/werewolf/simulation/infection-core-{random-legal,infection-priority,vote-random}-seed1.json`, `packages/domain/bin/simulate.ts` and `packages/domain/package.json` (the script imported `../src/*.js`, which Node's type stripping cannot resolve; it now builds and imports `../dist`).
+- **Acceptance (met):** The report names the seed, the policy, and the Doctor negation rate. Pack 62.7% and village 37.2% under `random-legal`; the Doctor negated 28.5% of wolf attacks because random bots skip half their saves, so the OD-02 "negates every kill" case is not measured by these bots. The README says so. Follow-up the same day: a `saving-doctor` policy (`packages/domain/src/simulate/policies.ts`, test in `test/simulate.test.ts`) negates 62.4% of attacks, and the pack still wins 58.5%, so the OD-02 informed veto does not tip Infection Edition to the village under bot play.
+- **Tests:** Domain 388 pass.
+
+### WW-1102 — Emit stored events and `afterSeq`
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** After a night's event rows commit, each row is emitted to its room. `join-session` and `GET /games/:gameId/events` replay rows newer than `afterSeq` for that seat only.
+- **Files:** `apps/api/src/events/event.service.ts`, `apps/api/src/events/event.controller.ts`, `apps/api/src/realtime/play.gateway.ts`, `apps/api/src/phase/phase.service.ts`, `apps/api/src/app.module.ts`, `packages/contracts/src/events.ts`, `apps/api/test/event-replay.integration.test.ts`, `apps/api/test/events.integration.test.ts`
+- **Acceptance (met):** A connected Seeker receives one player `INVESTIGATION_RESULT`. A villager receives the public death and not the investigation. Disconnecting and rejoining with that seq does not deliver it again. A token from another game gets 404. `afterSeq=later` is 422.
+- **Tests:** `pnpm --filter @warewolf/api exec vitest run --config vitest.integration.config.ts test/event-replay.integration.test.ts test/events.integration.test.ts test/socket.integration.test.ts` (4 passed).
+- **Handoff to WW-1103:** Done. See the WW-1103 section.
+
+### WW-1103 — Phase banners from the phase signal
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Every committed phase close writes one public `PHASE_CHANGED` row and emits it. The table refetches `GET /state` when that event arrives, so the host and a guest leave the night together. The two-second poll stays as the fallback.
+- **Files:** `apps/api/src/events/event.service.ts` (`publishPhase`), `apps/api/src/phase/phase.service.ts`, `apps/api/test/phase-events.integration.test.ts`, `apps/web/src/realtime/play.ts`, `apps/web/src/game/state/realtime.ts`, `apps/web/src/game/state/phase.ts`, `apps/web/vite.config.ts` (dev socket proxy), `apps/web/package.json` (`socket.io-client`), `apps/web/test/state/realtime.test.tsx`.
+- **Acceptance (met):** A Classic night close delivers the same `PHASE_CHANGED` to the host socket and a guest socket. The payload is `{ phase, roundNumber, stateVersion }` and names no role. Publishing that version again inserts nothing. The client sends `join-session` with the last seq and refetches the phase.
+- **Tests:** `apps/api/test/phase-events.integration.test.ts`. `apps/web/test/state/realtime.test.tsx`.
+- **Handoff:** Listen for `PHASE_CHANGED`. The body is `{ seq, type, audience, payload }`. `useGameState` already refetches on it. Private facts still arrive as their own event types. The discussion rail does not render them yet.
+
+### WW-1205 — Playwright viewport coverage
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** The seven UI-plan projects already run the layout assertions from WEB-05 and WW-1204.
+- **Files:** `apps/web/e2e/layout.spec.ts`, `apps/web/e2e/table.spec.ts`
+- **Acceptance (met):** Each project checks the shell regions, the primary button inside the viewport, and no horizontal page scroll. `phone-land-sm` also checks 568×320.
+
+### WW-1304 — Structured logs
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Files:** `apps/api/src/http/log-line.ts`, `apps/api/src/phase/phase.service.ts`, `apps/api/test/log-line.test.ts`
+- **Acceptance (met):** `logLine` writes only id fields. A role name and a display name passed in are absent from the line.
+
+### WW-1501 and WW-1502 — Production stack
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Files:** `compose.prod.yaml`, `apps/api/Dockerfile`, `apps/web/Dockerfile`, `apps/web/nginx.conf`, `.dockerignore`
+- **Acceptance:** `docker compose -f compose.prod.yaml up --build` starts Postgres, migrates, then serves the API. The API health check is `GET /api/v1/health`. The web container proxies `/api` and `/socket.io`. This session did not boot the images.
 
 ### WW-1301 — Token hashing, generic errors, rate limits
 

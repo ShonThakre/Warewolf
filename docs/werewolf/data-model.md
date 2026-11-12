@@ -261,6 +261,52 @@ Primary key `(game_id, seq)`. Unique `(game_id, dedupe_key)`. Index `(game_id, a
 
 Clients reconnect with `afterSeq` and receive only rows their token may see.
 
+### chat_messages
+
+Table chat (WW-1104, OD-72). Not `game_events`: chat is not a game fact, the host can delete a message, and the channel is emptied when the game ends.
+
+| Column | Type |
+|---|---|
+| id | uuid |
+| seq | bigint | Global identity. Orders messages within a game. Never reused after a deletion |
+| game_id | uuid |
+| player_id | uuid | The author |
+| body | text | Trimmed. 1 to 280 code points |
+| round_number | integer |
+| phase | text | `DAY_DISCUSSION`, `VOTING`, `REVOTE` |
+| created_at | timestamptz |
+
+Unique `seq`. Index `(game_id, seq)`. There is no audience or recipient column: every message is public to the game's seats, so a wolf or dead channel cannot be stored.
+
+### day_tallies
+
+The public result of one closed ballot (WW-904, OD-85). Written in the day resolution from the tally that decided the ballot.
+
+| Column | Type |
+|---|---|
+| game_id | uuid |
+| round_number | integer |
+| ballot | integer | 1 or 2 |
+| counts | jsonb | `[{ targetPlayerId, total }]`, weighted, highest first |
+| abstentions | integer |
+| voted_out_player_id | uuid null | Null for a tie or no votes |
+| tied_player_ids | uuid[] |
+| created_at | timestamptz |
+
+Primary key `(game_id, round_number, ballot)`. No voter ids: those stay in `votes`, read only by the host.
+
+### chat_mutes
+
+| Column | Type |
+|---|---|
+| game_id | uuid |
+| player_id | uuid | The muted seat |
+| created_at | timestamptz |
+
+Primary key `(game_id, player_id)`. A row means muted. Unmuting deletes it.
+
+The trigger `chat_forget_on_end_trg` on `games` deletes a game's `chat_messages` and `chat_mutes` rows when `status` becomes `FINISHED` or `CANCELLED`. It sits on the column rather than in each code path that ends a game.
+
 ### resolution_runs
 
 | Column | Type |
@@ -369,6 +415,7 @@ Connection status is advisory. Authority is the token and the rows.
 - Host payloads can contain secrets and are selected only for the host token.
 - After `FINISHED`, the recap projection may include original roles for every seat. The recap is a new public event written at game end, not a widening of old private events.
 - Logs outside PostgreSQL must use ids, not role names, at info level.
+- Chat messages and mutes exist only while the game runs. The trigger above deletes them at `FINISHED` or `CANCELLED`, and the recap does not show chat (OD-72). Logs record a message's `seq`, never its text.
 
 ---
 
@@ -382,4 +429,4 @@ Implemented in WW-402. `dealRoles` and `fisherYates` in `packages/domain/src/ass
 
 Migration `0009_ultimate_20` widens six checks to the domain lists: `games.mode` includes `ULTIMATE_20`; ability capabilities include `CONVERT`, `REWIND`, `SILENCE`, `REVIVE`, `HINT`, and `CHAOS`; investigation kinds include `FACTION`; rejected reasons include `SUPERSEDED` and `REWOUND`; conversion reasons include `VAMPIRE`; scheduled effect kinds include `VAMPIRE_MARK`, `RETURNED`, and `CHAOS_DAY`.
 
-The night service does not yet write rewinds, the chaos draw, silences, revivals, or hints. Those fields exist on the domain `NightResult` only. `drawChaos` is not called from the API. Phase close does call `tallyDay` and `evaluateVictory`. That call does not yet receive revival or chaos-success inputs.
+Migration `0013_ultimate_play` stores the Chaos pool and the Necromancer's revivals on `games` (`chaos_successes`, `chaos_achieved`, `chaos_used_kinds`, `revived_by`) and the day-event payload on `scheduled_effects` (`chaos_kind`, `player_ids`, `chaos_counted`). The night close draws with `crypto.randomInt`, remembers a kind only when the Demon's action resolved, and increments `chaos_successes` only when that event changed the night. The day close increments it only when a ballot changed. `evaluateVictory` reads those columns. A Vampire promotion is a private `ROLE_CONVERTED` for the new Servant and a private `VAMPIRE_TEAM_JOIN` for the other living team members. Neither is public.

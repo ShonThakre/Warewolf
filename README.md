@@ -31,7 +31,7 @@ cp .env.example .env
 pnpm db:up          # PostgreSQL 17 on localhost:5433
 pnpm build          # domain and contracts must be built before the API runs
 pnpm db:migrate
-pnpm dev:api        # http://localhost:3000/api/v1/health
+pnpm dev:api        # http://localhost:3000/api/v1/health (liveness), /api/v1/health/ready (database reachable)
 pnpm dev:web        # http://localhost:5173, proxies /api to the API
 ```
 
@@ -48,6 +48,8 @@ Compose maps PostgreSQL to port 5433 so it does not clash with a local server on
 | `pnpm db:migrate` / `pnpm db:rollback` | Applies all pending migrations, or reverts the latest one |
 | `pnpm --filter @warewolf/api db:generate` | Generates a migration from `apps/api/src/db/schema.ts` |
 | `pnpm art:check` | Checks the images in `art/` against `art/manifest.json` and shows what is still missing |
+| `pnpm --filter @warewolf/web android:sync` | Builds the web client and copies it into the Android project in `apps/web/android` (Capacitor) |
+| `pnpm --filter @warewolf/web android:apk` | Sync, then build `apps/web/android/app/build/outputs/apk/debug/app-debug.apk`. Needs a JDK 21 and the Android SDK; see "Android debug APK" below |
 
 Drizzle has no down migrations. Each `apps/api/drizzle/<tag>.sql` needs a hand-written `apps/api/drizzle/down/<tag>.sql`, and a unit test fails without one.
 
@@ -56,3 +58,15 @@ Drizzle has no down migrations. Each `apps/api/drizzle/<tag>.sql` needs a hand-w
 - Workspace packages export TypeScript source under the `source` export condition. Vitest, Vite, and `tsc` read the source directly. Node reads `dist`.
 - API routes live under `/api/v1`. Errors use `{ "error": { "code", "message" } }` with generic messages. Exception text is logged and never returned.
 - Database `CHECK` constraints are generated from the domain enumerations. If you change an enumeration, run `db:generate`. A drift test fails until you do.
+
+## Android debug APK
+
+The APK is the same web client in a WebView (OD-71). A phone cannot reach `localhost` on your computer, so the build names the API by its address on your network.
+
+1. Tools, once: `brew install openjdk@21` and `brew install --cask android-commandlinetools`, then `sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"` and `yes | sdkmanager --licenses`. Put `sdk.dir=/opt/homebrew/share/android-commandlinetools` in `apps/web/android/local.properties` (ignored by git).
+2. Start the API so the WebView may call it: `CORS_ORIGINS=http://localhost pnpm dev:api` for a LAN debug build, or `https://localhost` when the API is served over HTTPS.
+3. Build: `JAVA_HOME=/opt/homebrew/opt/openjdk@21 VITE_API_ORIGIN=http://<your-lan-ip>:3000 pnpm --filter @warewolf/web android:apk`.
+4. Install with `adb install -r apps/web/android/app/build/outputs/apk/debug/app-debug.apk`, or copy the file to the phone.
+
+Plain HTTP works only in debug builds. A release build needs an `https://` origin and a keystore kept outside the repository.
+

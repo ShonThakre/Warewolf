@@ -272,9 +272,19 @@ Implemented in WW-501 with the phase fields and the caller's own seat. Public ev
 
 Auth: member. Returns events filtered by audience. This is the reconnect catch-up.
 
+### GET `/games/:gameId/tallies`
+
+Auth: member. The public tally of every closed ballot, oldest first (WW-904, OD-85): `{ tallies: [{ roundNumber, ballot, counts: [{ targetPlayerId, total }], abstentions, votedOutPlayerId, tiedPlayerIds }] }`. Totals are weighted (Elder, Mayor) and come from the same tally that decided the ballot. An open ballot is never listed, and no voter id appears. The same body is published as a `VOTE_TALLY` event when the ballot closes.
+
 ### GET `/games/:gameId/results`
 
-Auth: member. 409 unless status is `FINISHED` or `CANCELLED`. Finished games return the recap: original roles, final roles, infections, eliminations, ability counts, winners. Cancelled games return seats and the cancel reason without revealing roles. Recommended, so a cancel is not a way to peek.
+Auth: member. 409 `PHASE_CONFLICT` unless status is `FINISHED` or `CANCELLED`. Built in WW-903a; the contract is `gameResultsSchema` in `packages/contracts/src/results.ts`.
+
+A finished game returns `{ status: 'FINISHED', roundNumber, winningTeam, draw, seats, infections }`. Each seat has its public fields plus `originalRoleId`, `originalFaction`, `finalRoleId`, `finalFaction`, `lifeStatus`, `death` (`{ roundNumber, phaseKind, roleId }` or null), `won`, `individualWin`, and `abilityUses` (resolved actions). `won` is the winning team by final faction, or an individual win. `infections` lists successful infections only, with source and target. Everything is read from the stored victory, assignment, elimination, and infection rows, so the recap agrees with what ended the game.
+
+A cancelled game returns `{ status: 'CANCELLED', cancelReason, seats }` with public seat fields only: no role, faction, or death, so a cancel is not a way to peek.
+
+Neither shape includes chat (OD-72) or anyone's ballot. A finished recap includes `tallies`, the same public counts as `GET /tallies`.
 
 ---
 
@@ -345,6 +355,8 @@ Auth: host. Phase `NIGHT_HOST_CONFIRM`.
 ```
 
 The server checks that `player-9` is one of the locked wolf submissions. `{ "noKill": true }` is legal when the host accepts a night with no attack.
+
+Implemented in WW-803. `GET` returns the same view: the candidates (each player and the wolves who named them), the current decision, and `editable` while the phase is host confirm. A target nobody submitted is 422 `KILL_TARGET_NOT_SUBMITTED`. Closing host confirm with no choice is 409 `KILL_TARGET_REQUIRED`. During the reaction window the informed Doctor's save on `GET /me/actions` includes `finalWolfTarget`, or null when the host chose no kill. The client hooks are `useKillTarget` and `useSetKillTarget`. The table picker is WW-803b.
 
 ### POST `/games/:gameId/host/resolve-night`
 
@@ -473,7 +485,17 @@ Timed phases close themselves at `phaseEndsAt` through the same service. The tim
 
 ### GET `/games/:gameId/host/dashboard`
 
-Auth: host. One payload for the dashboard: roster, pending actions, submissions, infection log, vote tally including open ballots, eliminations, victory flags, phase.
+Auth: host (403 `NOT_HOST` otherwise, 409 before the deal). Built in WW-1202a; the contract is `hostDashboardSchema` in `packages/contracts/src/hostDashboard.ts`.
+
+| Section | Holds |
+|---|---|
+| `overview` | Status, phase, round, state version, deadline, living seats, living wolf-aligned seats, infection count, cap, and whether infection is sealed |
+| `roster` | The same body as `GET /host/roster`: every seat's original and current role, faction, life, and abilities |
+| `submissions` | This round's ability uses, night and day, with actor, ability, targets, status, and rejection reason. Replaced choices are left out |
+| `infections` | Every attempt, including failures and why |
+| `ballots` | Every ballot of the game: each standing vote with its voter and weight, weighted totals per target, and whether it is open. An open ballot uses each voter's current weight |
+| `eliminations` | Every death with round, phase, role and faction at death, all causes with contributors, and whether it was revealed |
+| `victory` | The outcome once finished, and every decided individual victory |
 
 Pending wolf targets are inside this payload and nowhere else.
 
@@ -511,11 +533,17 @@ Namespace `/play`. Connection query or handshake auth carries the bearer token. 
 | `REVOTE_STARTED` | Public | The tied seats |
 | `GAME_COMPLETED` | Public | Winners and recap pointer |
 | `GAME_CANCELLED` | Public | Reason `HOST` or `SURRENDER` |
+| `PHASE_CHANGED` | Public | The new phase, round, and state version. No roles |
+| `VOTE_TALLY` | Public | A closed ballot's counts per target, abstentions, the named player, and any tie (OD-85). No voter ids |
 | `STATE_SNAPSHOT` | The requesting socket | The same projection as GET state |
+| `CHAT_MESSAGE_POSTED` | Public | The message, as in section 13. Not stored in `game_events`, no event `seq` |
+| `CHAT_MESSAGE_DELETED` | Public | `{ messageId }` |
+| `CHAT_SEAT_MUTED` | Public | `{ playerId }` |
+| `CHAT_SEAT_UNMUTED` | Public | `{ playerId }` |
 
 The host copy and the player copy of a secret event are two `game_events` rows. Do not emit one rich payload to a shared room. Night result rows are written after the night transaction commits, from the stored investigation, infection, conversion, elimination, and block rows (WW-804). A successful infection's player row is `{ roundNumber, actionId, roleId }` with no source. The host row adds `sourcePlayerId` and `targetPlayerId`. A failed infection is not an event. A public death includes `roleId` only when the elimination was revealed. A block is told to its target only when `informTarget` is set, and that copy is `{ roundNumber }`.
 
-`join-session` is how a connected socket enters `game:{gameId}:public`, its own `player` room, and `host` when that seat is the host (WW-1101). The payload's `playerId` is ignored. A token from another game is refused and joins nothing. The server ignores client-originated `ROLE_ASSIGNED`, `INFECTION_OCCURRED`, `ROLE_CONVERTED`, `INVESTIGATION_RESULT`, and `PLAYER_ELIMINATED`. Clients emit `join-session` and send commands over HTTP. Emitting the stored rows, including `afterSeq`, is WW-1102.
+`join-session` is how a connected socket enters `game:{gameId}:public`, its own `player` room, and `host` when that seat is the host (WW-1101). The payload's `playerId` is ignored. A token from another game is refused and joins nothing. The server ignores client-originated `ROLE_ASSIGNED`, `INFECTION_OCCURRED`, `ROLE_CONVERTED`, `INVESTIGATION_RESULT`, and `PLAYER_ELIMINATED`. Clients emit `join-session` and send commands over HTTP. After the night rows commit, each row is emitted to its room. `join-session` takes `afterSeq` and replays newer rows the seat may see. `GET /games/:gameId/events?afterSeq` is the same list (WW-1102).
 
 ---
 
@@ -533,8 +561,27 @@ The host copy and the player copy of a secret event are two `game_events` rows. 
 | Replay of the same idempotency key and body | Original 200 |
 | Same key, different body | 409 `IDEMPOTENCY_CONFLICT` |
 | Member guesses a sequential game id | 404 if the token is not in that game |
+| Post chat at night or on the reveal | 409 `CHAT_CLOSED` |
+| Dead player posts chat | 403 `CHAT_READ_ONLY` |
+| Muted seat posts chat | 403 `CHAT_MUTED` |
+| Player deletes a message or mutes a seat | 403 `NOT_HOST` |
 
 ---
+
+### Host route audit (WW-1303, 12 November 2026)
+
+The audit is a test, `apps/api/test/host-routes.integration.test.ts`, so it fails when a route is added without a decision about who may call it.
+
+- **Inventory.** Every mounted route is classified as public (health, readiness, version, catalog), entry (create, join), member (any seat in the game), or host. A route that is mounted but not classified, or classified but not mounted, fails the test. Every path under `/host/` must be a host route.
+- **Host routes (13):** kick, host transfer, cancel, save and validate configuration, start, host roster, phase close, kill target (read and set), dashboard, delete a chat message, mute, unmute. Each returns 401 without a token, 404 for a token from another game, and 403 `NOT_HOST` for a guest. The host check runs before any state check. A guest who sends a malformed body gets 422 first; that reveals nothing.
+- **Member routes** return 401 without a token and 404 for another game's token. Public routes answer without a token.
+- **No route writes a role or a winner.** A source scan allows writes to `role_assignments` only in the assignment repository, the night resolution, and the victory evaluator, and writes to `victory_records` and `games.winner_summary` only in the victory evaluator. No controller file contains such a write. Every host write body is strict: a smuggled `winner`, `roleId`, or `assignments` field is 422. The setup cannot change after the deal (409 `GAME_STARTED`).
+- **Host-only events** never reach a guest's `/events`.
+
+**Findings and fixes.**
+
+1. After a host transfer during a game, the old host's open socket stayed in `game:{id}:host` and kept receiving host-only events, and the new host received none until reconnecting. The transfer now moves the sockets between rooms after commit, and `join-session` re-reads the seat instead of trusting the connect-time copy. Covered by `apps/api/test/host-transfer-socket.integration.test.ts`, which fails without the fix.
+2. `POST /host/transfer` accepted and silently dropped unknown fields. Its body is now strict, like every other host write.
 
 ## 11. Local development notes
 
@@ -544,8 +591,48 @@ The HTTP API and the socket server run in one process in version 1 so a game loc
 
 `POST /games/:gameId/actions` accepts the new capabilities on the same body. A Ghost hint sends `payload.hint`, already trimmed, 1 to 140 characters. A name or a seat number is `422` with `TEXT_NAMES_PLAYER`. The wrong length is `TEXT_LENGTH`.
 
-An ability with `exclusiveGroup` cancels the caller's other pending choice in that group for this round. Ultimate Alpha kill and infect share `alpha_choice`, so submitting one replaces the other.
+An ability with `exclusiveGroup` cancels the caller's other pending choice in that group for this round. Ultimate Alpha kill and infect share `alpha_choice`, so submitting one replaces the other. Vampire kill and mark, and the Servant's copies, share `vampire_choice`. The team still resolves only one of them: the Vampire's submission wins, otherwise the lowest player id.
+
+`GET /me` lists living Vampire-team teammates for a Vampire or a Servant. A marked player is not told, and is not listed. A promotion event names the Vampire only on the Servant's copy, the other team members' copies, and the host copy.
 
 `GET /me` includes `exclusiveGroup` on an ability when the definition sets it. A `TEXT` target is `{ kind: 'TEXT', maxLength }`.
 
 Creating a game with `mode: 'ULTIMATE_20'` stores the `ultimate-20` pack. Start needs `acknowledgeWarnings: true` because the pack carries warnings. A locked edit is reported as `MODE_RULE_LOCKED` on the configuration validation, and the draft is still stored.
+
+## 13. Table chat
+
+WW-1104, under the OD-72 rules. One public channel per game. Every seat reads it. Only a living, unmuted seat posts, and only in `DAY_DISCUSSION`, `VOTING`, and `REVOTE`. There is no wolf channel and no dead channel. Messages and mutes are deleted when the game finishes or is cancelled, and the recap does not show them. The rule is `chatRefusal` in `@warewolf/domain`, so the client composer reads the same rule as the server.
+
+### GET `/games/:gameId/chat`
+
+Any seat in the game.
+
+```json
+{
+  "messages": [
+    { "messageId": "uuid", "seq": 41, "playerId": "uuid", "body": "I trust seat 3.", "roundNumber": 2, "phase": "DAY_DISCUSSION", "createdAt": "2026-11-11T10:00:00.000Z" }
+  ],
+  "mutedPlayerIds": ["uuid"],
+  "you": { "canPost": true, "refusal": null }
+}
+```
+
+Oldest first. `refusal` is `CLOSED`, `DEAD`, `MUTED`, or null. A reconnecting client reads this again instead of replaying socket events, so a deletion it missed is not shown.
+
+### POST `/games/:gameId/chat/messages`
+
+Body `{ "body": "text" }`. The text is trimmed, Windows line ends become `\n`, and the trimmed text is stored. Returns 201 with the message, and emits `CHAT_MESSAGE_POSTED` to the public room after commit.
+
+Checked in this order:
+
+1. Blank text, a control character other than a line break or tab, or more than 280 code points: 422 `VALIDATION_FAILED`.
+2. More than 5 attempts by this seat in 10 seconds: 429 `RATE_LIMITED`. Every attempt that passes step 1 counts, including a refused one. The budget is in memory, per process.
+3. Under a shared lock on the game row, so a phase close cannot commit between the check and the insert: chat not open 409 `CHAT_CLOSED`, dead 403 `CHAT_READ_ONLY`, muted 403 `CHAT_MUTED`.
+
+### DELETE `/games/:gameId/chat/messages/:messageId`
+
+Host only (403 `NOT_HOST`). 204. A message that does not exist in this game is 404. Emits `CHAT_MESSAGE_DELETED`.
+
+### PUT and DELETE `/games/:gameId/chat/mutes/:playerId`
+
+Host only (403 `NOT_HOST`), while the game is `ACTIVE` (409 `PHASE_CONFLICT`). PUT mutes and DELETE unmutes. 204. The host's own seat is 422, and a seat from another game is 404. Repeating a mute or an unmute changes nothing and emits nothing. Otherwise emits `CHAT_SEAT_MUTED` or `CHAT_SEAT_UNMUTED`. Mutes are public in `mutedPlayerIds`: a muted seat's silence is visible at the table anyway.
