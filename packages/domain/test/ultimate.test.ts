@@ -27,11 +27,12 @@ describe('Ultimate 20 roster and lock', () => {
     expect(DEFAULT_CATALOG.byId.get('vampire_servant')?.seatable).toBe(false);
   });
 
-  it('validates with the two expected warnings', () => {
+  it('validates with only the neutral density warning', () => {
     const result = validateConfiguration(pack.config);
     expect(result.valid).toBe(true);
     expect(result.errors).toEqual([]);
-    expect(result.warnings.map((issue) => issue.code)).toEqual(['NEUTRAL_DENSITY', 'UNCONFIRMED_PRESET']);
+    // OD-75 to OD-84 were decided on 12 November 2026, so the preset is CONFIRMED.
+    expect(result.warnings.map((issue) => issue.code)).toEqual(['NEUTRAL_DENSITY']);
   });
 
   it('rejects each kind of edit', () => {

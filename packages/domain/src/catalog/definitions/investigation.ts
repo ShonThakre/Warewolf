@@ -20,7 +20,7 @@ const investigator = (input: {
     description: input.description,
     category: 'INVESTIGATION',
     defaultFaction: 'VILLAGE',
-    implementationStatus: 'RECOMMENDED',
+    implementationStatus: 'CONFIRMED',
     decisionIds: [input.decisionId, 'OD-38'],
     abilities: [
       ability({ resultAudience: ['SELF', 'HOST'], decisionIds: [input.decisionId, 'OD-38'], ...input.ability }),
@@ -41,13 +41,13 @@ export const oracle = role({
   description: "Every other night, learns a player's role category: Wolf, village power, plain villager, Neutral, or Independent.",
   category: 'INVESTIGATION',
   defaultFaction: 'VILLAGE',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   decisionIds: ['OD-21', 'OD-38'],
   defaultProfileId: 'oracle',
   profiles: [
     profile({
       id: 'oracle',
-      status: 'RECOMMENDED',
+      status: 'CONFIRMED',
       description: "Every other night, learns a player's role category: Wolf, village power, plain villager, Neutral, or Independent.",
       decisionIds: ['OD-21', 'OD-38'],
       abilities: [
@@ -64,7 +64,7 @@ export const oracle = role({
     }),
     profile({
       id: 'oracle_alignment',
-      status: 'RECOMMENDED',
+      status: 'CONFIRMED',
       description: 'Ultimate 20. Each night, learns whether one living player is a Wolf or a Non-Wolf.',
       abilities: [
         ability({

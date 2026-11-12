@@ -33,6 +33,7 @@ const classic = pack('classic-10');
 const rules = (overrides: Partial<PhaseRules> & { hostConfirm?: boolean; reaction?: boolean } = {}): PhaseRules => ({
   windows: { hostConfirm: overrides.hostConfirm ?? false, reaction: overrides.reaction ?? false },
   votingEnabled: overrides.votingEnabled ?? true,
+  dayShots: overrides.dayShots ?? false,
   pacing: overrides.pacing ?? 'HOST',
   timers: overrides.timers ?? null,
 });

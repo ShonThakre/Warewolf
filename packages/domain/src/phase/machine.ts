@@ -38,12 +38,22 @@ export function nightWindows(config: GameConfiguration, catalog: RoleCatalog = D
 export interface PhaseRules {
   readonly windows: NightWindows;
   readonly votingEnabled: boolean;
+  /**
+   * A seated role has a day kill, such as the Sniper (OD-29). Then closing day
+   * discussion resolves the shots before voting opens. Fixed by the
+   * configuration, like the night windows, so a used or dead Sniper does not
+   * change what the table sees.
+   */
+  readonly dayShots: boolean;
   readonly pacing: GameConfiguration['pacing'];
   readonly timers: GameConfiguration['timers'];
 }
 
 export function phaseRules(config: GameConfiguration, catalog: RoleCatalog = DEFAULT_CATALOG): PhaseRules {
-  return { windows: nightWindows(config, catalog), votingEnabled: config.voting.enabled, pacing: config.pacing, timers: config.timers };
+  const dayShots = config.roles.some(
+    (entry) => entry.count > 0 && (resolveEntry(entry, catalog)?.abilities.some((a) => a.timing === 'DAY' && a.capability === 'KILL') ?? false),
+  );
+  return { windows: nightWindows(config, catalog), votingEnabled: config.voting.enabled, dayShots, pacing: config.pacing, timers: config.timers };
 }
 
 /** Phases an active game can be in. Lobby, finished, and cancelled have no close. */
@@ -63,8 +73,11 @@ export function isClosable(phase: GamePhase): phase is ClosablePhase {
   return (CLOSABLE_PHASES as readonly GamePhase[]).includes(phase);
 }
 
-/** Which ballot a day resolution closes. `NONE` is a day with voting turned off. */
-export type Ballot = 'FIRST' | 'REVOTE' | 'NONE';
+/**
+ * Which part of the day a day resolution closes. `NONE` is a day with voting
+ * turned off. `DISCUSSION` resolves day shots before voting opens (OD-29).
+ */
+export type Ballot = 'FIRST' | 'REVOTE' | 'NONE' | 'DISCUSSION';
 
 /**
  * What closing a phase does. `ADVANCE` moves on with nothing to resolve. The
@@ -90,7 +103,8 @@ export function planClose(phase: ClosablePhase, rules: PhaseRules): CloseStep {
     case 'DAY_ANNOUNCE':
       return { kind: 'ADVANCE', to: 'DAY_DISCUSSION' };
     case 'DAY_DISCUSSION':
-      return rules.votingEnabled ? { kind: 'ADVANCE', to: 'VOTING' } : { kind: 'RESOLVE_DAY', ballot: 'NONE' };
+      if (!rules.votingEnabled) return { kind: 'RESOLVE_DAY', ballot: 'NONE' };
+      return rules.dayShots ? { kind: 'RESOLVE_DAY', ballot: 'DISCUSSION' } : { kind: 'ADVANCE', to: 'VOTING' };
     case 'VOTING':
       return { kind: 'RESOLVE_DAY', ballot: 'FIRST' };
     case 'REVOTE':
@@ -135,6 +149,7 @@ export function positionAfter(from: PhasePosition, result: CloseResult): PhasePo
       return result.gameOver ? FINISHED(round) : { status: 'ACTIVE', phase: 'DAY_ANNOUNCE', roundNumber: round };
     case 'RESOLVE_DAY':
       if (result.gameOver) return FINISHED(round);
+      if (result.ballot === 'DISCUSSION') return { status: 'ACTIVE', phase: 'VOTING', roundNumber: round };
       if (result.tied && result.ballot === 'FIRST') return { status: 'ACTIVE', phase: 'REVOTE', roundNumber: round };
       return { status: 'ACTIVE', phase: 'NIGHT_SUBMIT', roundNumber: round + 1 };
   }

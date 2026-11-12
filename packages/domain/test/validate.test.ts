@@ -370,17 +370,19 @@ describe('warnings and start rules', () => {
   });
 
   it('UNCONFIRMED_PRESET names the recommended rules in use', () => {
-    const found = issue(pack('classic-10'), 'UNCONFIRMED_PRESET');
-    expect(found?.message).toContain('Pack Wolf');
-    expect(found?.decisionIds).toContain('OD-36');
+    // Every role rule was decided on 12 November 2026, so only the reconstruction still carries this warning.
+    expect(issue(pack('ultimate-20'), 'UNCONFIRMED_PRESET')).toBeUndefined();
+    expect(issue(pack('classic-10'), 'UNCONFIRMED_PRESET')).toBeUndefined();
     expect(issue(expanded, 'UNCONFIRMED_PRESET')?.message).toContain('reconstruction');
   });
 
   it('allows start with warnings only after acknowledgement', () => {
-    const v = validateConfiguration(pack('classic-10'));
+    const v = validateConfiguration(pack('investigation-15'));
     expect(v.valid).toBe(true);
     expect(canStart(v, { acknowledgeWarnings: false })).toBe(false);
     expect(canStart(v, { acknowledgeWarnings: true })).toBe(true);
+    // A confirmed preset with no warnings needs no acknowledgement.
+    expect(canStart(validateConfiguration(pack('classic-10')), { acknowledgeWarnings: false })).toBe(true);
   });
 
   it('never allows start with errors', () => {
@@ -410,14 +412,14 @@ describe('resolveEntry', () => {
 describe('packs (WW-204)', () => {
   const expected: Record<string, { status: string; players: number; errors: string[]; warnings: string[] }> = {
     'infection-core': { status: 'CONFIRMED', players: 20, errors: [], warnings: [] },
-    'classic-10': { status: 'RECOMMENDED', players: 10, errors: [], warnings: ['UNCONFIRMED_PRESET'] },
+    'classic-10': { status: 'CONFIRMED', players: 10, errors: [], warnings: [] },
     'expanded-infection-20': { status: 'RECONSTRUCTION', players: 20, errors: [], warnings: ['UNCONFIRMED_PRESET'] },
-    'investigation-15': { status: 'RECOMMENDED', players: 15, errors: [], warnings: ['INFO_ROLE_DENSITY', 'UNCONFIRMED_PRESET'] },
-    'protection-15': { status: 'RECOMMENDED', players: 15, errors: [], warnings: ['PROTECTION_DENSITY', 'UNCONFIRMED_PRESET'] },
-    'chaos-15': { status: 'RECOMMENDED', players: 15, errors: [], warnings: ['NEUTRAL_DENSITY', 'UNCONFIRMED_PRESET'] },
-    'expanded-24': { status: 'RECOMMENDED', players: 24, errors: [], warnings: ['UNCONFIRMED_PRESET'] },
-    'expanded-30': { status: 'RECOMMENDED', players: 30, errors: [], warnings: ['INFO_ROLE_DENSITY', 'UNCONFIRMED_PRESET'] },
-    'ultimate-20': { status: 'RECOMMENDED', players: 20, errors: [], warnings: ['NEUTRAL_DENSITY', 'UNCONFIRMED_PRESET'] },
+    'investigation-15': { status: 'CONFIRMED', players: 15, errors: [], warnings: ['INFO_ROLE_DENSITY'] },
+    'protection-15': { status: 'CONFIRMED', players: 15, errors: [], warnings: ['PROTECTION_DENSITY'] },
+    'chaos-15': { status: 'CONFIRMED', players: 15, errors: [], warnings: ['NEUTRAL_DENSITY'] },
+    'expanded-24': { status: 'CONFIRMED', players: 24, errors: [], warnings: [] },
+    'expanded-30': { status: 'CONFIRMED', players: 30, errors: [], warnings: ['INFO_ROLE_DENSITY'] },
+    'ultimate-20': { status: 'CONFIRMED', players: 20, errors: [], warnings: ['NEUTRAL_DENSITY'] },
     custom: { status: 'TEMPLATE', players: 10, errors: ['ROLE_COUNT_MISMATCH'], warnings: ['WOLF_RATIO_LOW'] },
   };
 

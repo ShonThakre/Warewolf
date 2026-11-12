@@ -136,7 +136,7 @@ const packs: RolePack[] = [
   {
     id: 'classic-10',
     name: 'Classic',
-    status: 'RECOMMENDED',
+    status: 'CONFIRMED',
     description: 'A short beginner game. Two Pack Wolves who know each other, no infection, no neutrals.',
     blockedBy: [],
     config: base({
@@ -181,7 +181,7 @@ const packs: RolePack[] = [
   {
     id: 'investigation-15',
     name: 'Investigation Edition',
-    status: 'RECOMMENDED',
+    status: 'CONFIRMED',
     description: 'Three Pack Wolves against a village full of investigators.',
     blockedBy: [],
     config: base({
@@ -205,7 +205,7 @@ const packs: RolePack[] = [
   {
     id: 'protection-15',
     name: 'Protection Edition',
-    status: 'RECOMMENDED',
+    status: 'CONFIRMED',
     description: 'Three Pack Wolves against a heavily protected village.',
     blockedBy: [],
     config: base({
@@ -228,7 +228,7 @@ const packs: RolePack[] = [
   {
     id: 'chaos-15',
     name: 'Chaos',
-    status: 'RECOMMENDED',
+    status: 'CONFIRMED',
     description: 'Several ways to win. A Neutral role without its own victory wins by surviving to the end.',
     blockedBy: [],
     config: base({
@@ -252,7 +252,7 @@ const packs: RolePack[] = [
   {
     id: 'expanded-24',
     name: 'Expanded 24',
-    status: 'RECOMMENDED',
+    status: 'CONFIRMED',
     description: 'A proposal for a 24-player playtest.',
     blockedBy: [],
     config: base({
@@ -277,7 +277,7 @@ const packs: RolePack[] = [
   {
     id: 'expanded-30',
     name: 'Expanded 30',
-    status: 'RECOMMENDED',
+    status: 'CONFIRMED',
     description: 'A proposal for a 30-player playtest with three non-village ways to win.',
     blockedBy: [],
     config: base({
@@ -304,7 +304,7 @@ const packs: RolePack[] = [
   {
     id: 'ultimate-20',
     name: 'Ultimate 20',
-    status: 'RECOMMENDED',
+    status: 'CONFIRMED',
     description: 'Twenty seats: fifteen special roles and five Villagers. Infection stays on. The host acknowledges the unconfirmed preset before start.',
     blockedBy: [],
     config: base({

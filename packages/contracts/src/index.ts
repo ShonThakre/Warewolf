@@ -8,3 +8,8 @@ export * from './phase.js';
 export * from './action.js';
 export * from './killTarget.js';
 export * from './vote.js';
+export * from './events.js';
+export * from './chat.js';
+export * from './results.js';
+export * from './hostDashboard.js';
+export * from './tally.js';

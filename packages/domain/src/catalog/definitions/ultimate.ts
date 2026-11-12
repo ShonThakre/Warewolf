@@ -11,7 +11,7 @@ import type { RoleDefinition } from '../types.js';
 const wolf = {
   category: 'CORE' as const,
   defaultFaction: 'WOLF_PACK' as const,
-  implementationStatus: 'RECOMMENDED' as const,
+  implementationStatus: 'CONFIRMED' as const,
   uniqueInGame: true,
   infectionTarget: 'INELIGIBLE' as const,
 };
@@ -32,21 +32,36 @@ export const shadowWolf: RoleDefinition = role({
   ],
 });
 
+/** Shared by the Vampire and every Servant. The team resolves only one of the two each night. */
+const vampireChoice = { exclusiveGroup: 'vampire_choice' };
+
 export const vampire: RoleDefinition = role({
   id: 'vampire',
   displayName: 'Vampire',
-  description: 'Each night, marks one player. Two nights later that player becomes a Servant, if both are still alive.',
+  description:
+    'Each night the Vampire team chooses one living player and either kills or marks them, not both. A mark stays secret. If that player is alive at dawn after the next night, they become a Vampire Servant.',
   category: 'NEUTRAL',
   defaultFaction: 'NEUTRAL',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   uniqueInGame: true,
   infectionTarget: 'INELIGIBLE',
   abilities: [
+    ability({
+      id: 'vampire_kill',
+      capability: 'KILL',
+      attackType: 'VAMPIRE',
+      target: players(),
+      resultAudience: ['HOST'],
+      lostOnInfection: false,
+      config: vampireChoice,
+    }),
     ability({
       id: 'vampire_mark',
       capability: 'CONVERT',
       target: players(),
       resultAudience: ['HOST'],
+      lostOnInfection: false,
+      config: vampireChoice,
     }),
   ],
   victory: individual('ALIVE_WITH_SERVANT'),
@@ -55,15 +70,38 @@ export const vampire: RoleDefinition = role({
 export const vampireServant: RoleDefinition = role({
   id: 'vampire_servant',
   displayName: 'Vampire Servant',
-  description: 'A player the Vampire converted. No night power. Never dealt at the start.',
+  description:
+    'Promoted in secret onto the Vampire team. Knows the Vampire and the other Servants. At night the team chooses one kill or one mark. Whether the original power remains is unresolved (OD-79). Never dealt at the start.',
   category: 'NEUTRAL',
   defaultFaction: 'NEUTRAL',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   seatable: false,
-  uniqueInGame: true,
+  uniqueInGame: false,
   infectionTarget: 'INELIGIBLE',
+  abilities: [
+    ability({
+      id: 'servant_kill',
+      capability: 'KILL',
+      attackType: 'VAMPIRE',
+      target: players(),
+      resultAudience: ['HOST'],
+      config: vampireChoice,
+    }),
+    ability({
+      id: 'servant_mark',
+      capability: 'CONVERT',
+      target: players(),
+      resultAudience: ['HOST'],
+      config: vampireChoice,
+    }),
+  ],
   victory: individual('WITH_VAMPIRE'),
 });
+
+/** The two roles that share the private Vampire team. A pending mark is not a member. */
+export function isVampireTeamRole(roleId: string): boolean {
+  return roleId === 'vampire' || roleId === 'vampire_servant';
+}
 
 export const joker: RoleDefinition = role({
   id: 'joker',
@@ -71,7 +109,7 @@ export const joker: RoleDefinition = role({
   description: 'Wins by being eliminated in a day vote. The game continues after the win.',
   category: 'NEUTRAL',
   defaultFaction: 'NEUTRAL',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   uniqueInGame: true,
   abilities: [
     ability({
@@ -91,7 +129,7 @@ export const timeWizard: RoleDefinition = role({
   description: 'Once per game, erases every action one other player took tonight, including a block.',
   category: 'SUPPORT',
   defaultFaction: 'VILLAGE',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   uniqueInGame: true,
   abilities: [
     ability({
@@ -110,7 +148,7 @@ export const guardian: RoleDefinition = role({
   description: 'Protects one player from the wolf kill each night, including themselves. Not the same player two nights in a row. Does not stop poison.',
   category: 'PROTECTION',
   defaultFaction: 'VILLAGE',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   uniqueInGame: true,
   abilities: [
     ability({
@@ -128,13 +166,13 @@ export const alchemist: RoleDefinition = role({
   description: 'Three potions, each once per game, and any of them on the same night: heal, poison, or silence.',
   category: 'SUPPORT',
   defaultFaction: 'VILLAGE',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   uniqueInGame: true,
   abilities: [
     ability({
       id: 'alchemist_heal',
       capability: 'HEAL',
-      cancels: ['WOLF_KILL', 'POISON'],
+      cancels: ['WOLF_KILL', 'POISON', 'VAMPIRE'],
       usesPerGame: 1,
       target: players({ self: true }),
       resultAudience: ['SELF', 'HOST'],
@@ -163,7 +201,7 @@ export const fox: RoleDefinition = role({
   description: 'Each night, learns one player’s current team. Wins by being alive when no wolf remains.',
   category: 'NEUTRAL',
   defaultFaction: 'NEUTRAL',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   uniqueInGame: true,
   infectionTarget: 'INELIGIBLE',
   abilities: [
@@ -184,7 +222,7 @@ export const mimic: RoleDefinition = role({
   description: 'Once per game, copies a dead player’s usable abilities. Each copy has one charge, and using one drops the others.',
   category: 'TRANSFORMATION',
   defaultFaction: 'VILLAGE',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   uniqueInGame: true,
   abilities: [
     ability({
@@ -204,7 +242,7 @@ export const ghost: RoleDefinition = role({
   description: 'The night after dying, sends one short hint. It cannot name a player or a seat.',
   category: 'SUPPORT',
   defaultFaction: 'VILLAGE',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   uniqueInGame: true,
   abilities: [
     ability({
@@ -221,10 +259,10 @@ export const ghost: RoleDefinition = role({
 export const mindController: RoleDefinition = role({
   id: 'mind_controller',
   displayName: 'Mind Controller',
-  description: 'Up to twice per game, during the day, redirects one living voter’s ballot onto another living player.',
+  description: 'Up to twice per game, during the day, redirects one living voter’s ballot onto another living player. The images give this role no win condition (OD-76).',
   category: 'INDEPENDENT',
   defaultFaction: 'INDEPENDENT',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   uniqueInGame: true,
   infectionTarget: 'INELIGIBLE',
   abilities: [
@@ -246,7 +284,7 @@ export const necromancer: RoleDefinition = role({
   description: 'Each night, returns one dead player for the next night. They stay dead for every rule: no vote and no ability.',
   category: 'NEUTRAL',
   defaultFaction: 'NEUTRAL',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   uniqueInGame: true,
   infectionTarget: 'INELIGIBLE',
   abilities: [
@@ -266,7 +304,7 @@ export const doubleAgent: RoleDefinition = role({
   description: 'Starts with the Village and has no night power. Infection turns them into a wolf and tells them privately.',
   category: 'DECEPTION',
   defaultFaction: 'VILLAGE',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   uniqueInGame: true,
 });
 
@@ -276,7 +314,7 @@ export const chaosDemon: RoleDefinition = role({
   description: 'Each night, the server draws one Chaos event. Wins after three events change the game, while alive among five or fewer players.',
   category: 'INDEPENDENT',
   defaultFaction: 'INDEPENDENT',
-  implementationStatus: 'RECOMMENDED',
+  implementationStatus: 'CONFIRMED',
   uniqueInGame: true,
   infectionTarget: 'INELIGIBLE',
   abilities: [

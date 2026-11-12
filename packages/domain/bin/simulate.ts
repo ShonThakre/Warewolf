@@ -1,6 +1,6 @@
 import { writeFileSync } from 'node:fs';
-import { POLICY_IDS, type PolicyId } from '../src/simulate/policies.js';
-import { simulate } from '../src/simulate/run.js';
+import { POLICY_IDS, type PolicyId } from '../dist/simulate/policies.js';
+import { simulate } from '../dist/simulate/run.js';
 
 /**
  * `pnpm --filter @warewolf/domain simulate -- --games 1000 --seed 1 --out report.json`

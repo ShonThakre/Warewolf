@@ -65,6 +65,37 @@ interface Accepted {
   readonly step: NightStep;
 }
 
+const VAMPIRE_CHOICE = 'vampire_choice';
+
+/**
+ * The Vampire team submits kill and mark, and the night keeps one.
+ * The Vampire's own submission wins. With no Vampire submission, the
+ * lowest player id wins. Everyone else's team action is superseded.
+ */
+function chooseVampireTeam(
+  active: readonly Accepted[],
+  roleOf: (playerId: PlayerId) => string | undefined,
+  reject: (action: NightAction, reason: ActionRejection) => void,
+): Accepted[] {
+  const team = active.filter((item) => {
+    if (exclusiveGroupOf(item.def) !== VAMPIRE_CHOICE) return false;
+    const role = roleOf(item.action.playerId);
+    return role === 'vampire' || role === 'vampire_servant';
+  });
+  if (team.length <= 1) return [...active];
+  const vampireActions = team.filter((item) => roleOf(item.action.playerId) === 'vampire').sort((a, b) => byId(a.action, b.action));
+  const kept = vampireActions.length > 0
+    ? vampireActions[vampireActions.length - 1]!
+    : [...team].sort((a, b) => byString(a.action.playerId, b.action.playerId) || byId(a.action, b.action))[0]!;
+  const dropped = new Set<string>();
+  for (const item of team) {
+    if (item.action.id === kept.action.id) continue;
+    dropped.add(item.action.id);
+    reject(item.action, 'SUPERSEDED');
+  }
+  return active.filter((item) => !dropped.has(item.action.id));
+}
+
 /** One lethal on its way to a player. Cancelled when any saver is listed. */
 interface Attack {
   readonly key: string;
@@ -231,6 +262,7 @@ export function resolveNight(input: NightInput): NightResult {
     active = active.filter((item) => !cancelled.includes(item));
     chaosSuccess = cancelled.length > 0;
   }
+  active = chooseVampireTeam(active, (playerId) => assignment.get(playerId)?.currentRoleId, reject);
 
   // Step 4: one pack target from the wolf submissions that survived the blocks.
   const isPack = (playerId: PlayerId) => assignment.get(playerId)?.currentFaction === 'WOLF_PACK';
@@ -537,15 +569,17 @@ export function resolveNight(input: NightInput): NightResult {
     convert(playerId, 'CURSED');
   }
 
-  // Vampire marks land tonight and come due two nights later. A due mark converts only when both live.
+  // A mark is placed only when both are alive at dawn. It promotes at dawn after the next night.
   for (const mark of of('CONVERT')) {
+    const targetId = mark.action.targetPlayerIds[0]!;
+    if (!aliveAfter(mark.action.playerId) || !aliveAfter(targetId)) continue;
     newEffects.push({
       kind: 'VAMPIRE_MARK',
       sourcePlayerId: mark.action.playerId,
       sourceAbilityInstanceId: mark.ability.id,
-      targetPlayerId: mark.action.targetPlayerIds[0]!,
+      targetPlayerId: targetId,
       createdRound: round,
-      dueRound: round + 2,
+      dueRound: round + 1,
       duePhase: 'NIGHT',
       attackTypes: [],
     });
@@ -553,13 +587,15 @@ export function resolveNight(input: NightInput): NightResult {
   for (const effect of effects) {
     if (effect.kind !== 'VAMPIRE_MARK' || effect.dueRound === null || effect.dueRound > round) continue;
     const target = assignment.get(effect.targetPlayerId);
-    const ready = !!target && aliveAfter(effect.sourcePlayerId) && aliveAfter(effect.targetPlayerId) && !converted.has(effect.targetPlayerId) && target.currentFaction !== 'WOLF_PACK';
+    const onTeam = target?.currentRoleId === 'vampire' || target?.currentRoleId === 'vampire_servant';
+    const ready = !!target && aliveAfter(effect.sourcePlayerId) && aliveAfter(effect.targetPlayerId) && !converted.has(effect.targetPlayerId) && target.currentFaction !== 'WOLF_PACK' && !onTeam;
     if (!ready || !target) {
       closedEffects.set(effect.id, 'EXPIRED');
       continue;
     }
     const result = convertToVampireServant(input, catalog, effect.targetPlayerId, target);
     conversions.push(result.conversion);
+    grants.push(...result.grants);
     revocations.push(...result.revocations);
     converted.add(effect.targetPlayerId);
     closedEffects.set(effect.id, 'SPENT');
@@ -902,15 +938,27 @@ function convertToVampireServant(
   catalog: RoleCatalog,
   playerId: PlayerId,
   from: NightAssignment,
-): { conversion: Conversion; revocations: AbilityUpdate[] } {
+): { conversion: Conversion; revocations: AbilityUpdate[]; grants: AbilityGrant[] } {
   const servant = catalog.byId.get('vampire_servant');
   const profile = servant?.profiles[servant.defaultProfileId];
   if (!servant || !profile) throw new Error('The catalog has no vampire_servant role');
   const lostVictory = catalog.byId.get(from.currentRoleId)?.profiles[from.currentProfileId]?.victory;
+  // OD-79: drop abilities infection would take, and copied abilities. Do not grant a wolf kill.
+  // The team kill and mark are the shared night choice, granted for the next night.
   const revocations: AbilityUpdate[] = input.abilities
     .filter((a) => a.playerId === playerId && a.status !== 'REVOKED' && (a.config.lostOnInfection || (a.source ?? 'NATIVE') === 'COPY'))
     .sort(byId)
     .map((a) => ({ abilityInstanceId: a.id, patch: { status: 'REVOKED' as const, revokedReason: 'VAMPIRE' } }));
+  const grants: AbilityGrant[] = profile.abilities.map((definition) => ({
+    playerId,
+    abilityId: definition.id,
+    definition,
+    chargesRemaining: definition.usesPerGame,
+    availableFromRound: input.round + 1,
+    expiresRound: null,
+    source: 'NATIVE' as const,
+    sourcePlayerId: null,
+  }));
   return {
     conversion: {
       playerId,
@@ -924,5 +972,6 @@ function convertToVampireServant(
       cause: 'VAMPIRE',
     },
     revocations,
+    grants,
   };
 }

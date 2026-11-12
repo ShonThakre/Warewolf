@@ -5,6 +5,7 @@ export * from './snapshot.js';
 
 export * from './catalog/types.js';
 export * from './catalog/catalog.js';
+export { isVampireTeamRole } from './catalog/definitions/ultimate.js';
 
 export * from './config/types.js';
 export * from './config/modes.js';
@@ -22,11 +23,15 @@ export * from './action/registry.js';
 export * from './action/submission.js';
 
 export * from './day/tally.js';
+export * from './day/shots.js';
 export * from './victory/evaluate.js';
 
+export * from './night/types.js';
 export * from './night/resolve.js';
 export * from './night/chaos.js';
 export * from './night/killTarget.js';
+
+export * from './chat/rules.js';
 
 export { canonicalJson } from './util/canonical.js';
 
