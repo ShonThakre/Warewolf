@@ -6,6 +6,12 @@ const envSchema = z.object({
   DATABASE_URL: z.string().url().optional(),
   GIT_SHA: z.string().min(1).optional(),
   /**
+   * The built web client (`apps/web/dist`). When set, the API also serves the
+   * client, so a single host such as Render needs no proxy (HOST-01). Unset:
+   * API only, as in development and the nginx Compose stack.
+   */
+  WEB_DIST_DIR: z.string().min(1).optional(),
+  /**
    * Origins that may call the API and open `/play` from another origin, comma
    * separated, exact match (WW-1602). Empty means same origin only, which is
    * the web deployment. The Android APK's WebView is `https://localhost`, or
@@ -40,6 +46,8 @@ export interface AppConfig {
   readonly commit: string | null;
   /** Exact origins allowed cross-origin. Empty: same origin only. */
   readonly corsOrigins: readonly string[];
+  /** Directory of the built web client to serve, or null for API only. */
+  readonly webDistDir: string | null;
 }
 
 /** Injection token for AppConfig. */
@@ -61,5 +69,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     version: pkg.version,
     commit: parsed.GIT_SHA ?? null,
     corsOrigins: parsed.CORS_ORIGINS,
+    webDistDir: parsed.WEB_DIST_DIR ?? null,
   };
 }
