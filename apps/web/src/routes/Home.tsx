@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { sceneArtUrl, uiArtUrl } from '../assets/art';
 import { useGetRolePacksQuery } from '../api/lobby';
+import { GameIcon } from '../game/components/GameIcon';
 import { CreateGameDialog, JoinGameDialog } from '../game/components/SeatDialogs';
 import { MODE_LABEL, returnSeatLabel } from '../game/components/lobbyCopy';
 import { useLayoutMode } from '../game/layout';
@@ -41,83 +42,7 @@ function seatLine(lobby: LobbyProjection | null, loading: boolean): string {
 }
 
 function EditionMark() {
-  return (
-    <svg className="ww-home-edition-mark" viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="2.2" fill="currentColor" />
-      <path
-        d="M12 3.2a2.2 2.2 0 1 1 0 4.4M12 3.2V8M5.4 16.2a2.2 2.2 0 1 1 3.2 2.5M6.9 17.4 10.1 13.5M18.6 16.2a2.2 2.2 0 1 0-3.2 2.5M17.1 17.4 13.9 13.5"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}
-
-function PlusMark() {
-  return (
-    <svg className="ww-home-icon" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function PeopleMark() {
-  return (
-    <svg className="ww-home-icon" viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="9" cy="8.2" r="2.5" fill="none" stroke="currentColor" strokeWidth="1.8" />
-      <circle cx="16" cy="9.2" r="2" fill="none" stroke="currentColor" strokeWidth="1.8" />
-      <path d="M3.8 18.2c.6-2.6 2.6-3.9 5.2-3.9s4.6 1.3 5.2 3.9" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-      <path d="M14.4 14.6c1.6.2 3 1.1 3.7 3" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-function ModesMark() {
-  return (
-    <svg className="ww-home-icon" viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="3.5" y="7" width="17" height="11" rx="3" fill="none" stroke="currentColor" strokeWidth="1.7" />
-      <path d="M8 11.2v2.2M10.2 10.2v4.2M7.2 12.3h1.6" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
-      <circle cx="15.6" cy="11.2" r="0.8" fill="currentColor" />
-      <circle cx="17.4" cy="13.4" r="0.8" fill="currentColor" />
-    </svg>
-  );
-}
-
-function BookMark() {
-  return (
-    <svg className="ww-home-icon" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M6.5 4.5h9.2A2.3 2.3 0 0 1 18 6.8v12.7l-5.5-2.6L7 19.5V6.8A2.3 2.3 0 0 1 9.3 4.5" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function GuideMark() {
-  return (
-    <svg className="ww-home-icon" viewBox="0 0 24 24" aria-hidden="true">
-      <circle cx="12" cy="12" r="8" fill="none" stroke="currentColor" strokeWidth="1.7" />
-      <path d="M9.6 9.4a2.4 2.4 0 1 1 3.3 2.2c-.7.3-1.1.8-1.1 1.5V14" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
-      <circle cx="11.8" cy="16.6" r="0.8" fill="currentColor" />
-    </svg>
-  );
-}
-
-function ChevronMark() {
-  return (
-    <svg className="ww-home-chevron" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M9 6.5 15 12l-6 5.5" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function ChairMark() {
-  return (
-    <svg className="ww-home-icon" viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M7 10.5V6.8A1.8 1.8 0 0 1 8.8 5h6.4A1.8 1.8 0 0 1 17 6.8v3.7" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" />
-      <path d="M6 10.5h12v3.2H6zM8.2 13.7V19M15.8 13.7V19" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
+  return <GameIcon className="ww-home-edition-mark" name="infect" size={18} />;
 }
 
 /** Night village. Create starts Infection Edition. Join asks for a room code. */
@@ -158,48 +83,53 @@ export function Home() {
         {homeScene ? <img src={homeScene} alt="" fetchPriority="high" /> : null}
       </div>
       <div className="ww-home-card">
-        {emblem ? <img className="ww-home-mark" src={emblem} alt="" fetchPriority="high" /> : null}
-        <h1 className="ww-home-title">Werewolf</h1>
-        <p className="ww-home-edition">
-          <EditionMark />
-          Infection Edition
-        </p>
-        <p className="ww-home-tag">A social-deduction game of hidden roles, bluffing, and teamwork. Find the Werewolves before the infection spreads.</p>
+        <div className="ww-home-hero">
+          {emblem ? <img className="ww-home-mark" src={emblem} alt="" fetchPriority="high" /> : null}
+          <h1 className="ww-home-title">Werewolf</h1>
+          <p className="ww-home-edition">
+            <EditionMark />
+            Infection Edition
+          </p>
+        </div>
+        <p className="ww-home-tag">Find the werewolves, stop the infection, and keep your village safe — before it is too late.</p>
         <div className="ww-home-actions">
           <Button className="ww-home-create" variant="contained" color="secondary" onClick={() => setCreateOpen(true)}>
-            <PlusMark />
+            <GameIcon className="ww-home-icon" name="plus" size={20} />
             Create Game
           </Button>
           <Button className="ww-home-join" variant="outlined" onClick={() => setJoinOpen(true)}>
-            <PeopleMark />
+            <GameIcon className="ww-home-icon" name="people" size={20} />
             Join Game
           </Button>
         </div>
         <div className="ww-home-links">
           <Button onClick={() => setModesOpen(true)}>
-            <ModesMark />
+            <GameIcon className="ww-home-icon" name="layers" size={20} />
             Game Modes
-            <ChevronMark />
+            <GameIcon className="ww-home-chevron" name="chevron" size={18} />
           </Button>
           <span className="ww-home-link-rule" aria-hidden="true" />
           <Button component={Link} to="/roles">
-            <BookMark />
+            <GameIcon className="ww-home-icon" name="card" size={20} />
             Role Library
-            <ChevronMark />
+            <GameIcon className="ww-home-chevron" name="chevron" size={18} />
           </Button>
           <span className="ww-home-link-rule" aria-hidden="true" />
           <Button component={Link} to="/how-to-play">
-            <GuideMark />
+            <GameIcon className="ww-home-icon" name="book" size={20} />
             How to Play
-            <ChevronMark />
+            <GameIcon className="ww-home-chevron" name="chevron" size={18} />
           </Button>
         </div>
         <hr className="ww-home-rule" />
         {seat ? (
           <div className="ww-home-return" role="region" aria-label="Your seat">
             <Button component={Link} to={returnTo} className="ww-home-return-link" aria-labelledby="home-return-title">
-              <ChairMark />
+              <span className="ww-home-return-mark" aria-hidden="true">
+                <GameIcon name="moon" size={22} />
+              </span>
               <span className="ww-home-return-copy">
+                <span className="ww-home-return-kicker">Resume game</span>
                 <span id="home-return-title" className="ww-home-return-title">
                   {returnLabel}
                 </span>
@@ -209,7 +139,7 @@ export function Home() {
                   {seatLine(lobby, isLoading)}
                 </span>
               </span>
-              <ChevronMark />
+              <GameIcon className="ww-home-chevron" name="chevron" size={18} />
             </Button>
           </div>
         ) : null}

@@ -1,0 +1,154 @@
+/**
+ * Shared portrait phone presentation primitives.
+ * Visual wrappers only — no phase, permission, or route logic.
+ * Keyed to existing data-layout="portrait" / phone chrome.
+ */
+
+.ww-phone-surface {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--phone-content-max);
+  margin-inline: auto;
+  padding: var(--phone-card-padding);
+  border: 1px solid var(--border);
+  border-radius: var(--phone-card-radius);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.ww-phone-surface[data-raised='true'] {
+  background: var(--surface-raised);
+}
+
+.ww-phone-action-dock {
+  box-sizing: border-box;
+  display: grid;
+  gap: var(--phone-dock-gap);
+  width: 100%;
+  max-width: var(--phone-content-max);
+  margin-inline: auto;
+  padding: var(--phone-section-gap) var(--phone-page-gutter) var(--phone-safe-bottom);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.ww-phone-action-dock[data-sticky='true'] {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+}
+
+.ww-phone-action-dock .MuiButton-root {
+  min-height: max(var(--phone-control-height), var(--phone-hit));
+  border-radius: var(--phone-control-radius);
+}
+
+.ww-phone-identity {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--phone-card-gap) * 0.8);
+  min-width: 0;
+}
+
+.ww-phone-identity-copy {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.ww-phone-identity-name {
+  margin: 0;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--phone-body-size);
+  font-weight: 800;
+  line-height: 1.25;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ww-phone-identity-meta {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--phone-meta-size);
+  line-height: 1.3;
+}
+
+.ww-phone-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 1.75rem;
+  padding: 0.2rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--surface-raised) 88%, transparent);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--phone-meta-size);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.ww-phone-status-pill[data-tone='accent'] {
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--border));
+  color: var(--accent);
+}
+
+.ww-phone-status-pill[data-tone='village'] {
+  border-color: color-mix(in srgb, var(--village) 45%, var(--border));
+  color: var(--village);
+}
+
+.ww-phone-status-pill[data-tone='wolf'] {
+  border-color: color-mix(in srgb, var(--wolf) 45%, var(--border));
+  color: var(--wolf);
+}
+
+.ww-phone-section-switch {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 0.35rem;
+  width: 100%;
+  max-width: var(--phone-content-max);
+  margin-inline: auto;
+  padding: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--phone-control-radius);
+  background: color-mix(in srgb, var(--bg) 55%, var(--surface));
+}
+
+.ww-phone-section-switch .MuiButton-root,
+.ww-phone-section-switch .MuiTab-root {
+  min-height: var(--phone-hit);
+  border-radius: calc(var(--phone-control-radius) - 2px);
+  font-weight: 800;
+  text-transform: none;
+}
+
+/* Portrait shell helpers reused across screens */
+.ww-app[data-layout='portrait'] .ww-phone-page,
+.ww-game-layout[data-layout='portrait'] .ww-phone-page {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: var(--phone-content-max);
+  margin-inline: auto;
+  padding-inline: var(--phone-page-gutter);
+}
+
+.ww-app[data-layout='portrait'] .ww-phone-focus-ring :focus-visible,
+.ww-game-layout[data-layout='portrait'] .ww-phone-focus-ring :focus-visible,
+.ww-phone-action-dock :focus-visible,
+.ww-phone-section-switch :focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ww-phone-surface,
+  .ww-phone-action-dock {
+    box-shadow: none;
+  }
+}

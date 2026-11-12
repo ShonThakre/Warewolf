@@ -156,3 +156,56 @@
 .ww-game-layout[data-layout='portrait'] .ww-results-stage {
   padding-bottom: max(var(--space), env(safe-area-inset-bottom));
 }
+
+/* UX-PHONE: results portrait densify against 12-game-results-phone.png at 390×844. */
+.ww-game-layout[data-layout='portrait'][data-stage='results'] .ww-results-stage {
+  justify-content: flex-start;
+  gap: var(--phone-section-gap);
+  padding: var(--phone-page-gutter);
+  padding-bottom: var(--phone-section-gap);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='results'] .ww-results-stats {
+  width: 100%;
+  max-width: var(--phone-content-max);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--phone-card-gap);
+  padding: var(--phone-card-padding);
+  border-radius: var(--phone-card-radius);
+  background: var(--surface);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='results'] .ww-results-stat {
+  min-width: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='results'] .ww-results-stat strong {
+  font-size: var(--phone-heading-size);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='results'] .ww-results-stat span {
+  font-size: var(--phone-meta-size);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='results'] .ww-recap {
+  width: 100%;
+  max-width: var(--phone-content-max);
+  margin-inline: auto;
+  padding: 0;
+  gap: var(--phone-card-gap);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='results'] .ww-game-action {
+  padding: var(--phone-section-gap) var(--phone-page-gutter) var(--phone-safe-bottom);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='results'] .ww-game-action .MuiButton-root {
+  width: 100%;
+  min-height: max(var(--phone-control-height), var(--phone-hit));
+  border-radius: var(--phone-control-radius);
+  font-size: var(--phone-body-size);
+  font-weight: 800;
+}

@@ -558,3 +558,19 @@
 .ww-game-layout[data-layout='portrait'] .ww-game-action .MuiButton-root {
   min-height: var(--hit);
 }
+
+/* UX-PHONE: shared portrait chrome using phone tokens. */
+.ww-game-layout[data-layout='portrait'] .ww-game-status {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-game-action {
+  background: var(--surface);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-game-stage,
+.ww-game-layout[data-layout='portrait'] .ww-game-rail,
+.ww-game-layout[data-layout='portrait'] .ww-game-players {
+  min-width: 0;
+}

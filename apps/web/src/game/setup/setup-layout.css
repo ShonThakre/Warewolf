@@ -619,3 +619,86 @@ fieldset.ww-setup-fields {
   }
 }
 
+
+/* UX-PHONE: setup portrait densify against 03-setup-phone.png at 390×844. */
+.ww-setup[data-layout='portrait'] {
+  gap: 0;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-rail {
+  padding: 0.45rem var(--phone-page-gutter);
+  gap: 0.4rem;
+  overflow-x: auto;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-step.MuiButton-root {
+  min-height: var(--phone-hit);
+  padding-inline: 0.7rem;
+  border-radius: var(--radius-pill);
+  font-size: var(--phone-label-size);
+  font-weight: 800;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-head {
+  padding: var(--phone-section-gap) var(--phone-page-gutter) 0.35rem;
+  gap: 0.35rem;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-title {
+  font-size: var(--phone-heading-size);
+  line-height: 1.25;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-copy,
+.ww-setup[data-layout='portrait'] .ww-setup-progress {
+  font-size: var(--phone-label-size);
+  line-height: 1.4;
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-summary {
+  margin: var(--phone-card-gap) var(--phone-page-gutter) 0;
+  padding: var(--phone-card-padding);
+  border-radius: var(--phone-card-radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-canvas {
+  padding: var(--phone-section-gap) var(--phone-page-gutter) var(--phone-section-gap);
+}
+
+.ww-setup[data-layout='portrait'] .ww-role-grid {
+  gap: var(--phone-card-gap);
+}
+
+.ww-setup[data-layout='portrait'] .ww-role-tile,
+.ww-setup[data-layout='portrait'] .ww-setup-role {
+  border-radius: var(--phone-card-radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-action {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr));
+  gap: var(--phone-dock-gap);
+  padding: var(--phone-section-gap) var(--phone-page-gutter) var(--phone-safe-bottom);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.ww-setup[data-layout='portrait'] .ww-setup-action .MuiButton-root {
+  min-height: max(var(--phone-control-height), var(--phone-hit));
+  border-radius: var(--phone-control-radius);
+  font-size: var(--phone-label-size);
+  font-weight: 800;
+}
+
+.ww-setup[data-layout='portrait'] .ww-stepper .MuiIconButton-root {
+  width: var(--phone-hit);
+  height: var(--phone-hit);
+  background: var(--primary);
+  color: var(--primary-ink);
+}

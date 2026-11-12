@@ -1,11 +1,13 @@
-/* Compact session chrome on phone layout modes (UX-MOBILE). */
+/* Compact session chrome on phone layout modes (UX-MOBILE / UX-PHONE). */
 
 .ww-app[data-chrome='session'] .ww-app-nav {
   flex-wrap: nowrap;
-  height: var(--bar-lobby);
-  min-height: var(--bar-lobby);
+  height: var(--phone-toolbar-min);
+  min-height: var(--phone-toolbar-min);
   box-sizing: border-box;
   gap: calc(var(--space) / 2);
+  padding-left: max(var(--phone-page-gutter), env(safe-area-inset-left));
+  padding-right: max(var(--phone-page-gutter), env(safe-area-inset-right));
 }
 
 .ww-app[data-chrome='session'] .ww-wordmark {
@@ -21,8 +23,8 @@
 }
 
 .ww-app[data-chrome='session'] .ww-emblem {
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 2rem;
+  height: 2rem;
   flex: none;
 }
 
@@ -32,12 +34,10 @@
 }
 
 .ww-app[data-chrome='session'].is-home .ww-app-nav {
-  height: var(--bar-lobby);
-  min-height: var(--bar-lobby);
-  padding-left: max(var(--space), env(safe-area-inset-left));
-  padding-right: max(var(--space), env(safe-area-inset-right));
-  background: var(--bg);
-  border-bottom: 1px solid color-mix(in srgb, var(--neutral) 22%, var(--border));
+  height: var(--phone-toolbar-min);
+  min-height: var(--phone-toolbar-min);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
 }
 
 /* Short phone landscape: keep a single tight bar. */

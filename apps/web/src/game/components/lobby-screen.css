@@ -866,3 +866,154 @@
 .ww-game-layout[data-layout='narrow-landscape'] .ww-lobby-head {
   flex-direction: column;
 }
+
+/* UX-PHONE: lobby portrait densify against 02-lobby-phone.png at 390×844. */
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] {
+  grid-template-rows: minmax(11rem, 34dvh) minmax(0, 1fr) auto;
+  grid-template-areas:
+    'stage'
+    'rail'
+    'action';
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-board {
+  padding: var(--phone-page-gutter) var(--phone-page-gutter) 0;
+  gap: var(--phone-section-gap);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-head,
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode {
+  width: 100%;
+  max-width: var(--phone-content-max);
+  margin-inline: auto;
+  box-sizing: border-box;
+  padding: var(--phone-card-padding);
+  border: 1px solid var(--border);
+  border-radius: var(--phone-card-radius);
+  background: var(--surface);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode {
+  margin-top: calc(var(--phone-card-gap) * -1);
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top: 0;
+  justify-content: space-between;
+  gap: 0.35rem;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-head {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  padding-bottom: var(--phone-card-gap);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-title h1 {
+  font-size: var(--phone-title-size);
+  line-height: 1.2;
+  text-shadow: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-row {
+  margin-top: 0.45rem;
+  gap: 0.5rem;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-code-copy.MuiButton-root {
+  min-height: var(--phone-hit);
+  min-width: var(--phone-hit);
+  border-radius: var(--phone-control-radius);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode-rule {
+  display: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-mode p,
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-pack-strip {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.15rem;
+  font-size: var(--phone-meta-size);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-seats {
+  display: grid;
+  gap: var(--phone-card-gap);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-seat-grid,
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-open-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-seat-card,
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-open-seat {
+  min-height: 0;
+  padding: 0.35rem;
+  border-radius: var(--phone-control-radius);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-seat-card-name {
+  font-size: var(--phone-meta-size);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-game-rail {
+  padding: var(--phone-section-gap) var(--phone-page-gutter) 0;
+  gap: var(--phone-card-gap);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-game-rail .MuiTabs-root {
+  min-height: var(--phone-hit);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-game-rail .MuiTab-root {
+  min-height: var(--phone-hit);
+  font-size: var(--phone-label-size);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-player-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-player-list > li {
+  border-bottom: 1px solid var(--border);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-player {
+  min-height: var(--phone-hit);
+  padding-block: 0.65rem;
+  gap: 0.65rem;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-player-name {
+  font-size: var(--phone-body-size);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-player-meta {
+  font-size: var(--phone-meta-size);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-action {
+  gap: var(--phone-dock-gap);
+  padding: var(--phone-section-gap) var(--phone-page-gutter) var(--phone-safe-bottom);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-setup.MuiButton-root,
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-lobby-start.MuiButton-root {
+  min-height: max(var(--phone-control-height), var(--phone-hit));
+  border-radius: var(--phone-control-radius);
+  font-size: var(--phone-body-size);
+  font-weight: 800;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='lobby'] .ww-action-copy {
+  font-size: var(--phone-label-size);
+}

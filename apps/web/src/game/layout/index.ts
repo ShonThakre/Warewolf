@@ -9,6 +9,13 @@ export {
   type LayoutInfo,
   type LayoutMode,
 } from './layoutMode';
+export {
+  PhoneActionDock,
+  PhonePlayerIdentity,
+  PhoneSectionSwitch,
+  PhoneStatusPill,
+  PhoneSurface,
+} from './phone';
 export { STAGE_MODES, STAGE_SPECS, stageModeFor, type ActionKind, type Foreground, type StageMode, type StageSpec } from './stageMode';
 export { useLayoutMode } from './useLayoutMode';
 export { NARROW_LANDSCAPE_CHECK, PRIORITY_VIEWPORTS, type PriorityViewport } from './viewports';

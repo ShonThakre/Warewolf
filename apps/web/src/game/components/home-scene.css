@@ -304,40 +304,187 @@
   font-weight: 800;
 }
 
+.ww-home-hero {
+  display: contents;
+}
+
+.ww-home-return-kicker {
+  display: none;
+}
+
+.ww-home-return-mark {
+  display: none;
+}
+
 /* Portrait / upright tablet: panel fills the width. Both actions stay reachable. */
 .ww-home[data-home='stack'] {
   overflow: auto;
-  padding: var(--space);
-  padding-bottom: max(var(--space), env(safe-area-inset-bottom));
+  padding: 0;
+  padding-bottom: var(--phone-safe-bottom);
+  background: var(--bg);
+}
+
+.ww-home[data-home='stack'] .ww-home-wash {
+  position: relative;
+  inset: auto;
+  height: clamp(12.5rem, 38vh, 18.5rem);
+  overflow: hidden;
 }
 
 .ww-home[data-home='stack'] .ww-home-wash img {
-  object-position: 70% 22%;
+  object-position: 62% 32%;
+}
+
+.ww-home[data-home='stack'] .ww-home-wash::after {
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    color-mix(in srgb, var(--bg) 28%, transparent) 58%,
+    var(--bg) 100%
+  );
 }
 
 .ww-home[data-home='stack'] .ww-home-card {
   position: relative;
   left: auto;
   top: auto;
-  width: min(100%, 36rem);
+  width: min(100%, var(--phone-content-max));
   height: auto;
-  margin-inline: auto;
-  padding: 1.25rem var(--space) 1.1rem;
+  margin: -4.5rem auto 0;
+  padding: 0 var(--phone-page-gutter) var(--phone-section-gap);
   overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  gap: var(--phone-section-gap);
+  align-items: stretch;
+  text-align: center;
+}
+
+.ww-home[data-home='stack'] .ww-home-hero {
+  display: grid;
+  justify-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.25rem;
 }
 
 .ww-home[data-home='stack'] .ww-home-mark {
-  width: 7.5rem;
-  height: 7.5rem;
+  width: 5.5rem;
+  height: 5.5rem;
+  margin-top: 0;
+}
+
+.ww-home[data-home='stack'] .ww-home-title {
+  font-size: clamp(2rem, 8vw, 2.5rem);
+  line-height: 1;
+}
+
+.ww-home[data-home='stack'] .ww-home-edition {
+  min-height: 2.25rem;
+  border-color: color-mix(in srgb, var(--village) 70%, var(--accent));
+  color: var(--village);
+  font-size: var(--phone-label-size);
+}
+
+.ww-home[data-home='stack'] .ww-home-tag {
+  max-width: none;
+  margin-inline: auto;
+  color: var(--text);
+  font-size: var(--phone-body-size);
+  line-height: 1.45;
+  text-wrap: balance;
 }
 
 .ww-home[data-home='stack'] .ww-home-actions {
   grid-template-columns: 1fr;
+  gap: var(--phone-card-gap);
+  margin-top: 0.35rem;
 }
 
-.ww-home[data-home='stack'] .ww-home-actions .MuiButton-root,
+.ww-home[data-home='stack'] .ww-home-actions .MuiButton-root {
+  min-height: max(var(--phone-control-height), var(--phone-hit));
+  border-radius: var(--phone-control-radius);
+  font-size: var(--phone-body-size);
+}
+
+.ww-home[data-home='stack'] .ww-home-join.MuiButton-root.MuiButton-outlined {
+  border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+}
+
+.ww-home[data-home='stack'] .ww-home-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--phone-card-gap);
+}
+
+.ww-home[data-home='stack'] .ww-home-link-rule,
+.ww-home[data-home='stack'] .ww-home-rule,
+.ww-home[data-home='stack'] .ww-home-links .ww-home-chevron {
+  display: none;
+}
+
+.ww-home[data-home='stack'] .ww-home-links .MuiButton-root {
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 5.25rem;
+  padding: 0.75rem 0.4rem;
+  border: 1px solid var(--border);
+  border-radius: var(--phone-card-radius);
+  background: var(--surface);
+  color: var(--text);
+  font-size: var(--phone-meta-size);
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.ww-home[data-home='stack'] .ww-home-links .MuiButton-root:hover {
+  background: var(--surface-raised);
+}
+
+.ww-home[data-home='stack'] .ww-home-links .ww-home-icon {
+  width: var(--phone-icon-size-large);
+  height: var(--phone-icon-size-large);
+  color: var(--text);
+}
+
+.ww-home[data-home='stack'] .ww-home-return {
+  margin-top: 0.25rem;
+  border-radius: var(--phone-card-radius);
+  background: var(--surface);
+}
+
 .ww-home[data-home='stack'] .ww-home-return .MuiButton-root {
-  min-height: max(var(--hit), 3.25rem);
+  min-height: max(var(--phone-control-height), 3.5rem);
+  border-radius: var(--phone-card-radius);
+  text-align: left;
+}
+
+.ww-home[data-home='stack'] .ww-home-return-mark {
+  display: grid;
+  place-items: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 28%, var(--surface-raised));
+  color: var(--text);
+  flex: none;
+}
+
+.ww-home[data-home='stack'] .ww-home-return-kicker {
+  display: block;
+  color: var(--text-muted);
+  font-size: var(--phone-meta-size);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ww-home[data-home='stack'] .ww-home-return-title {
+  font-size: var(--phone-body-size);
 }
 
 /* Phone / narrow landscape: scene on the left; both actions stay on screen. */
@@ -392,4 +539,54 @@
   .ww-home-card {
     background: var(--surface);
   }
+}
+
+/* UX-PHONE 01: emblem and title sit on the lower scene; primary actions read at full size. */
+.ww-home[data-layout='portrait'] .ww-home-wash {
+  height: clamp(13rem, 34vh, 17rem);
+}
+
+.ww-home[data-layout='portrait'] .ww-home-card {
+  margin-top: -8.5rem;
+}
+
+.ww-home[data-layout='portrait'] .ww-home-hero {
+  gap: 0.4rem;
+}
+
+.ww-home[data-layout='portrait'] .ww-home-mark {
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+.ww-home[data-layout='portrait'] .ww-home-title {
+  font-size: clamp(2.25rem, 10vw, 2.75rem);
+  text-shadow: 0 2px 12px rgb(8 4 20 / 0.7);
+}
+
+.ww-home[data-layout='portrait'] .ww-home-actions .MuiButton-root {
+  gap: 0.6rem;
+  font-size: 1.125rem;
+  font-weight: 800;
+}
+
+.ww-home[data-layout='portrait'] .ww-home-actions .ww-home-icon {
+  width: var(--phone-icon-size-large);
+  height: var(--phone-icon-size-large);
+}
+
+.ww-home[data-layout='portrait'] .ww-home-join.MuiButton-root.MuiButton-outlined {
+  border-width: 2px;
+  border-color: var(--neutral);
+  color: var(--text);
+}
+
+.ww-home[data-layout='portrait'] .ww-home-links .MuiButton-root {
+  font-size: var(--phone-label-size);
+}
+
+.ww-home[data-layout='portrait'] .ww-home-links .ww-home-icon {
+  width: 1.75rem;
+  height: 1.75rem;
+  color: var(--neutral);
 }

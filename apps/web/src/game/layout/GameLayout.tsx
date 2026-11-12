@@ -66,12 +66,18 @@ export function GameLayout({ stage, status, scene, foreground, rail, action, lab
   const spec = STAGE_SPECS[stage];
 
   const [railOpen, setRailOpen] = useState(false);
-  const [panel, setPanel] = useState<Panel>('players');
+  const [panel, setPanel] = useState<Panel>(spec.portraitPanel ?? 'players');
+  const [panelStage, setPanelStage] = useState(stage);
+  // A new stage opens on its own default side of the switch (day: the chat; night and voting: the seats).
+  if (panelStage !== stage) {
+    setPanelStage(stage);
+    setPanel(spec.portraitPanel ?? 'players');
+  }
   const toggleRef = useRef<HTMLButtonElement>(null);
   const id = useId();
   const ids = { rail: `${id}-rail`, players: `${id}-players`, railTab: `${id}-rail-tab`, playersTab: `${id}-players-tab` };
 
-  // Portrait with a target grid: the grid moves under the scene and shares the middle with the rail.
+  // Portrait with a seat grid: the grid moves under the scene and shares the middle with the rail.
   const switched = layout.stacked && spec.portraitForeground === 'middle' && foreground != null;
   const railHidden = (layout.railCollapsible && !railOpen) || (switched && panel !== 'rail');
 

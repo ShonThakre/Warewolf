@@ -46,6 +46,8 @@ export interface StageSpec {
    * a target grid needs the room the scene cannot give it.
    */
   readonly portraitForeground: 'scene' | 'middle';
+  /** Which side of the portrait switch opens first. Day discussion opens on the chat. */
+  readonly portraitPanel?: 'players' | 'rail';
   readonly action: ActionKind;
 }
 
@@ -54,7 +56,7 @@ export const STAGE_SPECS: Readonly<Record<StageMode, StageSpec>> = {
   reveal: { scene: 'square_night', wash: 'night', foreground: 'avatars', portraitForeground: 'scene', action: 'wait-for-host' },
   night: { scene: 'square_night', wash: 'night', foreground: 'player-grid', portraitForeground: 'middle', action: 'submit-ability' },
   'night-results': { scene: 'square_day', wash: 'day', foreground: 'result-card', portraitForeground: 'scene', action: 'continue-to-day' },
-  day: { scene: 'square_day', wash: 'day', foreground: 'avatars', portraitForeground: 'scene', action: 'open-voting' },
+  day: { scene: 'square_day', wash: 'day', foreground: 'avatars', portraitForeground: 'middle', portraitPanel: 'rail', action: 'open-voting' },
   voting: { scene: 'square_dusk', wash: 'day', foreground: 'player-grid', portraitForeground: 'middle', action: 'confirm-vote' },
   results: { scene: 'BY_OUTCOME', wash: 'day', foreground: 'victory', portraitForeground: 'scene', action: 'play-again' },
 };

@@ -114,10 +114,13 @@ describe('stage modes', () => {
     if (spec.scene !== 'BY_OUTCOME') expect(SCENE_IDS).toContain(spec.scene);
   });
 
-  it('moves only target grids under the portrait switch', () => {
+  it('moves target grids and the day seat board under the portrait switch', () => {
     for (const s of STAGE_MODES) {
       const spec = STAGE_SPECS[s];
-      expect(spec.portraitForeground, s).toBe(spec.foreground === 'player-grid' ? 'middle' : 'scene');
+      expect(spec.portraitForeground, s).toBe(spec.foreground === 'player-grid' || s === 'day' ? 'middle' : 'scene');
     }
+    // Day discussion opens on the chat; the seat grids open on the seats.
+    expect(STAGE_SPECS.day.portraitPanel).toBe('rail');
+    expect(STAGE_SPECS.night.portraitPanel ?? 'players').toBe('players');
   });
 });

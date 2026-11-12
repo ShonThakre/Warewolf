@@ -129,6 +129,23 @@ describe('portrait', () => {
     expect(screen.getByRole('region', { name: 'Room' })).toBeTruthy();
   });
 
+  it('opens day discussion on the rail, and a new stage opens on its own default side', () => {
+    const { rerender } = renderLayout('day', portrait);
+    expect(screen.getByRole('tabpanel', { name: 'Room' })).toBeTruthy();
+    expect(screen.queryByRole('tabpanel', { name: 'Players' })).toBeNull();
+    rerender(
+      <GameLayout
+        stage="voting"
+        status={<h1>Voting</h1>}
+        foreground={<ul aria-label="Choose a player"><li>Rafi</li></ul>}
+        rail={<p>Event log</p>}
+        action={<button type="button">Submit</button>}
+        layout={layoutInfo(portrait.width, portrait.height)}
+      />,
+    );
+    expect(screen.getByRole('tabpanel', { name: 'Players' })).toBeTruthy();
+  });
+
   it('has no switch when a grid stage has nothing to show yet', () => {
     renderLayout('voting', portrait, { foreground: undefined });
     expect(screen.queryByRole('tablist')).toBeNull();

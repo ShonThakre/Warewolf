@@ -375,3 +375,43 @@
     animation: none;
   }
 }
+
+/* UX-PHONE: role reveal portrait densify against 04-role-reveal-phone.png at 390×844. */
+.ww-reveal[data-layout='portrait'] .ww-reveal-panel {
+  width: min(100%, var(--phone-content-max));
+  margin-inline: auto;
+  padding-inline: var(--phone-page-gutter);
+  gap: var(--phone-section-gap);
+}
+
+.ww-reveal[data-layout='portrait'] .ww-role-card {
+  padding: var(--phone-card-padding);
+  border-radius: var(--phone-card-radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  gap: var(--phone-section-gap);
+}
+
+.ww-reveal[data-layout='portrait'] .ww-portrait[data-size='card'] {
+  width: min(100%, 12.5rem);
+}
+
+.ww-reveal[data-layout='portrait'] .ww-role-badge {
+  font-size: var(--phone-title-size);
+  line-height: 1.15;
+}
+
+.ww-reveal[data-layout='portrait'] .ww-role-actions {
+  gap: var(--phone-dock-gap);
+  padding: var(--phone-section-gap) var(--phone-page-gutter) var(--phone-safe-bottom);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.ww-reveal[data-layout='portrait'] .ww-reveal-hide.MuiButton-root.MuiButton-outlined,
+.ww-reveal[data-layout='portrait'] .ww-reveal-go.MuiButton-root {
+  min-height: max(var(--phone-control-height), var(--phone-hit));
+  border-radius: var(--phone-control-radius);
+  font-size: var(--phone-body-size);
+  font-weight: 800;
+}

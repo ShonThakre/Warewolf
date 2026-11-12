@@ -61,6 +61,27 @@ export const tokens = {
   '--avatar-ring': '2px',
   '--avatar-ring-color': 'var(--text-muted)',
   '--hit': '44px',
+
+  /** Portrait phone spacing, type, and chrome (PHONE-IMPLEMENTATION-PLAN). */
+  '--phone-page-gutter': '16px',
+  '--phone-section-gap': '12px',
+  '--phone-card-gap': '10px',
+  '--phone-card-padding': '14px',
+  '--phone-card-radius': '16px',
+  '--phone-control-radius': '12px',
+  '--phone-toolbar-min': '56px',
+  '--phone-control-height': '48px',
+  '--phone-hit': '44px',
+  '--phone-icon-size': '20px',
+  '--phone-icon-size-large': '24px',
+  '--phone-dock-gap': '8px',
+  '--phone-safe-bottom': 'max(12px, env(safe-area-inset-bottom))',
+  '--phone-content-max': '430px',
+  '--phone-title-size': '1.5rem',
+  '--phone-heading-size': '1.25rem',
+  '--phone-body-size': '0.9375rem',
+  '--phone-label-size': '0.8125rem',
+  '--phone-meta-size': '0.75rem',
 } as const;
 
 export type TokenName = keyof typeof tokens;

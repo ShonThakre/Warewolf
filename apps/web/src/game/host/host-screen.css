@@ -467,3 +467,101 @@
   flex: 1 1 auto;
   min-height: var(--hit);
 }
+
+/* UX-PHONE: host portrait densify against 06/11 phone mockups at 390×844. */
+.ww-host[data-layout='portrait'] .ww-host-strip {
+  min-height: var(--phone-toolbar-min);
+  padding-inline: var(--phone-page-gutter);
+  background: var(--surface);
+}
+
+.ww-host[data-layout='portrait'] .ww-host-title {
+  font-size: var(--phone-heading-size);
+}
+
+.ww-host[data-layout='portrait'] .ww-host-rail {
+  gap: 0.4rem;
+  padding: 0.55rem var(--phone-page-gutter);
+  overflow-x: auto;
+  background: var(--surface);
+}
+
+.ww-host[data-layout='portrait'] .ww-host-section.MuiButton-root {
+  flex: 0 0 auto;
+  min-height: var(--phone-hit);
+  padding-inline: 0.75rem;
+  border-radius: var(--radius-pill);
+  font-size: var(--phone-label-size);
+}
+
+.ww-host[data-layout='portrait'] .ww-host-section-label {
+  position: static;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: nowrap;
+  border: 0;
+  clip-path: none;
+}
+
+.ww-host[data-layout='portrait'] .ww-host-canvas {
+  padding: var(--phone-section-gap) var(--phone-page-gutter);
+  gap: var(--phone-section-gap);
+}
+
+.ww-host[data-layout='portrait'] .ww-host-panel,
+.ww-host[data-layout='portrait'] .ww-host-facts {
+  padding: var(--phone-card-padding);
+  border: 1px solid var(--border);
+  border-radius: var(--phone-card-radius);
+  background: var(--surface);
+}
+
+.ww-host[data-layout='portrait'] .ww-host-facts {
+  display: grid;
+  gap: var(--phone-card-gap);
+  margin: 0;
+  list-style: none;
+}
+
+.ww-host[data-layout='portrait'] .ww-host-facts > li {
+  display: grid;
+  gap: 0.2rem;
+  padding-bottom: var(--phone-card-gap);
+  border-bottom: 1px solid var(--border);
+}
+
+.ww-host[data-layout='portrait'] .ww-host-facts > li:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.ww-host[data-layout='portrait'] .ww-host-fact-label {
+  color: var(--text-muted);
+  font-size: var(--phone-meta-size);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ww-host[data-layout='portrait'] .ww-host-fact-value {
+  font-size: var(--phone-heading-size);
+  font-weight: 800;
+}
+
+.ww-host[data-layout='portrait'] .ww-host-action {
+  gap: var(--phone-dock-gap);
+  padding: var(--phone-section-gap) var(--phone-page-gutter) var(--phone-safe-bottom);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.ww-host[data-layout='portrait'] .ww-host-action-buttons .MuiButton-root {
+  min-height: max(var(--phone-control-height), var(--phone-hit));
+  border-radius: var(--phone-control-radius);
+  font-size: var(--phone-body-size);
+  font-weight: 800;
+}

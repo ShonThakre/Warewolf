@@ -1762,3 +1762,675 @@
 .ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-revote-seats {
   grid-template-columns: minmax(0, 1fr);
 }
+
+/*
+ * UX-PHONE: portrait table (05 night, 07 morning, 08 discussion, 09 voting, 10 revote at 390×844).
+ * The scene is a short band; seats, chat, and the result card get the height.
+ */
+.ww-game-layout[data-layout='portrait'] {
+  grid-template-rows: auto minmax(5rem, 30dvh) minmax(0, 1fr) auto;
+}
+
+.ww-game-layout[data-layout='portrait'][data-panel] {
+  grid-template-rows: auto clamp(4.5rem, 13dvh, 8rem) auto minmax(0, 1fr) auto;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='night-results'] {
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+}
+
+/* Status strip: phase word, round or guide, and the clock or waiting copy. */
+.ww-game-layout[data-layout='portrait'] .ww-game-status {
+  min-height: 0;
+  padding: 0.5rem var(--phone-page-gutter);
+  gap: 0.5rem;
+  align-items: flex-start;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-game-status > .MuiButton-root {
+  flex: none;
+  min-height: var(--phone-hit);
+  padding-inline: 0.5rem;
+  font-size: var(--phone-label-size);
+  white-space: nowrap;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-status,
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.6rem;
+  min-width: 0;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-status-pack,
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-status-pack {
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.6rem;
+  max-width: none;
+  min-width: 0;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-status-title,
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-status-title {
+  font-size: var(--phone-heading-size);
+  line-height: 1.25;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-status-title.is-pill {
+  font-size: var(--phone-body-size);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-status-phase {
+  min-height: 2rem;
+  padding: 0.15rem 0.75rem;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-status-copy,
+.ww-game-layout[data-layout='portrait'] .ww-status-guide,
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-status-guide {
+  flex: 1 1 100%;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--phone-label-size);
+  line-height: 1.35;
+  white-space: normal;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-status-trail,
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-status-trail {
+  flex: 1 1 100%;
+  justify-content: flex-start;
+  margin-left: 0;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: var(--phone-meta-size);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-status-trail .ww-pill {
+  min-height: 1.6rem;
+  font-size: var(--phone-meta-size);
+}
+
+/* Night: the trail joins the title row, the guide drops underneath. */
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-status-pack {
+  flex: 0 1 auto;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-status-trail {
+  flex: 0 1 auto;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-status {
+  flex-direction: row;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-status-pack .ww-status-guide {
+  order: 3;
+}
+
+/* The scene band crops to its focal middle. */
+.ww-game-layout[data-layout='portrait'] .ww-game-scene {
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Players / Discussion switch. */
+.ww-game-layout[data-layout='portrait'] .ww-game-switch {
+  margin: var(--phone-card-gap) var(--phone-page-gutter) 0;
+  min-height: 0;
+  padding: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: var(--phone-control-radius);
+  background: color-mix(in srgb, var(--bg) 55%, var(--surface));
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-game-switch .MuiTabs-indicator {
+  display: none;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-game-switch .MuiTab-root {
+  flex: 1 1 0;
+  max-width: none;
+  min-height: var(--phone-hit);
+  border-radius: calc(var(--phone-control-radius) - 3px);
+  color: var(--text-muted);
+  font-size: var(--phone-body-size);
+  font-weight: 800;
+  text-transform: none;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-game-switch .MuiTab-root.Mui-selected {
+  background: var(--primary);
+  color: var(--primary-ink);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-game-players:not([hidden]) {
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+/* Two-column public seat cards for night and voting. Seat, name, and life only. */
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-seats,
+.ww-game-layout[data-layout='portrait'][data-stage='voting'] .ww-vote-seats,
+.ww-game-layout[data-layout='portrait'][data-stage='day'] .ww-seats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: var(--phone-card-gap);
+  padding: var(--phone-card-gap) var(--phone-page-gutter) var(--phone-section-gap);
+  margin: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-seat .ww-target.MuiButton-root,
+.ww-game-layout[data-layout='portrait'][data-stage='day'] .ww-seat .ww-target.MuiButton-root,
+.ww-game-layout[data-layout='portrait'][data-stage='voting'] .ww-seat .ww-target.MuiButton-root {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 4rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: var(--phone-control-radius);
+  text-align: left;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-seat .ww-target-avatar {
+  position: relative;
+  flex: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-seat .ww-avatar,
+.ww-game-layout[data-layout='portrait'][data-stage='day'] .ww-seat .ww-target .ww-avatar,
+.ww-game-layout[data-layout='portrait'][data-stage='voting'] .ww-seat .ww-avatar {
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-seat .ww-target .ww-seat-copy {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-seat .ww-target .ww-seat-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--phone-label-size);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-seat .ww-target .ww-seat-life {
+  min-height: 1.15rem;
+  padding: 0 0.45rem;
+  font-size: var(--phone-meta-size);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-seat .ww-target .ww-seat-tag:not(.is-you) {
+  position: absolute;
+  right: 0.4rem;
+  bottom: 0.3rem;
+  font-size: var(--phone-meta-size);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-seat .ww-target .ww-target-check {
+  top: -0.2rem;
+  right: -0.2rem;
+  left: auto;
+  bottom: auto;
+}
+
+/* Night action dock: role identity, the chosen target, and Submit. */
+.ww-game-layout[data-layout='portrait'] .ww-game-action {
+  max-height: 46dvh;
+  overflow: auto;
+  padding: var(--phone-section-gap) var(--phone-page-gutter) var(--phone-safe-bottom);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-action.is-night {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--phone-dock-gap);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-night-panel .ww-portrait[data-size='thumb'] {
+  width: 3rem;
+  height: 3rem;
+  border-radius: var(--phone-control-radius);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-night-pick {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-night-pick-value {
+  flex: 1 1 auto;
+  min-height: var(--phone-hit);
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--phone-control-radius);
+  font-size: var(--phone-body-size);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--phone-dock-gap);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-action-buttons > .MuiButton-root,
+.ww-game-layout[data-layout='portrait'] .ww-morning-controls .MuiButton-root {
+  flex: 1 1 auto;
+  width: 100%;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-vote-submit {
+  display: grid;
+  flex: 1 1 0;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-action-buttons {
+  align-items: flex-start;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-action-buttons > .ww-abstain.MuiButton-root {
+  flex: 0 0 auto;
+  width: auto;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-game-action .MuiButton-root {
+  min-height: max(var(--phone-control-height), var(--phone-hit));
+  border-radius: var(--phone-control-radius);
+  font-size: var(--phone-body-size);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-morning-controls {
+  display: flex;
+  width: 100%;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-host-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--phone-dock-gap);
+  padding: 0;
+  border: 0;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-host-controls .MuiButton-root {
+  flex: 1 1 auto;
+}
+
+/* Morning: dawn scene with the public result card over its lower half. */
+.ww-game-layout[data-layout='portrait'] .ww-morning {
+  box-sizing: border-box;
+  height: auto;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: stretch;
+  gap: var(--phone-section-gap);
+  margin: 0;
+  padding: 6rem var(--phone-page-gutter) var(--phone-section-gap);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-morning-card,
+.ww-game-layout[data-layout='portrait'] .ww-morning .ww-report {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  max-width: var(--phone-content-max);
+  margin-inline: auto;
+  border-radius: var(--phone-card-radius);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-morning-card {
+  gap: var(--phone-card-gap);
+  padding: var(--phone-card-padding);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-morning-heading {
+  justify-content: center;
+  font-family: var(--font-fantasy);
+  font-size: var(--phone-title-size);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-morning-outcome {
+  font-size: var(--phone-body-size);
+  line-height: 1.45;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-morning-survivors {
+  text-align: left;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-morning-survivor-list {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-morning-survivor {
+  flex: none;
+  width: 3rem;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-morning-survivor .ww-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-morning-survivor-name {
+  font-size: var(--phone-meta-size);
+}
+
+/* Closed discussion becomes one compact row under the result. */
+.ww-game-layout[data-layout='portrait'] .ww-discussion[data-closed='true'] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.6rem;
+  margin: var(--phone-card-gap) var(--phone-page-gutter);
+  padding: 0.6rem var(--phone-card-padding);
+  border: 1px solid var(--border);
+  border-radius: var(--phone-control-radius);
+  background: var(--surface-raised);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-discussion[data-closed='true'] .ww-discussion-title {
+  margin: 0;
+  font-size: var(--phone-body-size);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-discussion[data-closed='true'] .ww-discussion-closed {
+  display: flex;
+  flex: 1 1 100%;
+  flex-direction: row;
+  justify-content: flex-start;
+  margin: 0;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-discussion[data-closed='true'] .ww-discussion-lock,
+.ww-game-layout[data-layout='portrait'] .ww-discussion[data-closed='true'] .ww-discussion-closed-mark,
+.ww-game-layout[data-layout='portrait'] .ww-discussion[data-closed='true'] .ww-discussion-lock svg {
+  width: 1rem;
+  height: 1rem;
+  margin: 0;
+  flex: none;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-discussion[data-closed='true'] .ww-discussion-closed-copy {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--phone-label-size);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-discussion[data-closed='true'] .ww-discussion-log:not(:has(.ww-chat-message)) {
+  display: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='night-results'] .ww-game-rail:not([hidden]) {
+  border-top: 0;
+}
+
+/* Day discussion: chat fills the middle; the composer sits under the log. */
+.ww-game-layout[data-layout='portrait'] .ww-game-rail:not([hidden]) {
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-discussion:not([data-closed='true']) {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  margin: 0;
+  padding: var(--phone-card-gap) var(--phone-page-gutter) 0;
+  gap: var(--phone-card-gap);
+}
+
+.ww-game-layout[data-layout='portrait'][data-panel] .ww-discussion:not([data-closed='true']) .ww-discussion-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-discussion-log {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-chat-body {
+  font-size: var(--phone-body-size);
+  line-height: 1.45;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-discussion-composer {
+  flex: none;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--phone-dock-gap);
+  padding: var(--phone-card-gap) 0;
+  border-top: 1px solid var(--border);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-discussion-composer .MuiButton-root {
+  min-height: var(--phone-hit);
+  min-width: var(--phone-hit);
+  border-radius: var(--phone-control-radius);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-discussion-composer .ww-action-alert {
+  grid-column: 1 / -1;
+}
+
+/* The day guide card collapses to its one-line instruction. */
+.ww-game-layout[data-layout='portrait'][data-stage='day'] .ww-day-guide-title {
+  display: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='day'] .ww-day-guide-mark {
+  display: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='day'] .ww-day-guide-body {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--phone-label-size);
+}
+
+/* Voting and revote: compact two-column candidate cards and a private ballot dock. */
+.ww-game-layout[data-layout='portrait'][data-stage='voting'] .ww-revote {
+  padding: 0;
+  margin: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='voting'] .ww-revote-board {
+  padding: var(--phone-card-gap) var(--phone-page-gutter);
+  border: 0;
+  background: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='voting'] .ww-revote-title {
+  margin: 0;
+  font-size: var(--phone-heading-size);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='voting'] .ww-revote-guide {
+  margin: 0 0 var(--phone-card-gap);
+  color: var(--text-muted);
+  font-size: var(--phone-label-size);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='voting'] .ww-revote-seats {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--phone-card-gap);
+  padding: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='voting'] .ww-revote-seats .ww-seat .ww-target.MuiButton-root {
+  min-height: 4.5rem;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='voting'] .ww-revote-seats .ww-seat .ww-target .ww-seat-name {
+  font-size: var(--phone-body-size);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='voting'] .ww-game-players > .ww-tally,
+.ww-game-layout[data-layout='portrait'][data-stage='voting'] .ww-game-players > .ww-report,
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-game-players > .ww-report,
+.ww-game-layout[data-layout='portrait'] .ww-game-players > .ww-night-panel,
+.ww-game-layout[data-layout='portrait'] .ww-game-players > .ww-kill-panel {
+  margin: var(--phone-card-gap) var(--phone-page-gutter) 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='voting'] .ww-action.is-voting {
+  display: grid;
+  gap: var(--phone-dock-gap);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='voting'] .ww-vote-nominee {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0;
+  border: 0;
+  background: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='voting'] .ww-vote-nominee-label {
+  color: var(--text-muted);
+  font-size: var(--phone-meta-size);
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='voting'] .ww-vote-nominee-card .ww-avatar {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='voting'] .ww-vote-privacy {
+  justify-content: center;
+  margin: 0.15rem 0 0;
+  font-size: var(--phone-meta-size);
+}
+
+/* Chat bubbles, and compact host moderation under each message. */
+.ww-game-layout[data-layout='portrait'] .ww-chat-message {
+  gap: 0.6rem;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-chat-body {
+  width: fit-content;
+  max-width: 100%;
+  margin: 0.15rem 0 0;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 0.2rem var(--phone-control-radius) var(--phone-control-radius) var(--phone-control-radius);
+  background: var(--surface-raised);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-chat-name {
+  font-size: var(--phone-label-size);
+  font-weight: 800;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-chat-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.25rem;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-chat-tools .MuiButton-root {
+  min-height: var(--phone-hit);
+  padding: 0 0.6rem;
+  border-color: var(--border);
+  color: var(--text-muted);
+  font-size: var(--phone-meta-size);
+}
+
+/* The host already has the phase button; the explainer stays for guests only. */
+.ww-game-layout[data-layout='portrait'][data-stage='day'] .ww-action:has(.ww-morning-controls) .ww-day-guide {
+  display: none;
+}
+
+/* Night: the title already names the phase, so the strip keeps the clock or waiting copy. */
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-status-trail .ww-status-phase,
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-status-pack .ww-status-guide {
+  display: none;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='night'] .ww-status {
+  flex-wrap: nowrap;
+  justify-content: space-between;
+}
+
+/* Seat list items stretch to their grid cell on a phone (the lobby avatar width does not apply). */
+.ww-game-layout[data-layout='portrait'] .ww-game-players .ww-seat {
+  width: auto;
+  min-width: 0;
+}
+
+.ww-game-layout[data-layout='portrait'][data-stage='voting'] .ww-revote-seats {
+  margin: 0;
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-seat .ww-target .ww-seat-name {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
+/* Morning: the closed discussion row stacks its title over the closed copy. */
+.ww-game-layout[data-layout='portrait'] .ww-discussion[data-closed='true'] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.ww-game-layout[data-layout='portrait'] .ww-discussion[data-closed='true'] .ww-discussion-closed-copy {
+  min-width: 0;
+  white-space: normal;
+}
