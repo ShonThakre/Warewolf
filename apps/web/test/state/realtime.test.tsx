@@ -5,7 +5,9 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { makeStore } from '../../src/app/store';
 import { gameStateFixture } from '../../src/game/fixtures/phase';
 import { FIXTURE_GAME_ID, fixturePlayerId } from '../../src/game/fixtures/role';
+import { ROLE_FIXTURES } from '../../src/game/fixtures/role';
 import { useGameState } from '../../src/game/state/phase';
+import { useMyRole } from '../../src/game/state/role';
 import { setPlayConnectorForTests, type PlayClient } from '../../src/realtime/play';
 import { memorySessionStorage } from '../../src/session/storage';
 
@@ -106,5 +108,69 @@ describe('phase events (WW-1103)', () => {
 
     hostPlay.fire('connect', {});
     expect(hostPlay.sent[1]).toEqual({ event: 'join-session', body: { gameId: GAME, afterSeq: 4 } });
+  });
+});
+
+/** GET /me answers the dealt Seeker until `infect()` flips it to the converted fixture. */
+function roleSetup(seat: SeatCredentials) {
+  let infected = false;
+  const requests: string[] = [];
+  const fetchFn = (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const request = input instanceof Request ? input : new Request(input, init);
+    requests.push(new URL(request.url).pathname);
+    return json(200, infected ? ROLE_FIXTURES.infected : ROLE_FIXTURES.seeker);
+  }) as typeof fetch;
+  const store = makeStore({ environment: { baseUrl: BASE, fetchFn }, storage: memorySessionStorage(seat) });
+  return {
+    store,
+    requests,
+    infect() {
+      infected = true;
+    },
+  };
+}
+
+function RoleProbe({ version }: { version: number }) {
+  const { role } = useMyRole(version);
+  return <p>role:{role?.currentRole.id ?? '-'}</p>;
+}
+
+describe('own role refresh (PLAY-FIX-01)', () => {
+  it('reads the role again when the phase moves, so an infected seat sees its new card', async () => {
+    setPlayConnectorForTests(() => new FakePlay());
+    const side = roleSetup(guest);
+    const view = render(
+      <Provider store={side.store}>
+        <RoleProbe version={1} />
+      </Provider>,
+    );
+    expect(await screen.findByText('role:seeker')).toBeTruthy();
+
+    side.infect();
+    view.rerender(
+      <Provider store={side.store}>
+        <RoleProbe version={2} />
+      </Provider>,
+    );
+    expect(await screen.findByText('role:infected_wolf')).toBeTruthy();
+  });
+
+  it('reads the role again when the seat is told it was converted', async () => {
+    const play = new FakePlay();
+    setPlayConnectorForTests(() => play);
+    const side = roleSetup(guest);
+    render(
+      <Provider store={side.store}>
+        <RoleProbe version={1} />
+      </Provider>,
+    );
+    expect(await screen.findByText('role:seeker')).toBeTruthy();
+    expect(play.registered).toEqual(expect.arrayContaining(['ROLE_CONVERTED', 'INFECTION_OCCURRED']));
+
+    side.infect();
+    act(() => {
+      play.fire('ROLE_CONVERTED', { seq: 9, type: 'ROLE_CONVERTED', audience: 'PLAYER', payload: { roundNumber: 1, roleId: 'infected_wolf' } });
+    });
+    expect(await screen.findByText('role:infected_wolf')).toBeTruthy();
   });
 });

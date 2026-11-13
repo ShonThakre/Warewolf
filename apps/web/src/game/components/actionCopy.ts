@@ -8,8 +8,12 @@ import type { ActionPrompt } from '../state/actions';
  * required. Role ids never appear here.
  */
 
-export function promptLabel(ability: Pick<OwnAbility, 'capability' | 'target'>): string {
+/** The Seeker's once-per-game role card (PLAY-FIX-01). Shares the night with the Wolf check. */
+export const SEE_ROLE_ABILITY_ID = 'seeker_see_role';
+
+export function promptLabel(ability: Pick<OwnAbility, 'capability' | 'target'> & { readonly abilityId?: string }): string {
   const { capability, target } = ability;
+  if (ability.abilityId === SEE_ROLE_ABILITY_ID) return "See a player's role card (once per game)";
   if (target.kind === 'FINAL_WOLF_TARGET') return 'Save the announced target';
   if (target.kind === 'OWN_RESULT' || capability === 'ROLE_REVEAL') return 'Publish a stored result';
   if (target.kind === 'QUESTION' || capability === 'DETECT') return 'Ask the allowed question';

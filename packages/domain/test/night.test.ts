@@ -50,6 +50,31 @@ describe('capabilities', () => {
     expect(plain.investigations[0]?.value).toBe('NOT_WOLF');
   });
 
+  it('Seeker role card shows the current role once, and spends its only charge', () => {
+    const t = table(INFECTION_SEATS, { wolves: ['v14'] });
+    const r = night(t, [act('seeker1', 'seeker_see_role', ['v14']), act('seeker2', 'seeker_see_role', ['doctor'])]);
+    expect(r.investigations.map((i) => [i.actorId, i.kind, i.value])).toEqual([
+      ['seeker1', 'ROLE_ID', 'infected_wolf'],
+      ['seeker2', 'ROLE_ID', 'doctor'],
+    ]);
+    expect(update(r, 'seeker1:seeker_see_role')).toMatchObject({ chargesRemaining: 0, status: 'EXHAUSTED' });
+
+    const spent = { ...t, abilities: t.abilities.map((a) => (a.id === 'seeker1:seeker_see_role' ? { ...a, chargesRemaining: 0, status: 'EXHAUSTED' as const } : a)) };
+    const again = act('seeker1', 'seeker_see_role', ['v1']);
+    const second = night(spent, [again]);
+    expect(statusOf(second, again.id)?.status).toBe('REJECTED');
+    expect(second.investigations).toEqual([]);
+  });
+
+  it('Seeker uses either the Wolf check or the role card in one night: the latest stands', () => {
+    const t = table(INFECTION_SEATS);
+    const check = act('seeker1', 'seeker_investigate', ['v1']);
+    const card = act('seeker1', 'seeker_see_role', ['v2']);
+    const r = night(t, [check, card]);
+    expect(statusOf(r, check.id)).toMatchObject({ status: 'REJECTED', reason: 'SUPERSEDED' });
+    expect(r.investigations.map((i) => [i.kind, i.targetPlayerIds[0]])).toEqual([['ROLE_ID', 'v2']]);
+  });
+
   it('Seeker checking tonight\'s infection target still reads Non-Wolf (OD-38)', () => {
     const t = table(INFECTION_SEATS);
     const r = night(t, [act('alpha', 'alpha_infect', ['v1']), act('seeker1', 'seeker_investigate', ['v1'])]);

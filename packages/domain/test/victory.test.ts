@@ -32,6 +32,16 @@ describe('evaluateVictory', () => {
     expect(result).toMatchObject({ ended: true, team: 'WOLF_PACK', draw: false });
   });
 
+  it('counts an infected villager as a wolf, alive at parity and after the vote removes them', () => {
+    const infected = (life: 'ALIVE' | 'DEAD') => seat('i1', 'infected_wolf', 'WOLF_PACK', life, { currentProfileId: 'infected_wolf' });
+    const alpha = seat('a', 'alpha_wolf', 'WOLF_PACK');
+    const villagers = [seat('v1', 'normal_villager', 'VILLAGE'), seat('v2', 'normal_villager', 'VILLAGE')];
+    expect(game([alpha, infected('ALIVE'), ...villagers])).toMatchObject({ ended: true, team: 'WOLF_PACK' });
+    // Voted out: one wolf fewer, not one villager fewer. The Alpha still blocks a Village win.
+    const voted = game([alpha, infected('DEAD'), ...villagers, seat('v3', 'normal_villager', 'VILLAGE')], { dayEliminated: ['i1'] });
+    expect(voted).toMatchObject({ ended: false, team: null });
+  });
+
   it('gives the village a win when no wolf-aligned player remains, including the Fox', () => {
     const result = game([seat('fox', 'fox', 'NEUTRAL'), seat('v1', 'normal_villager', 'VILLAGE'), seat('w', 'pack_wolf', 'WOLF_PACK', 'DEAD')]);
     expect(result.team).toBe('VILLAGE');

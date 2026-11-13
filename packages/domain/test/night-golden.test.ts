@@ -137,6 +137,7 @@ describe('golden: night-resolution.md, section 8', () => {
           patch('doctor:doctor_save', used(null)),
           patch('seeker1:seeker_investigate', revoked),
           patch('seeker1:seeker_public_reveal', revoked),
+          patch('seeker1:seeker_see_role', revoked),
         ],
         actions: resolved(kill, infect, save),
         infectionState: { successes: 1, sealed: false },

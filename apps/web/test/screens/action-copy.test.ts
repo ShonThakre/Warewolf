@@ -65,3 +65,11 @@ describe('action copy', () => {
     expect(submitLabel({ hasStored: true, stored: true, submitting: false })).toBe('Choice sent');
   });
 });
+
+describe('Seeker role card prompt (PLAY-FIX-01)', () => {
+  it('names the once-per-game role card apart from the Wolf check', () => {
+    const target = { kind: 'PLAYERS', count: 1, life: 'ALIVE', self: false, notSameAsLastRound: false } as const;
+    expect(promptLabel({ abilityId: 'seeker_see_role', capability: 'INVESTIGATE', target })).toBe("See a player's role card (once per game)");
+    expect(promptLabel({ abilityId: 'seeker_investigate', capability: 'INVESTIGATE', target })).toBe('Choose a player to investigate');
+  });
+});

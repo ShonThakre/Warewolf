@@ -204,7 +204,8 @@ describe('E2E-02: every pack plays to a result', () => {
       const publish: Policy = {
         name: 'seeker-publish',
         act(ctx, actor, ability) {
-          if (ability.capability === 'INVESTIGATE' && actor.playerId === first!.playerId) return { targetPlayerIds: [ctx.wolves()[0]!.playerId] };
+          // The Wolf check only: the once-per-game role card shares its night and would supersede it.
+          if (ability.abilityId === 'seeker_investigate' && actor.playerId === first!.playerId) return { targetPlayerIds: [ctx.wolves()[0]!.playerId] };
           if (ability.capability === 'ROLE_REVEAL') return { targetPlayerIds: [] };
           return null;
         },

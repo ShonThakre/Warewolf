@@ -60,7 +60,7 @@ const MODE_TEXT: Readonly<Record<GameMode, { summary: string; points: readonly s
       'Each night the Alpha Wolf can infect one player. That player becomes a wolf, quietly. It can happen up to 4 times.',
       'Wolves do not know who the other wolves are.',
       'The host picks the night’s attack from the names the wolves chose. The Doctor is told who will be attacked and can save them.',
-      'Seekers check one player a night: wolf or not. The Guard protects one player. The Witch has one save and one poison for the whole game.',
+      'Seekers check one player a night: wolf or not. Once per game, a Seeker may see one player\'s role card instead. The Guard protects one player. The Witch has one save and one poison for the whole game.',
     ],
   },
   CLASSIC: {

@@ -10,6 +10,7 @@ import { NightActionPanel } from '../game/components/NightActionPanel';
 import { PhaseCloseButton } from '../game/components/PhaseCloseButton';
 import { PlayerAvatar } from '../game/components/PlayerAvatar';
 import { PlayerGrid } from '../game/components/PlayerGrid';
+import { SeenRoleCards } from '../game/components/SeenRoleCards';
 import { VillageScene } from '../game/components/VillageScene';
 import { useActionDraft } from '../game/components/actionDraft';
 import { actionRowText, actionStatus, choiceNames, choiceReady, choiceSeatLine, editablePrompt, matchesChoice, promptLabel, shownPrompt, submitLabel, type ActionTone } from '../game/components/actionCopy';
@@ -70,7 +71,7 @@ function TableScreen() {
   const view = useGameState();
   const seconds = useSecondsLeft(view);
   const control = useClosePhase(view.state);
-  const roleView = useMyRole();
+  const roleView = useMyRole(view.state?.stateVersion);
   const actionsView = useMyActions(view.state?.stateVersion);
   const submission = useSubmitAction();
   const ballot = useCastVote();
@@ -79,7 +80,7 @@ function TableScreen() {
   const moderation = useChatModeration();
   const kill = useKillTarget(view.state?.phase, view.state?.stateVersion);
   const tallies = useDayTallies(view.state?.phase, view.state?.stateVersion);
-  const notes = useTableNotes(view.state?.phase, view.state?.stateVersion, view.state?.you.playerId, view.state?.players);
+  const { notes, seenRoles } = useTableNotes(view.state?.phase, view.state?.stateVersion, view.state?.you.playerId, view.state?.players);
   const setKill = useSetKillTarget();
   const prompts = actionPrompts(roleView.role, actionsView.actions);
   const draft = useActionDraft(prompts, view.state ? `${view.state.roundNumber}:${view.state.phase}` : '');
@@ -255,15 +256,22 @@ function TableScreen() {
   }
   const tally = shownTally(state.phase, tallies.latest);
   const tallyCard = tally ? <VoteTally tally={tally} nameOf={(playerId) => playerName(state.players, playerId) ?? 'A player'} /> : null;
-  const report = notes.length > 0 ? (
-    <ul className="ww-report" aria-label="Your report">
-      {notes.map((line) => (
-        <li key={line} data-note={noteTone(line)}>
-          {line}
-        </li>
-      ))}
-    </ul>
-  ) : null;
+  const seenCards = seenRoles.length > 0 ? <SeenRoleCards cards={seenRoles} /> : null;
+  const report =
+    notes.length > 0 || seenCards ? (
+      <>
+        {notes.length > 0 ? (
+          <ul className="ww-report" aria-label="Your report">
+            {notes.map((line) => (
+              <li key={line} data-note={noteTone(line)}>
+                {line}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {seenCards}
+      </>
+    ) : null;
 
   return (
     <GameLayout
@@ -297,6 +305,7 @@ function TableScreen() {
           tally={tallyCard}
           notes={notes}
           report={morning ? null : report}
+          seen={seenCards}
           privateSurface={privateSurface}
           panel={privateSurface ? roleControls(night ? 'controls' : 'all') : null}
           kill={kill.view ? <KillTargetPanel players={state.players} view={kill.view} pick={killPick} onPick={setKillPick} /> : null}
@@ -534,6 +543,7 @@ function StageForeground({
   tally,
   notes,
   report,
+  seen,
   privateSurface,
   panel,
   kill,
@@ -548,6 +558,8 @@ function StageForeground({
   tally: ReactNode;
   notes: readonly string[];
   report: ReactNode;
+  /** The Seeker's role cards. The morning view draws them under its own report. */
+  seen: ReactNode;
   privateSurface: boolean;
   panel: ReactNode;
   kill: ReactNode;
@@ -590,6 +602,7 @@ function StageForeground({
             ))}
           </ul>
         ) : null}
+        {seen}
       </article>
     );
   }

@@ -194,6 +194,7 @@ describe('night resolution in the phase close (WW-802)', () => {
       { ability_id: 'infected_kill', status: 'ACTIVE', revoked_reason: null, available_from_round: 2, source: 'NATIVE' },
       { ability_id: 'seeker_investigate', status: 'REVOKED', revoked_reason: 'INFECTION', available_from_round: 1, source: 'NATIVE' },
       { ability_id: 'seeker_public_reveal', status: 'REVOKED', revoked_reason: 'INFECTION', available_from_round: 1, source: 'NATIVE' },
+      { ability_id: 'seeker_see_role', status: 'REVOKED', revoked_reason: 'INFECTION', available_from_round: 1, source: 'NATIVE' },
     ]);
 
     const conversion = await db.pool.query(`select round_number, from_role_id, to_role_id, from_faction, to_faction, reason from role_conversion_records where player_id = $1`, [target!.playerId]);

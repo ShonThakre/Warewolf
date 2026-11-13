@@ -3,7 +3,9 @@ import type { HostRoster, MyRole, OwnAbility } from '@warewolf/contracts';
 import type { GamePhase, GameStatus } from '@warewolf/domain';
 import { apiErrorOf, type ApiErrorInfo } from '../../api/api';
 import { useGetHostRosterQuery, useGetMyRoleQuery } from '../../api/game';
+import { useCallback, useEffect, useRef } from 'react';
 import { useSeat } from './lobby';
+import { usePrivateEvents } from './realtime';
 
 /**
  * Hooks and helpers for the reveal screen, the role modal, and the host
@@ -19,13 +21,31 @@ export interface MyRoleState {
   readonly refetch: () => void;
 }
 
+/** Private events that mean this seat's role just changed. */
+export const ROLE_CHANGE_EVENTS: readonly string[] = ['ROLE_CONVERTED', 'INFECTION_OCCURRED'];
+
 /**
  * The signed-in seat's own role, from GET /games/:gameId/me. Fetched fresh on
  * mount and on window focus, never restored from storage (ui-ux-plan.md, section 8).
+ *
+ * Pass the `stateVersion` from `useGameState` on screens that stay open across
+ * phases, such as the table: a role can change at night (infection, Cursed,
+ * a Vampire mark), so the hook refetches when the version moves and when the
+ * seat's own conversion event arrives.
  */
-export function useMyRole(): MyRoleState {
+export function useMyRole(stateVersion?: number): MyRoleState {
   const seat = useSeat();
   const query = useGetMyRoleQuery(seat?.gameId ?? skipToken, { refetchOnFocus: true });
+  const { refetch } = query;
+  const hasSeat = Boolean(seat);
+  const seen = useRef(stateVersion);
+  useEffect(() => {
+    if (stateVersion === undefined || seen.current === stateVersion) return;
+    seen.current = stateVersion;
+    if (hasSeat) void refetch();
+  }, [stateVersion, hasSeat, refetch]);
+  const onChange = useCallback(() => void refetch(), [refetch]);
+  usePrivateEvents(ROLE_CHANGE_EVENTS, stateVersion === undefined ? null : onChange);
   return {
     role: seat ? (query.data ?? null) : null,
     isLoading: query.isLoading,

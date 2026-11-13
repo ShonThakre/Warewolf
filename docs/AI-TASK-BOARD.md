@@ -169,6 +169,7 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 | GAP-04 | Play again clears the old seat (done). The unreachable Table play-again and cancelled stage are left for Cursor's next `Table.tsx` pass | Claude | COMPLETED | — |
 | GAP-05 | Stale copy: Lobby "Chat is not open in this version.", old Phase 11 comments | Cursor | COMPLETED | — |
 | GAP-06 | Connection indicator on the table (hook by Claude, visual by Cursor) | Claude + Cursor | READY | — |
+| PLAY-FIX-01 | Playtest fixes: the infected seat's role card and picture refresh without a reload; Seeker results always reach the table (socket events plus a delayed refetch after the night commit); Seeker gains a once-per-game role card (`seeker_see_role`, exclusive with the Wolf check). Files: `packages/domain/src/catalog/definitions/core.ts`, `packages/domain/test/*`, `apps/web/src/game/state/{realtime,role,tableNotes}.ts`, `apps/web/src/game/components/{actionCopy,tableNotes}.ts`, `apps/web/src/routes/Table.tsx`, web tests | Claude, then Cursor | REVIEW | — |
 | GAP-07 | Coverage: Servant `WITH_VAMPIRE` win was already tested (`victory.test.ts`); 10,000-game simulations for `classic-10`, `chaos-15`, `ultimate-20` | Claude | COMPLETED | — |
 | UX-11 | Voting matched to `09-voting.png` at 1586×992 | Cursor | COMPLETED | UX-10 |
 | UX-12 | Revote matched to `10-revote.png` at 1586×992 | Cursor | COMPLETED | UX-11 |
@@ -185,6 +186,16 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 ---
 
 ## Task details
+
+### PLAY-FIX-01 — Playtest fixes: infected role card, Seeker results, Seeker role card
+
+- **Agent:** Claude (engineering), Cursor (visual review)
+- **Status:** REVIEW
+- **Description:** Three playtest reports. (1) An infected player kept seeing their old role and picture: the server converted them, but `useMyRole` refetched only on focus. It now refetches when `stateVersion` moves and on the seat's own `ROLE_CONVERTED` / `INFECTION_OCCURRED` socket events, so `RoleCard` and the action panel portrait switch to Infected Wolf. The server already counts the infected seat as a wolf for the vote reveal, parity, and results (parity stays the wolf win). (2) Seeker results could go missing: night events are written just after the night commit, and a poll that landed in between fetched the report too early. The report now also refetches on the seat's private socket events, and once more 1.5 s after a phase change. (3) New Seeker ability `seeker_see_role`: once per game, see one player's current role card, in place of that night's Wolf check (`exclusiveGroup: 'seeker_choice'`, result `ROLE_ID`, lost on infection). New games only.
+- **Files:** `packages/domain/src/catalog/definitions/core.ts`; `packages/domain/test/{catalog,night,night-golden,simulate,victory}.test.ts`; `apps/web/src/game/state/{realtime,role,tableNotes}.ts`; `apps/web/src/game/components/{actionCopy,tableNotes}.ts`, `SeenRoleCards.tsx`, `table-screen.css` (`.ww-seen-role*`); `apps/web/src/routes/Table.tsx`; `apps/web/src/game/howto/howToPlayCopy.ts`; web tests `state/realtime`, `state/role`, `state/actions`, `screens/{table,table-notes,action-copy,action-panel}`; API tests `night.integration`, `modes.integration`.
+- **Tests:** `pnpm typecheck`, `pnpm test` (domain 414, web 410), `pnpm test:integration` (299). Two integration tests are already flaky on the random deal and not touched here: "lists the named players with their wolves, to the host only" fails when the host is dealt the Alpha, and "the Vampire marks a player…" fails when the host is the Vampire (the host copy doubles the count).
+- **Handoff to Cursor:** `SeenRoleCards` (`{ cards: readonly SeenRole[] }`, from `useTableNotes(...).seenRoles`) renders under the report on the table and in the morning card. It reuses `RolePortrait size="thumb"`, the catalog name, and the team word, with layout-only CSS on existing tokens. Please give it the final card look and check it at the seven viewports. The prompt label is "See a player's role card (once per game)".
+
 
 ### SETUP-INFECTION — Turning Infection on in an editable mode
 

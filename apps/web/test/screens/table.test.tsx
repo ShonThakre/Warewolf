@@ -689,4 +689,35 @@ describe('leaving role reveal', () => {
     expect(document.body.textContent).not.toContain('alpha_wolf');
     expect(document.body.textContent).not.toContain('Infected Wolf');
   });
+
+  it('shows the Seeker the role card it saw, in the morning (PLAY-FIX-01)', async () => {
+    const morning = gameStateFixture({ phase: 'DAY_ANNOUNCE', roundNumber: 2 });
+    const target = morning.players[1]!;
+    renderApp(`/game/${GAME}`, {
+      seat: host,
+      fetchFn: (async (input: RequestInfo | URL, init?: RequestInit) => {
+        const request = new Request(input, init);
+        const path = new URL(request.url).pathname;
+        if (path.endsWith('/events')) {
+          return json(200, {
+            events: [
+              {
+                seq: 1,
+                type: 'INVESTIGATION_RESULT',
+                audience: 'PLAYER',
+                payload: { roundNumber: 1, actionId: 'a1', kind: 'ROLE_ID', targetPlayerIds: [target.playerId], result: { value: 'alpha_wolf' } },
+              },
+            ],
+          });
+        }
+        if (path.endsWith('/state')) return json(200, morning);
+        if (path.endsWith('/me')) return json(200, ROLE_FIXTURES.seeker);
+        return json(404, { error: { code: 'NOT_FOUND', message: 'Not found.' } });
+      }) as typeof fetch,
+    });
+    const cards = await screen.findByRole('list', { name: 'Role cards you have seen' });
+    expect(cards.textContent).toContain(target.displayName);
+    expect(cards.textContent).toContain('Alpha Wolf');
+    expect(cards.textContent).toContain('Wolf');
+  });
 });

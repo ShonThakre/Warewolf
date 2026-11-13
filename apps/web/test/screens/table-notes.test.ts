@@ -1,6 +1,6 @@
 import type { GameEvent } from '@warewolf/contracts';
 import { describe, expect, it } from 'vitest';
-import { tableNote } from '../../src/game/components/tableNotes';
+import { seenRoles, tableNote } from '../../src/game/components/tableNotes';
 
 const you = '00000000-0000-4000-8000-000000000001';
 const other = '00000000-0000-4000-8000-000000000002';
@@ -73,5 +73,23 @@ describe('table notes', () => {
   it('states a public elimination with a catalog name', () => {
     expect(tableNote(event('PLAYER_ELIMINATED', { playerId: other, roleId: 'normal_villager' }), you, nameOf)).toBe('Rafi was eliminated. They were Villager.');
     expect(tableNote(event('PLAYER_ELIMINATED', { playerId: other, roleId: null }), you, nameOf)).toBe('Rafi was eliminated.');
+  });
+});
+
+describe('seen role cards (PLAY-FIX-01)', () => {
+  const card = (actionId: string, extra: Record<string, unknown> = {}) =>
+    event('INVESTIGATION_RESULT', { roundNumber: 2, actionId, kind: 'ROLE_ID', targetPlayerIds: [other], result: { value: 'infected_wolf' }, ...extra });
+
+  it('lists the seat own role card once, with the name and role, and words it on the table', () => {
+    const own = card('a1');
+    expect(seenRoles([own, own], you, nameOf)).toEqual([{ actionId: 'a1', round: 2, playerId: other, displayName: 'Rafi', roleId: 'infected_wolf' }]);
+    expect(tableNote(own, you, nameOf)).toBe('Rafi is Infected Wolf.');
+  });
+
+  it('leaves out a host copy of someone else, and the Wolf check', () => {
+    const hostCopy = card('a2', { actorPlayerId: other });
+    const check = event('INVESTIGATION_RESULT', { roundNumber: 1, actionId: 'a3', kind: 'ALIGNMENT_WOLF_OR_NOT', targetPlayerIds: [other], result: { value: 'WOLF' } });
+    expect(seenRoles([hostCopy, check], you, nameOf)).toEqual([]);
+    expect(seenRoles([card('a4', { actorPlayerId: you })], you, nameOf)).toHaveLength(1);
   });
 });

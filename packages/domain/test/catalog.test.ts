@@ -104,7 +104,7 @@ describe('role catalog', () => {
     const alpha = getProfile(role('alpha_wolf'))?.abilities ?? [];
     expect(alpha.map((a) => a.capability)).toEqual(['INFECT', 'KILL']);
     expect(alpha.every((a) => !a.lostOnInfection)).toBe(true);
-    expect(getProfile(role('seeker'))?.abilities.map((a) => a.capability)).toEqual(['INVESTIGATE', 'ROLE_REVEAL']);
+    expect(getProfile(role('seeker'))?.abilities.map((a) => a.capability)).toEqual(['INVESTIGATE', 'INVESTIGATE', 'ROLE_REVEAL']);
     expect(getProfile(role('normal_villager'))?.abilities).toEqual([]);
   });
 

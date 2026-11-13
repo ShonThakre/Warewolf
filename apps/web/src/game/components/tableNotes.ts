@@ -110,6 +110,38 @@ export function tableNote(event: GameEvent, youId: string, nameOf: NameOf): stri
   return null;
 }
 
+/** A role card the seat saw with the Seeker's once-per-game ability. */
+export interface SeenRole {
+  readonly actionId: string;
+  readonly round: number;
+  readonly playerId: string;
+  readonly displayName: string;
+  readonly roleId: string;
+}
+
+/**
+ * The seat's own `ROLE_ID` investigation results, one per action, oldest
+ * first. A host copy about someone else's action is left out, as on the table.
+ */
+export function seenRoles(events: readonly GameEvent[], youId: string, nameOf: NameOf): SeenRole[] {
+  const byAction = new Map<string, SeenRole>();
+  for (const event of events) {
+    if (event.type !== 'INVESTIGATION_RESULT') continue;
+    const payload = event.payload;
+    if (text(payload['actorPlayerId']) && payload['actorPlayerId'] !== youId) continue;
+    if (payload['kind'] !== 'ROLE_ID') continue;
+    const actionId = text(payload['actionId']);
+    const targets = payload['targetPlayerIds'];
+    const playerId = Array.isArray(targets) ? text(targets[0]) : null;
+    const result = isRecord(payload['result']) ? payload['result'] : {};
+    const roleId = text(result['value']);
+    if (!actionId || !playerId || !roleId || byAction.has(actionId)) continue;
+    const round = typeof payload['roundNumber'] === 'number' ? payload['roundNumber'] : 0;
+    byAction.set(actionId, { actionId, round, playerId, displayName: nameOf(playerId), roleId });
+  }
+  return [...byAction.values()].sort((a, b) => a.round - b.round);
+}
+
 function investigation(payload: Record<string, unknown>, nameOf: NameOf): string | null {
   const kind = text(payload['kind']);
   const result = isRecord(payload['result']) ? payload['result'] : {};

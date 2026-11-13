@@ -103,7 +103,7 @@ describe('nightAbilitiesForRound', () => {
   });
 
   it('keeps night abilities and leaves out day ones', () => {
-    expect(ids(ROLE_FIXTURES.seeker)).toEqual(['seeker_investigate']);
+    expect(ids(ROLE_FIXTURES.seeker)).toEqual(['seeker_investigate', 'seeker_see_role']);
     expect(ids(ROLE_FIXTURES.alphaWolf)).toEqual(['alpha_infect', 'alpha_kill']);
   });
 
@@ -119,11 +119,11 @@ describe('nightAbilitiesForRound', () => {
 
   it('honours a single allowed round and an expiry', () => {
     const once = ownRoleFixture('seeker', { abilities: { seeker_investigate: { onlyRound: 1 } } });
-    expect(ids(once, 1)).toEqual(['seeker_investigate']);
-    expect(ids(once, 2)).toEqual([]);
+    expect(ids(once, 1)).toEqual(['seeker_investigate', 'seeker_see_role']);
+    expect(ids(once, 2)).toEqual(['seeker_see_role']);
     const copied = ownRoleFixture('seeker', { abilities: { seeker_investigate: { expiresRound: 2 } } });
-    expect(ids(copied, 2)).toEqual(['seeker_investigate']);
-    expect(ids(copied, 3)).toEqual([]);
+    expect(ids(copied, 2)).toEqual(['seeker_investigate', 'seeker_see_role']);
+    expect(ids(copied, 3)).toEqual(['seeker_see_role']);
   });
 });
 

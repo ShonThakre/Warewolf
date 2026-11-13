@@ -44,6 +44,7 @@ describe('action fixtures and prompts', () => {
     const prompts = actionPrompts(role, myActionsFixture(role, { availability: { seeker_public_reveal: 'NOT_THIS_PHASE' } }));
     expect(prompts.map((p) => [p.abilityId, p.availability, p.ability.target.kind])).toEqual([
       ['seeker_investigate', 'OPEN', 'PLAYERS'],
+      ['seeker_see_role', 'OPEN', 'PLAYERS'],
       ['seeker_public_reveal', 'NOT_THIS_PHASE', 'OWN_RESULT'],
     ]);
     expect(actionPrompts(null, null)).toEqual([]);

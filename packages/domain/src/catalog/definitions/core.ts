@@ -81,7 +81,7 @@ export const infectedWolf: RoleDefinition = role({
 export const seeker: RoleDefinition = role({
   id: 'seeker',
   displayName: 'Seeker',
-  description: 'Learns whether one living player is a Wolf or a Non-Wolf.',
+  description: 'Learns whether one living player is a Wolf or a Non-Wolf. Once per game, may see one player\'s role card instead.',
   category: 'INVESTIGATION',
   defaultFaction: 'VILLAGE',
   implementationStatus: 'CONFIRMED',
@@ -93,6 +93,18 @@ export const seeker: RoleDefinition = role({
       result: 'ALIGNMENT_WOLF_OR_NOT',
       resultAudience: ['SELF', 'HOST'],
       decisionIds: ['OD-38'],
+      config: { exclusiveGroup: 'seeker_choice' },
+    }),
+    // Playtest request: once per game the Seeker sees the target's current role, in place of that night's Wolf check.
+    ability({
+      id: 'seeker_see_role',
+      capability: 'INVESTIGATE',
+      usesPerGame: 1,
+      target: players(),
+      result: 'ROLE_ID',
+      resultAudience: ['SELF', 'HOST'],
+      decisionIds: ['OD-38'],
+      config: { exclusiveGroup: 'seeker_choice' },
     }),
     ability({
       id: 'seeker_public_reveal',

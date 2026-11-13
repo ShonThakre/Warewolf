@@ -196,7 +196,7 @@ describe('night action panel', () => {
         role,
         myActionsFixture(role, {
           phase: 'NIGHT_HOST_CONFIRM',
-          availability: { seeker_investigate: 'NOT_THIS_PHASE', seeker_public_reveal: 'NOT_THIS_PHASE' },
+          availability: { seeker_investigate: 'NOT_THIS_PHASE', seeker_see_role: 'NOT_THIS_PHASE', seeker_public_reveal: 'NOT_THIS_PHASE' },
           chosen: { seeker_investigate: { targetPlayerIds: [fixturePlayerId(2)], status: 'LOCKED' } },
         }),
       ),

@@ -2434,3 +2434,39 @@
   min-width: 0;
   white-space: normal;
 }
+
+/* PLAY-FIX-01: the Seeker's once-per-game role cards. Layout only; visual polish is a Cursor handoff. */
+.ww-seen-roles {
+  display: grid;
+  gap: calc(var(--space) * 0.45);
+  width: min(100%, 44.5rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ww-seen-role {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--space) * 0.6);
+  padding: 0.55rem 0.7rem;
+  border-radius: calc(var(--radius) * 0.75);
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--border));
+  background: color-mix(in srgb, var(--surface-raised) 80%, transparent);
+}
+
+.ww-seen-role-text {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.ww-seen-role-player {
+  color: var(--text-muted);
+  font-size: var(--text-body);
+}
+
+.ww-seen-role-name {
+  font-size: var(--text-body);
+  font-weight: 800;
+}

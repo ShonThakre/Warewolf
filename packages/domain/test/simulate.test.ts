@@ -22,6 +22,13 @@ function exactRoleIds(value: unknown, found: Set<string>): void {
   }
 }
 
+/** The seat's own role, plus any role a Seeker was told by its once-per-game role card. */
+function toldRoleIds(view: SeatProjection): Set<string> {
+  const told = new Set([view.roleId]);
+  for (const result of view.ownResults) if (result.kind === 'ROLE_ID' && typeof result.value === 'string') told.add(result.value);
+  return told;
+}
+
 describe('seeded simulator (WW-1401)', () => {
   it('gives each bot only its own role', () => {
     const views: SeatProjection[] = [];
@@ -30,7 +37,8 @@ describe('seeded simulator (WW-1401)', () => {
     for (const view of views) {
       const found = new Set<string>();
       exactRoleIds(view, found);
-      expect([...found]).toEqual([view.roleId]);
+      expect(found.has(view.roleId)).toBe(true);
+      expect([...found].filter((id) => !toldRoleIds(view).has(id))).toEqual([]);
       if (view.window !== 'KILL') expect(view.killCandidates).toBeNull();
       const toldTheTarget = view.abilities.some((ability) => ability.config.target.kind === 'FINAL_WOLF_TARGET');
       if (!toldTheTarget) expect(view.finalWolfTarget).toBeUndefined();
@@ -64,7 +72,8 @@ describe('seeded simulator (WW-1401)', () => {
     for (const view of views) {
       const found = new Set<string>();
       exactRoleIds(view, found);
-      expect([...found]).toEqual([view.roleId]);
+      expect(found.has(view.roleId)).toBe(true);
+      expect([...found].filter((id) => !toldRoleIds(view).has(id))).toEqual([]);
     }
   }, 180_000);
 });
