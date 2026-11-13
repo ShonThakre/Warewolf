@@ -144,6 +144,10 @@ export function Home() {
           </div>
         ) : null}
       </div>
+      <p className="ww-home-developer">
+        <span className="ww-home-developer-label">Developed by</span>
+        <span className="ww-home-developer-name">Milind Somnathe</span>
+      </p>
       <CreateGameDialog open={createOpen} onClose={() => setCreateOpen(false)} />
       <JoinGameDialog open={joinOpen} onClose={() => setJoinOpen(false)} />
       <Dialog open={modesOpen} onClose={() => setModesOpen(false)} fullWidth maxWidth="xs" aria-labelledby="game-modes-title">

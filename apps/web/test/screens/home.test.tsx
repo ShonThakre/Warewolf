@@ -72,6 +72,8 @@ describe('home', () => {
     renderApp('/');
     expect(await screen.findByRole('heading', { level: 1, name: 'Werewolf' })).toBeTruthy();
     expect(screen.getByText('Infection Edition')).toBeTruthy();
+    expect(screen.getByText('Developed by')).toBeTruthy();
+    expect(screen.getByText('Milind Somnathe')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Create Game' })).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Join Game' })).toBeTruthy();
     const scene = document.querySelector('.ww-home');

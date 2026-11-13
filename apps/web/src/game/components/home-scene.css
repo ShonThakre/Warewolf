@@ -146,6 +146,53 @@
   line-height: 1.45;
 }
 
+/* Small credit tag pinned to the bottom of the page, over the scene. */
+.ww-home-developer {
+  position: absolute;
+  z-index: 1;
+  right: var(--space);
+  bottom: max(calc(var(--space) / 2), env(safe-area-inset-bottom));
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4em;
+  margin: 0;
+  padding: 0.2em 0.7em;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--surface) 72%, transparent);
+  color: var(--text-muted);
+  font-size: calc(var(--text-label) * 0.9);
+  font-weight: 700;
+  line-height: 1.2;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
+.ww-home-developer-label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.85em;
+}
+
+.ww-home-developer-name {
+  color: var(--text);
+  font-weight: 800;
+}
+
+/* Short landscape: the card fills the right side, so the tag moves left. */
+.ww-home[data-home='short'] .ww-home-developer {
+  right: auto;
+  left: var(--space);
+}
+
+/* Stacked (phone, portrait tablet): the page scrolls, so the tag ends the page. */
+.ww-home[data-home='stack'] .ww-home-developer {
+  position: static;
+  display: flex;
+  width: fit-content;
+  margin: 0 auto var(--phone-section-gap);
+}
+
 .ww-home-note {
   margin: 0;
   color: var(--text-muted);

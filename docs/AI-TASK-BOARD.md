@@ -182,10 +182,21 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 | UX-PHONE | Portrait phone screens matched to `*-phone.png` mockups (Phase 0 shared tokens/primitives, then Home→Results 01–12) | Claude | COMPLETED | UX-MOBILE |
 | SETUP-MODE | Setup: confirm before a mode or preset replaces edited roles, Custom starts from the current roles, edited-preset card with reset | Claude | COMPLETED | — |
 | SETUP-INFECTION | Setup: turning Infection on settles OD-03 inline, offers to seat an Alpha Wolf, and the summary shows each issue once in plain words | Claude | COMPLETED | SETUP-MODE |
+| HOME-DEV | Home screen developer tag: Milind Somnathe | Cursor | COMPLETED | — |
 
 ---
 
 ## Task details
+
+### HOME-DEV — Home developer tag
+
+- **Agent:** Cursor
+- **Status:** COMPLETED
+- **Description:** Small "Developed by · Milind Somnathe" tag at the bottom of the home page, outside the card: bottom-right over the scene on desktop, bottom-left in short landscape, centered at the end of the page when stacked (phone). Label and placement changed by Claude at user request; checked in Chrome at 1440×900, 844×390, and 390×844. Uses existing border/surface/text tokens; sits under resume so it does not compete with the brand or Infection Edition badge.
+- **Files:** `apps/web/src/routes/Home.tsx`, `apps/web/src/game/components/home-scene.css`, `apps/web/test/screens/home.test.tsx`, `docs/AI-TASK-BOARD.md`.
+- **Tests:** `pnpm --filter @warewolf/web exec vitest run test/screens/home.test.tsx` (5 passed).
+
+---
 
 ### PLAY-FIX-01 — Playtest fixes: infected role card, Seeker results, Seeker role card
 
