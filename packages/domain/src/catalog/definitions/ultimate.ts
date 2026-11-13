@@ -39,7 +39,7 @@ export const vampire: RoleDefinition = role({
   id: 'vampire',
   displayName: 'Vampire',
   description:
-    'Each night the Vampire team chooses one living player and either kills or marks them, not both. A mark stays secret. If that player is alive at dawn after the next night, they become a Vampire Servant.',
+    'Each night the Vampire team chooses one living player and either kills or marks them, not both. A marked player who is alive at dawn becomes a Vampire Servant in secret.',
   category: 'NEUTRAL',
   defaultFaction: 'NEUTRAL',
   implementationStatus: 'CONFIRMED',

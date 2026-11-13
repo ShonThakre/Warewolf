@@ -142,6 +142,25 @@ describe('night action panel', () => {
     expect(seatButton('Asha').disabled).toBe(false);
   });
 
+  it('keeps the Witch potion in use pressed and marks a potion already sent', async () => {
+    const role = ownRoleFixture('witch', { seat: 6 });
+    const kofi = fixturePlayerId(2);
+    renderApp(`/game/${GAME}`, { seat: seatFor(role), fetchFn: nightFetch(role, myActionsFixture(role, { chosen: { witch_save: { targetPlayerIds: [kofi] } } })) });
+
+    const save = await screen.findByRole('button', { name: /^Save this player/ });
+    await waitFor(() => expect(save.textContent).toBe('Save this player, sent'));
+    const poison = screen.getByRole('button', { name: 'Choose a player to poison' });
+    expect(save.getAttribute('aria-pressed')).toBe('true');
+    expect(save.getAttribute('data-sent')).toBe('true');
+    expect(poison.getAttribute('aria-pressed')).toBe('false');
+    expect(poison.hasAttribute('data-sent')).toBe(false);
+
+    fireEvent.click(poison);
+    expect(poison.getAttribute('aria-pressed')).toBe('true');
+    expect(save.getAttribute('aria-pressed')).toBe('false');
+    expect(save.getAttribute('data-sent')).toBe('true');
+  });
+
   it('hides a passive row and submits an announced save with no player', async () => {
     const role = ROLE_FIXTURES.doctor;
     const posts: { targetPlayerIds: string[]; payload: Record<string, string> }[] = [];

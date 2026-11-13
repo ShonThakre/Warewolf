@@ -514,7 +514,7 @@ Classic mode needs a basic wolf. The numbered list has Alpha and Infected Wolf, 
 
 **Decided 12 November 2026: accepted as built.**
 
-**Confirmed that both potions can be used the same night.** Recommendation: they may name the same player or two players. Save cancels a wolf kill on that player. Poison schedules poison. Using both on the same player can cancel the wolf kill and still poison them.
+**Confirmed that both potions can be used the same night.** Recommendation: they may name the same player or two players. Save cancels a wolf kill, a Vampire kill, or a Sniper shot on that player (widened 13 November 2026). Poison schedules poison. Using both on the same player can cancel the wolf kill and still poison them.
 
 ### OD-50 Individual and team wins together
 

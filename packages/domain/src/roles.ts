@@ -26,7 +26,7 @@ export const CAPABILITIES = [
   'MODIFY_VOTING',
   'TEAM_SUPPORT',
   // Ultimate 20 (docs/werewolf/ultimate-20-rules.md).
-  /** Vampire: mark a player who converts to a Servant two nights later. */
+  /** Vampire: mark a player who converts to a Servant at dawn of the same night. */
   'CONVERT',
   /** Time Wizard: undo every action one player took tonight. */
   'REWIND',

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { chaosSuccessCount, drawChaos, getPack, rememberChaosKind, type NightAbility, type NightEffect } from '../src/index.js';
+import { DEFAULT_CATALOG, chaosSuccessCount, drawChaos, getPack, nightShields, rememberChaosKind, type NightAbility, type NightEffect } from '../src/index.js';
 import { act, deaths, night, statusOf, table, type Seat, update, withAbility } from './support/night.js';
 
 const config = getPack('ultimate-20')!.config;
@@ -133,46 +133,72 @@ describe('Ultimate 20 night', () => {
     expect(deaths(all)).toEqual(['shadow']);
   });
 
-  it('promotes a mark at dawn after the next night, and cancels it when someone dies or the target is a wolf', () => {
+  it('promotes a mark at dawn of the same night, and not when someone dies or the target is a wolf', () => {
     const t = table(core);
-    const placed = night(t, [act('vampire', 'vampire_mark', ['alchemist'])], { config });
-    expect(placed.conversions).toEqual([]);
-    expect(placed.newEffects).toEqual([expect.objectContaining({ kind: 'VAMPIRE_MARK', targetPlayerId: 'alchemist', dueRound: 2 })]);
-    expect(placed.publicFacts.deaths).toEqual([]);
+    const marked = night(t, [act('vampire', 'vampire_mark', ['alchemist'])], { config });
+    expect(marked.conversions[0]).toMatchObject({ playerId: 'alchemist', toRoleId: 'vampire_servant', fromRoleId: 'alchemist', cause: 'VAMPIRE' });
+    expect(marked.grants.map((grant) => grant.abilityId).sort()).toEqual(['servant_kill', 'servant_mark']);
+    expect(marked.grants.every((grant) => grant.availableFromRound === 2)).toBe(true);
+    expect(marked.abilityUpdates.filter((row) => row.abilityInstanceId.startsWith('alchemist:')).every((row) => row.patch.status === 'REVOKED')).toBe(true);
+    expect(marked.grants.some((grant) => grant.abilityId === 'infected_kill')).toBe(false);
+    expect(marked.newEffects.some((effect) => effect.kind === 'VAMPIRE_MARK')).toBe(false);
+    expect(marked.publicFacts.deaths).toEqual([]);
 
+    const killed = night(t, [act('vampire', 'vampire_mark', ['alchemist']), act('alpha', 'alpha_u20_kill', ['alchemist'])], { config });
+    expect(killed.conversions).toEqual([]);
+    expect(deaths(killed)).toEqual(['alchemist']);
+
+    const vampireKilled = night(t, [act('vampire', 'vampire_mark', ['alchemist']), act('alpha', 'alpha_u20_kill', ['vampire'])], { config });
+    expect(vampireKilled.conversions).toEqual([]);
+
+    const wolf = night(t, [act('vampire', 'vampire_mark', ['shadow'])], { config });
+    expect(wolf.conversions).toEqual([]);
+  });
+
+  it('lets the Alpha infection win over a Vampire mark on the same player', () => {
+    const both = night(table(core), [act('vampire', 'vampire_mark', ['v1']), act('alpha', 'alpha_u20_infect', ['v1'])], { config });
+    expect(both.conversions.filter((row) => row.playerId === 'v1').map((row) => row.cause)).toEqual(['INFECTION']);
+  });
+
+  it('still promotes a mark stored before same-night promotion, and expires it when someone died', () => {
+    const t = table(core);
     const due = night(t, [], { config, round: 2, effects: [mark('alchemist')] });
-    expect(due.conversions[0]).toMatchObject({ playerId: 'alchemist', toRoleId: 'vampire_servant', fromRoleId: 'alchemist', cause: 'VAMPIRE' });
-    expect(due.grants.map((grant) => grant.abilityId).sort()).toEqual(['servant_kill', 'servant_mark']);
-    expect(due.grants.every((grant) => grant.availableFromRound === 3)).toBe(true);
-    expect(due.abilityUpdates.filter((row) => row.abilityInstanceId.startsWith('alchemist:')).every((row) => row.patch.status === 'REVOKED')).toBe(true);
-    expect(due.grants.some((grant) => grant.abilityId === 'infected_kill')).toBe(false);
-
-    const sameNight = night(t, [act('vampire', 'vampire_mark', ['alchemist']), act('alpha', 'alpha_u20_kill', ['alchemist'])], { config });
-    expect(sameNight.newEffects.some((effect) => effect.kind === 'VAMPIRE_MARK')).toBe(false);
-    expect(deaths(sameNight)).toEqual(['alchemist']);
+    expect(due.conversions[0]).toMatchObject({ playerId: 'alchemist', toRoleId: 'vampire_servant', cause: 'VAMPIRE' });
+    expect(due.closedEffects).toEqual([{ effectId: 'mark-alchemist', status: 'SPENT' }]);
 
     const killed = night(t, [act('alpha', 'alpha_u20_kill', ['alchemist'])], { config, round: 2, effects: [mark('alchemist')] });
     expect(killed.conversions).toEqual([]);
     expect(killed.closedEffects).toEqual([{ effectId: 'mark-alchemist', status: 'EXPIRED' }]);
 
     const deadVampire = night(table(core, { dead: ['vampire'] }), [], { config, round: 2, effects: [mark('alchemist')] });
-    expect(deadVampire.conversions).toEqual([]);
     expect(deadVampire.closedEffects).toEqual([{ effectId: 'mark-alchemist', status: 'EXPIRED' }]);
 
     const wolf = night(t, [], { config, round: 2, effects: [mark('alpha')] });
     expect(wolf.closedEffects).toEqual([{ effectId: 'mark-alpha', status: 'EXPIRED' }]);
   });
 
+  it('lets the Witch save cancel a Vampire kill, and shield against the next day\'s Sniper shot', () => {
+    const t = table([...core, { id: 'witch', roleId: 'witch' }]);
+    const saved = night(t, [act('vampire', 'vampire_kill', ['v1']), act('witch', 'witch_save', ['v1'])], { config });
+    expect(deaths(saved)).toEqual([]);
+    const unsaved = night(t, [act('vampire', 'vampire_kill', ['v1'])], { config });
+    expect(deaths(unsaved)).toEqual(['v1']);
+
+    const save = DEFAULT_CATALOG.byId.get('witch')!.profiles['witch']!.abilities.find((a) => a.id === 'witch_save')!;
+    expect(save.cancels).toEqual(['WOLF_KILL', 'VAMPIRE', 'SNIPER']);
+    expect([...nightShields([{ cancels: save.cancels!, targetPlayerIds: ['v1'], onFinalWolfTarget: false }], null)]).toEqual(['v1']);
+  });
+
   it('lets the Vampire team choose kill or mark, and not both', () => {
     const t = table([...core, { id: 'servant', roleId: 'vampire_servant' }]);
     const marked = night(t, [act('vampire', 'vampire_mark', ['v1']), act('servant', 'servant_kill', ['fox'])], { config });
     expect(deaths(marked)).toEqual([]);
-    expect(marked.newEffects).toEqual([expect.objectContaining({ kind: 'VAMPIRE_MARK', targetPlayerId: 'v1' })]);
+    expect(marked.conversions).toEqual([expect.objectContaining({ playerId: 'v1', cause: 'VAMPIRE' })]);
     expect(statusOf(marked, marked.actions.find((action) => action.reason === 'SUPERSEDED')!.actionId)?.reason).toBe('SUPERSEDED');
 
     const killed = night(t, [act('servant', 'servant_kill', ['fox'])], { config });
     expect(deaths(killed)).toEqual(['fox']);
-    expect(killed.newEffects.some((effect) => effect.kind === 'VAMPIRE_MARK')).toBe(false);
+    expect(killed.conversions).toEqual([]);
 
     const both = act('vampire', 'vampire_mark', ['v1']);
     const later = act('vampire', 'vampire_kill', ['fox']);
@@ -183,7 +209,7 @@ describe('Ultimate 20 night', () => {
     const servants = table([...core, { id: 'a-servant', roleId: 'vampire_servant' }, { id: 'b-servant', roleId: 'vampire_servant' }]);
     const disagreed = night(servants, [act('b-servant', 'servant_kill', ['fox']), act('a-servant', 'servant_mark', ['v1'])], { config });
     expect(deaths(disagreed)).toEqual([]);
-    expect(disagreed.newEffects).toEqual([expect.objectContaining({ kind: 'VAMPIRE_MARK', sourcePlayerId: 'a-servant' })]);
+    expect(disagreed.conversions).toEqual([expect.objectContaining({ playerId: 'v1', cause: 'VAMPIRE' })]);
 
     const healed = night(t, [act('vampire', 'vampire_kill', ['v1']), act('alchemist', 'alchemist_heal', ['v1'])], { config });
     expect(deaths(healed)).toEqual([]);

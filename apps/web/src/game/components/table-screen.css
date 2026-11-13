@@ -247,6 +247,25 @@
   padding: 0;
 }
 
+/* The ability or question in use stays highlighted, like a picked seat. */
+.ww-prompts .MuiButton-root[aria-pressed='true'] {
+  outline: 2px solid var(--primary);
+  outline-offset: 0;
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 18%, var(--surface));
+  color: var(--text);
+}
+
+/* A choice already sent for that ability. */
+.ww-prompts .MuiButton-root[data-sent='true'] {
+  gap: 0.4em;
+}
+
+.ww-prompt-sent {
+  flex: 0 0 auto;
+  color: var(--accent);
+}
+
 .ww-action-alert {
   width: 100%;
   margin: 0;
@@ -384,6 +403,12 @@
   min-width: 0;
   height: auto;
   line-height: 1.2;
+}
+
+.ww-kill-candidates .MuiButton-root[aria-pressed='true'] {
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+  background: color-mix(in srgb, var(--primary) 16%, var(--surface));
 }
 
 .ww-kill-name {

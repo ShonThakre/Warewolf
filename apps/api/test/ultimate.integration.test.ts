@@ -124,7 +124,7 @@ describe('Ultimate 20', () => {
     await submit(ghost, { abilityInstanceId: hint, targetPlayerIds: [], payload: { hint: 'listen for the quiet one' } }).expect(200);
   });
 
-  it('promotes a Vampire mark at dawn after the next night and keeps it private', async () => {
+  it('promotes a Vampire mark at dawn of the same night and keeps it private', async () => {
     const created = await api().post('/api/v1/games').send({ displayName: 'Host', mode: 'ULTIMATE_20' }).expect(201);
     const host = seatCredentialsSchema.parse(created.body);
     const seats = [host];
@@ -157,19 +157,8 @@ describe('Ultimate 20', () => {
     await submit(vampire, { abilityInstanceId: mark.rows[0]!.id, targetPlayerIds: [villager.playerId] }).expect(200);
     await close(host);
 
-    const pending = await db.pool.query<{ current_role_id: string; due_round: number }>(
-      `select a.current_role_id, e.due_round from role_assignments a
-       join scheduled_effects e on e.target_player_id = a.player_id
-       where a.player_id = $1 and e.kind = 'VAMPIRE_MARK' and e.status = 'ACTIVE'`,
-      [villager.playerId],
-    );
-    expect(pending.rows[0]).toMatchObject({ current_role_id: 'normal_villager', due_round: 2 });
-    const stillVillager = myRoleSchema.parse((await api().get(`/api/v1/games/${host.gameId}/me`).set(bearer(villager)).expect(200)).body);
-    expect(stillVillager.currentRole.id).toBe('normal_villager');
-    expect(stillVillager.teammates).toEqual([]);
-
-    await closeUntil(host, 'NIGHT_SUBMIT');
-    await close(host);
+    const scheduled = await db.pool.query(`select id from scheduled_effects where target_player_id = $1 and kind = 'VAMPIRE_MARK'`, [villager.playerId]);
+    expect(scheduled.rows).toEqual([]);
 
     const promoted = myRoleSchema.parse((await api().get(`/api/v1/games/${host.gameId}/me`).set(bearer(villager)).expect(200)).body);
     expect(promoted.originalRole.id).toBe('normal_villager');

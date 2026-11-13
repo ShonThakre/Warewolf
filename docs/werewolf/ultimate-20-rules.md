@@ -44,7 +44,7 @@ Exactly 20 players: the 15 special roles below and 5 Villagers.
 ### Vampire Servant, from the guide image
 
 - The Vampire marks a player at night. Until promotion, the target stays on their original team, does not know they were marked, and plays normally.
-- Example: the Vampire marks Player 7 on Night 1. Player 7 is still an ordinary Villager after Night 1. If Player 7 is alive through Night 2, they become a Servant at dawn after Night 2. A death before promotion cancels the mark.
+- Example: the Vampire marks Player 7 on Night 1. If Player 7 and the Vampire are alive at dawn after Night 1, Player 7 becomes a Servant then, the same way the Alpha's infection lands. A death that night cancels the mark. (Changed 13 November 2026 at the owner's request: the guide image promoted at dawn after the next night.)
 - The host tells that player privately. The promoted player learns the Vampire's identity. The Vampire and the Servants know one another and can coordinate privately.
 - After promotion, the player joins the Vampire team. At night the team chooses one target and one action: kill or mark. Not both.
 - During the day a Servant may speak, bluff, lie, vote, and cast suspicion like an ordinary Village player. The promotion is not announced.
@@ -80,7 +80,7 @@ That list is the host's wake-up order. Resolution order is a separate choice, be
 
 The pack id is `ultimate-20`. The host cannot edit the roster or the locked rules. `resolveNight` applies one deterministic order after the window closes: exclusive groups, Time Wizard rewind, blocks, Chaos, the Vampire team's one action, information, attacks, protection, heals, deaths, infection, due marks, copies, silence, revival, and hints. The same actions in another order produce the same result.
 
-- A mark placed on Night N promotes at the end of Night N+1, which is dawn after the next night. Night N itself does not promote. If the Vampire or the target is dead, or the target was converted or is already on the Vampire team or in the wolf pack, the mark expires.
+- A mark placed on Night N promotes at dawn of Night N, after deaths and infection. If the Vampire or the target is dead, or the target was converted that night (an Alpha infection wins) or is already on the Vampire team or in the wolf pack, nothing happens. A `VAMPIRE_MARK` effect stored by an older build still promotes when due.
 - The Vampire's own kill or mark wins if they submitted one. Otherwise the lowest player id on the team wins. Other team submissions are superseded. One player cannot submit both; the later submission replaces the earlier one.
 - Promotion revokes abilities that infection would take, and copied abilities. It does not grant a wolf kill. It grants the Servant's team kill and team mark for the next night. Abilities with `lostOnInfection: false` stay. That is the current OD-79 behavior, not an image rule.
 - The promoted player and the other living Vampire-team members receive private events. The host receives the same facts. No public event names the mark or the promotion. `GET /me` lists living teammates only for a Vampire or a Servant. Wolves still do not know each other.

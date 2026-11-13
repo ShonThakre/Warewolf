@@ -569,36 +569,32 @@ export function resolveNight(input: NightInput): NightResult {
     convert(playerId, 'CURSED');
   }
 
-  // A mark is placed only when both are alive at dawn. It promotes at dawn after the next night.
-  for (const mark of of('CONVERT')) {
-    const targetId = mark.action.targetPlayerIds[0]!;
-    if (!aliveAfter(mark.action.playerId) || !aliveAfter(targetId)) continue;
-    newEffects.push({
-      kind: 'VAMPIRE_MARK',
-      sourcePlayerId: mark.action.playerId,
-      sourceAbilityInstanceId: mark.ability.id,
-      targetPlayerId: targetId,
-      createdRound: round,
-      dueRound: round + 1,
-      duePhase: 'NIGHT',
-      attackTypes: [],
-    });
-  }
-  for (const effect of effects) {
-    if (effect.kind !== 'VAMPIRE_MARK' || effect.dueRound === null || effect.dueRound > round) continue;
-    const target = assignment.get(effect.targetPlayerId);
+  // A mark promotes at dawn of the same night, like the Alpha's infection, when the Vampire and the
+  // target are both alive. Infection runs first, so a target infected tonight stays a wolf.
+  const vampireReady = (sourceId: PlayerId, targetId: PlayerId) => {
+    const target = assignment.get(targetId);
     const onTeam = target?.currentRoleId === 'vampire' || target?.currentRoleId === 'vampire_servant';
-    const ready = !!target && aliveAfter(effect.sourcePlayerId) && aliveAfter(effect.targetPlayerId) && !converted.has(effect.targetPlayerId) && target.currentFaction !== 'WOLF_PACK' && !onTeam;
-    if (!ready || !target) {
-      closedEffects.set(effect.id, 'EXPIRED');
-      continue;
-    }
-    const result = convertToVampireServant(input, catalog, effect.targetPlayerId, target);
+    const ready = !!target && aliveAfter(sourceId) && aliveAfter(targetId) && !converted.has(targetId) && target.currentFaction !== 'WOLF_PACK' && !onTeam;
+    return ready ? target : null;
+  };
+  const promote = (targetId: PlayerId, target: NightAssignment) => {
+    const result = convertToVampireServant(input, catalog, targetId, target);
     conversions.push(result.conversion);
     grants.push(...result.grants);
     revocations.push(...result.revocations);
-    converted.add(effect.targetPlayerId);
-    closedEffects.set(effect.id, 'SPENT');
+    converted.add(targetId);
+  };
+  for (const mark of of('CONVERT')) {
+    const targetId = mark.action.targetPlayerIds[0]!;
+    const target = vampireReady(mark.action.playerId, targetId);
+    if (target) promote(targetId, target);
+  }
+  // A mark stored before same-night promotion still promotes when due.
+  for (const effect of effects) {
+    if (effect.kind !== 'VAMPIRE_MARK' || effect.dueRound === null || effect.dueRound > round) continue;
+    const target = vampireReady(effect.sourcePlayerId, effect.targetPlayerId);
+    if (target) promote(effect.targetPlayerId, target);
+    closedEffects.set(effect.id, target ? 'SPENT' : 'EXPIRED');
   }
 
   // Step 18 runs here for accepted actions, because inheritance below hands over the charges a

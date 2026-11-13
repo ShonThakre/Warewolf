@@ -4,6 +4,7 @@ import { Button, TextField } from '@mui/material';
 import { useState } from 'react';
 import type { ActionPrompt } from '../state/actions';
 import { availabilitySentence, exclusiveNote, promptLabel, questionLabel, shownPrompt } from './actionCopy';
+import { GameIcon } from './GameIcon';
 import { RolePortrait } from './RolePortrait';
 
 /**
@@ -87,11 +88,24 @@ export function NightActionPanel({
             const locked = prompt.action?.status === 'LOCKED';
             const editable = prompt.availability === 'OPEN' && !locked;
             const why = locked ? 'Submitted' : availabilitySentence(prompt.availability);
+            // A choice already sent for this ability stays marked while another one is open.
+            const sent = prompt.action?.status === 'PENDING';
             return (
               <li key={prompt.abilityInstanceId}>
                 {editable ? (
-                  <Button variant="outlined" aria-pressed={prompt.abilityInstanceId === active?.abilityInstanceId} onClick={() => onActivate(prompt.abilityInstanceId)}>
+                  <Button
+                    variant="outlined"
+                    aria-pressed={prompt.abilityInstanceId === active?.abilityInstanceId}
+                    data-sent={sent ? 'true' : undefined}
+                    onClick={() => onActivate(prompt.abilityInstanceId)}
+                  >
                     {sentence}
+                    {sent ? (
+                      <>
+                        <GameIcon className="ww-prompt-sent" name="check" size={16} />
+                        <span className="ww-sr">, sent</span>
+                      </>
+                    ) : null}
                   </Button>
                 ) : (
                   <p className="ww-action-copy">

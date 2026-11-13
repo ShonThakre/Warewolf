@@ -183,6 +183,7 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 | SETUP-MODE | Setup: confirm before a mode or preset replaces edited roles, Custom starts from the current roles, edited-preset card with reset | Claude | COMPLETED | — |
 | SETUP-INFECTION | Setup: turning Infection on settles OD-03 inline, offers to seat an Alpha Wolf, and the summary shows each issue once in plain words | Claude | COMPLETED | SETUP-MODE |
 | HOME-DEV | Home screen developer tag: Milind Somnathe | Cursor | COMPLETED | — |
+| PLAY-FIX-02 | Playtest fixes: Vampire mark converts the same night, Witch save cancels Vampire and Sniper kills, selected ability highlighted | Claude | REVIEW | PLAY-FIX-01 |
 
 ---
 
@@ -197,6 +198,16 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 - **Tests:** `pnpm --filter @warewolf/web exec vitest run test/screens/home.test.tsx` (5 passed).
 
 ---
+
+### PLAY-FIX-02 — Playtest fixes: Vampire timing, Witch save, selected option
+
+- **Agent:** Claude (engineering and the highlight, at user request), Cursor (visual review)
+- **Status:** REVIEW
+- **Description:** (1) A Vampire mark converts the target to a Vampire Servant at dawn of the same night, like the Alpha's infection, if both are alive (user decision, changes the guide-image two-night rule). Stored marks from running games still promote through the due-effect loop. (2) `witch_save` cancels `WOLF_KILL`, `VAMPIRE`, and `SNIPER` (not poison, not infection). New games only: the config is copied at the deal. (3) The ability switch and question buttons, and the table kill candidates, show the pressed state; an ability whose choice is already sent shows a check.
+- **Files:** `packages/domain/src/night/resolve.ts`, `packages/domain/src/catalog/definitions/{core,ultimate}.ts`, `packages/domain/src/roles.ts`, `packages/domain/test/{night-ultimate,night-golden}.test.ts`, `apps/api/test/ultimate.integration.test.ts`, `apps/web/src/game/components/{NightActionPanel.tsx,table-screen.css}`, `apps/web/test/screens/action-panel.test.tsx`, `docs/werewolf/{ultimate-20-rules,role-catalog,open-decisions}.md`, `docs/AI-TASK-BOARD.md`.
+- **Interfaces:** No contract, API, or client state change. `resolveNight` no longer creates `VAMPIRE_MARK` effects; it returns the `VAMPIRE` conversion in the same result, so the existing `ROLE_CONVERTED` and `VAMPIRE_TEAM_JOIN` events fire at that dawn. `NightActionPanel` switch buttons carry `data-sent="true"` plus a check icon and ", sent" for screen readers when their choice is pending.
+- **Tests:** `pnpm typecheck`; domain 417/417; web 411/411; `pnpm test:integration` 299/299. Chrome with mocked API at 1440×900, 844×390, 390×844: the potion in use is filled purple, a sent potion keeps a gold check.
+- **Handoff to Cursor:** Please review the pressed (`.ww-prompts .MuiButton-root[aria-pressed='true']`), sent (`.ww-prompt-sent`), and table kill-candidate pressed styles in `table-screen.css`. Separate, older issue seen during the check: at 844×390 the night action dock covers most of the seat grid.
 
 ### PLAY-FIX-01 — Playtest fixes: infected role card, Seeker results, Seeker role card
 

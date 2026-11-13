@@ -206,7 +206,8 @@ export const witch: RoleDefinition = role({
     ability({
       id: 'witch_save',
       capability: 'HEAL',
-      cancels: ['WOLF_KILL'],
+      // Every night kill except her own poison. Infection is not a kill and is not stopped.
+      cancels: ['WOLF_KILL', 'VAMPIRE', 'SNIPER'],
       usesPerGame: 1,
       target: players({ self: true }),
       resultAudience: ['SELF', 'HOST'],

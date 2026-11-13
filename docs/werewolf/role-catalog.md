@@ -220,7 +220,7 @@ The Doctor may save themselves in Infection Edition. The private delivery of the
 
 | Ability | Capability | Charges |
 |---|---|---|
-| `witch_save` | HEAL, cancels `WOLF_KILL` | 1 per game |
+| `witch_save` | HEAL, cancels `WOLF_KILL`, `VAMPIRE`, and `SNIPER` (not poison or infection) | 1 per game |
 | `witch_poison` | POISON | 1 per game |
 
 Both may be used on one night. Targets are any eligible living players, including self for the save. The Witch is not told the final wolf target. Unused charges are revoked on infection and are not transferred. Poison timing follows OD-28.

@@ -79,7 +79,7 @@ const MODE_TEXT: Readonly<Record<GameMode, { summary: string; points: readonly s
     summary: 'Twenty seats, fifteen special roles, and several goals running at once.',
     points: [
       'The Alpha Wolf can kill or infect each night. The Shadow Wolf cancels someone’s power.',
-      'The Vampire marks players who later join the Vampire team in secret.',
+      'The Vampire marks players, who join the Vampire team in secret at dawn.',
       'Watch for the Joker, the Fox, the Necromancer, and the Chaos Demon: each wins their own way.',
       'A Ghost who is eliminated can leave the room one hint.',
     ],
