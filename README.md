@@ -70,7 +70,7 @@ Keep the service at one instance. Phase deadlines are in-process timers and Sock
 
 To try the same image locally: `docker build -t warewolf .`, then run it with `-p 3000:3000 -e DATABASE_URL=...`. `compose.prod.yaml`, the two-container nginx stack, still works as before.
 
-The Blueprint sets `CORS_ORIGINS=https://localhost` so the Android APK, whose WebView has that origin, may call the API. If the service was created before that line, add the variable under the service's **Environment** in the dashboard.
+The Blueprint sets `CORS_ORIGINS=https://localhost` for APKs built before APK-01, which ran a bundled copy of the client from that origin. Current APKs load the site itself and need no CORS entry.
 
 ## Playing full screen on a phone
 
@@ -83,14 +83,13 @@ Rotation stays free (OD-71). Icons come from `art/ui/app_icon.png`; `sh apps/web
 
 ## Android debug APK
 
-The APK is the same web client in a WebView (OD-71). A phone cannot reach `localhost` on your computer, so the build names the API by its address on your network.
+The APK is the same web client in a WebView (OD-71). It opens the deployed site, `https://warewolf-hi18.onrender.com` (APK-01), so **every Render deploy reaches installed apps the next time they open; there is no new APK to install.** Rebuild the APK only for native changes: the launcher icon, permissions, Capacitor plugins, or `apps/web/capacitor.config.ts`. When the site cannot load (no network, or the free server is waking up), the app shows a bundled offline page that retries on its own.
 
 1. Tools, once: `brew install openjdk@21` and `brew install --cask android-commandlinetools`, then `sdkmanager "platform-tools" "platforms;android-36" "build-tools;36.0.0"` and `yes | sdkmanager --licenses`. Put `sdk.dir=/opt/homebrew/share/android-commandlinetools` in `apps/web/android/local.properties` (ignored by git).
-2. Start the API so the WebView may call it: `CORS_ORIGINS=http://localhost pnpm dev:api` for a LAN debug build, or `https://localhost` when the API is served over HTTPS.
-3. Build: `JAVA_HOME=/opt/homebrew/opt/openjdk@21 VITE_API_ORIGIN=http://<your-lan-ip>:3000 pnpm --filter @warewolf/web android:apk`.
-4. Install with `adb install -r apps/web/android/app/build/outputs/apk/debug/app-debug.apk`, or copy the file to the phone.
+2. Build: `JAVA_HOME=/opt/homebrew/opt/openjdk@21 pnpm --filter @warewolf/web android:apk`.
+3. Install with `adb install -r apps/web/android/app/build/outputs/apk/debug/app-debug.apk`, or copy the file to the phone. Installing over an older APK keeps the saved seat.
 
-To build an APK that plays against the deployed game from anywhere, use the Render origin instead, with no API to start: `JAVA_HOME=/opt/homebrew/opt/openjdk@21 VITE_API_ORIGIN=https://warewolf-hi18.onrender.com pnpm --filter @warewolf/web android:apk`. Build it from the commit Render runs, so the client and the API match. The WebView origin is then `https://localhost`, which `render.yaml` lists in `CORS_ORIGINS`.
+To point a debug APK at your own machine instead, start the API (`pnpm dev:api`) and the web dev server on your network (`pnpm --filter @warewolf/web dev --host`), then build with `CAP_SERVER_URL=http://<your-lan-ip>:5173`. The dev server proxies `/api` and Socket.IO, so the page and the API share one origin and need no CORS setting, and edits show up when the app reloads.
 
 Plain HTTP works only in debug builds. A release build needs an `https://` origin and a keystore kept outside the repository.
 

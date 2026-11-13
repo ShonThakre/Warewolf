@@ -18,9 +18,9 @@ services:
     autoDeployTrigger: commit
     healthCheckPath: /api/v1/health/ready
     envVars:
-      # The Android APK's WebView origin (WW-1605). An https API origin keeps
-      # Capacitor's default https://localhost scheme. The browser client is
-      # same-origin and needs no entry.
+      # WebView origin of APKs built before APK-01, which bundled the client
+      # and served it from https://localhost. Current APKs load this site
+      # itself (same origin) and need no entry. Remove once old APKs are gone.
       - key: CORS_ORIGINS
         value: https://localhost
       - key: DATABASE_URL

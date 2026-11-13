@@ -2,13 +2,13 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import config from '../../capacitor.config';
+import config, { LIVE_SITE_URL } from '../../capacitor.config';
 
 /**
- * WW-1601, OD-71: the APK is the same Vite client in a WebView. These checks
- * keep the generated Android project honest when someone edits it by hand or
- * re-runs `cap add`: the bundled build is what loads, the activity rotates,
- * and the only permission is INTERNET.
+ * WW-1601, OD-71, APK-01: the APK is the same Vite client in a WebView. These
+ * checks keep the generated Android project honest when someone edits it by
+ * hand or re-runs `cap add`: the live site is what loads, an offline page is
+ * bundled, the activity rotates, and the only permission is INTERNET.
  */
 
 // Vitest runs from apps/web. (import.meta.url is an http URL under happy-dom.)
@@ -17,10 +17,21 @@ const read = (path: string) => readFileSync(resolve(android, path), 'utf8');
 const manifest = read('app/src/main/AndroidManifest.xml');
 
 describe('capacitor config', () => {
-  it('wraps the Vite build and never a dev server', () => {
-    expect(config.webDir).toBe('dist');
-    expect(config.server?.url).toBeUndefined();
+  it('loads the deployed site, so a deploy reaches installed apps (APK-01)', () => {
+    // CAP_SERVER_URL is a local override for LAN debugging; the default is the live site.
+    if (!process.env.CAP_SERVER_URL) expect(config.server?.url).toBe(LIVE_SITE_URL);
+    expect(LIVE_SITE_URL).toMatch(/^https:\/\//);
     expect(config.appName).toBe('Werewolf');
+  });
+
+  it('bundles an offline page for when the site cannot load', () => {
+    expect(config.webDir).toBe('dist');
+    expect(config.server?.errorPath).toBe('offline.html');
+    // Served from https://localhost, so every link goes through the URL the build fills in.
+    const page = readFileSync(resolve(process.cwd(), 'native', config.server!.errorPath!), 'utf8');
+    expect(page).toContain("const site = '__APP_SERVER_URL__';");
+    expect(page).toContain("site + '/api/v1/health/ready'");
+    expect(page).not.toMatch(/location\.(replace|assign)\('\//);
   });
 
   it('uses one app id everywhere Android reads it', () => {

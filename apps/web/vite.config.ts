@@ -1,9 +1,11 @@
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import { defaultClientConditions, type Plugin } from 'vite';
 import { imagetools } from 'vite-imagetools';
 import { defineConfig } from 'vitest/config';
+import { serverUrl } from './capacitor.config';
 
 const artDir = fileURLToPath(new URL('../../art', import.meta.url));
 
@@ -22,9 +24,25 @@ function watchArt(): Plugin {
   };
 }
 
+/**
+ * APK-01. Writes `native/offline.html` to `dist/offline.html` with the APK's
+ * server URL filled in. Capacitor serves that page from https://localhost
+ * when the live site cannot load, so it needs the site's absolute URL.
+ */
+function offlinePage(): Plugin {
+  return {
+    name: 'warewolf-offline-page',
+    apply: 'build',
+    generateBundle() {
+      const template = readFileSync(fileURLToPath(new URL('./native/offline.html', import.meta.url)), 'utf8');
+      this.emitFile({ type: 'asset', fileName: 'offline.html', source: template.replaceAll('__APP_SERVER_URL__', serverUrl) });
+    },
+  };
+}
+
 export default defineConfig({
   // imagetools turns the PNGs in art/ into WebP at the widths requested in src/assets/art.ts.
-  plugins: [react(), tailwindcss(), imagetools(), watchArt()],
+  plugins: [react(), tailwindcss(), imagetools(), watchArt(), offlinePage()],
   // Workspace packages expose TypeScript source under the `source` condition.
   resolve: { conditions: ['source', ...defaultClientConditions] },
   server: {

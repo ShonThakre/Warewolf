@@ -1,0 +1,81 @@
+<!doctype html>
+<!--
+  APK-01. Bundled into the APK (Capacitor `server.errorPath`) and shown when
+  the WebView cannot load the live site: no network, or the server is asleep,
+  restarting, or deploying. It runs before the React app, so it cannot read
+  src/theme/tokens.ts; the colors below copy --bg-night, --surface, --primary,
+  --primary-ink, --text and --text-muted from there. It checks the server
+  every few seconds and opens the game as soon as it answers.
+
+  Capacitor serves this page from https://localhost, not from the site, so
+  links must be absolute. The Vite build (vite.config.ts, offlinePage) writes
+  it to dist/ with __APP_SERVER_URL__ replaced by the APK's server.url.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Werewolf</title>
+    <style>
+      :root {
+        --bg-night: linear-gradient(180deg, #1a1030, #2a1248);
+        --surface: #241538;
+        --primary: #7c4dff;
+        --primary-ink: #ffffff;
+        --text: #f7f3ff;
+        --text-muted: #c4b6dc;
+      }
+      html, body { height: 100%; margin: 0; }
+      body {
+        display: grid;
+        place-items: center;
+        padding: 1rem;
+        box-sizing: border-box;
+        background: var(--bg-night);
+        color: var(--text);
+        font-family: Nunito, system-ui, sans-serif;
+        text-align: center;
+      }
+      main { max-width: 22rem; padding: 1.5rem; border-radius: 1rem; background: var(--surface); }
+      h1 { margin: 0 0 0.5rem; font-size: 1.4rem; }
+      p { margin: 0 0 1.25rem; color: var(--text-muted); line-height: 1.4; }
+      button {
+        min-height: 44px;
+        padding: 0 1.5rem;
+        border: 0;
+        border-radius: 999px;
+        background: var(--primary);
+        color: var(--primary-ink);
+        font: inherit;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Can't reach the village</h1>
+      <p id="status">Check your connection. If the server was asleep, it can take about a minute to wake up.</p>
+      <button type="button" id="retry">Try again</button>
+    </main>
+    <script>
+      const site = '__APP_SERVER_URL__';
+      const open = () => location.replace(site + '/');
+      const status = document.getElementById('status');
+      document.getElementById('retry').addEventListener('click', () => {
+        status.textContent = 'Connecting…';
+        open();
+      });
+      // Cross-origin from https://localhost, so the probe is opaque: it
+      // resolves once the server answers at all and rejects while offline.
+      // If the answer is an error, the WebView brings this page back.
+      async function check() {
+        try {
+          await fetch(site + '/api/v1/health/ready', { mode: 'no-cors', cache: 'no-store' });
+          return open();
+        } catch {}
+        setTimeout(check, 5000);
+      }
+      setTimeout(check, 3000);
+    </script>
+  </body>
+</html>

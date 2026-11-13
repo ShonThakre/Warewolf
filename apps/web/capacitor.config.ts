@@ -1,37 +1,42 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 /**
- * The Android shell (WW-1601, WW-1602, OD-71). The APK is this same Vite
- * client in a WebView: `pnpm android:sync` builds `dist/` and copies it into
- * `android/app/src/main/assets/public`. There are no Android-only screens.
+ * The Android shell (WW-1601, OD-71, APK-01). The APK is this same Vite client
+ * in a WebView. There are no Android-only screens.
  *
- * The API origin is a build-time setting, `VITE_API_ORIGIN`, read here at
- * `cap sync` and by Vite at build. A phone cannot reach `localhost` on the
- * developer machine, so an APK needs it set.
+ * The WebView loads the deployed site (`server.url`), not a copy built into
+ * the APK, so every deploy reaches installed apps on their next launch, with
+ * no new APK. The page and the API share one origin, so no `VITE_API_ORIGIN`
+ * or `CORS_ORIGINS` entry is needed. Only native changes (icon, permissions,
+ * plugins, this file) need a new APK.
  *
- * - `https://…` (release, or a debug build against a real server): the
- *   WebView keeps Capacitor's default `https://localhost` origin.
- * - `http://…` (a LAN debug server): the WebView is served from
- *   `http://localhost`, because an https page may not call an http API. The
- *   cleartext permission that this needs exists only in the debug manifest
- *   (`android/app/src/debug/AndroidManifest.xml`), so a release build with an
- *   http origin fails closed.
+ * `CAP_SERVER_URL` overrides the site at `cap sync`, for example
+ * `http://<lan-ip>:5173` to point a debug APK at the Vite dev server on the
+ * developer machine. Cleartext HTTP is allowed only by the debug manifest
+ * (`android/app/src/debug/AndroidManifest.xml`), so a release build with an
+ * http URL fails closed.
  *
- * The API must list the WebView origin in `CORS_ORIGINS`.
+ * `pnpm android:sync` still copies `dist/` into the APK. It supplies
+ * `offline.html` (from `native/offline.html`, written by the Vite build with
+ * this URL), which Capacitor shows when the site cannot be loaded (no
+ * network, or the server is down or restarting).
  *
- * Not set on purpose: `server.url` (the WebView loads the bundled build,
- * never a dev server) and any orientation (OD-71). The checks are in
- * `test/android/android-project.test.ts`.
+ * The checks are in `test/android/android-project.test.ts`.
  */
-const apiOrigin = process.env.VITE_API_ORIGIN?.trim() ?? '';
-const lanDebug = apiOrigin.startsWith('http://');
+export const LIVE_SITE_URL = 'https://warewolf-hi18.onrender.com';
+
+/** The site the APK opens. Read by `cap sync` here and by the Vite build for `offline.html`. */
+export const serverUrl = (process.env.CAP_SERVER_URL?.trim() || LIVE_SITE_URL).replace(/\/+$/, '');
 
 const config: CapacitorConfig = {
   // Reverse-domain id. Android treats a changed id as a different app, so keep it.
   appId: 'com.warewolf.werewolf',
   appName: 'Werewolf',
   webDir: 'dist',
-  ...(lanDebug ? { server: { androidScheme: 'http' } } : {}),
+  server: {
+    url: serverUrl,
+    errorPath: 'offline.html',
+  },
   android: {
     allowMixedContent: false,
   },
