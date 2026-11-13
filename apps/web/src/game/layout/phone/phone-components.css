@@ -1,6 +1,6 @@
 /**
  * Shared portrait phone presentation primitives.
- * Visual wrappers only — no phase, permission, or route logic.
+ * Visual wrappers only: no phase, permission, or route logic.
  * Keyed to existing data-layout="portrait" / phone chrome.
  */
 

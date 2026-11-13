@@ -28,7 +28,7 @@ export function GameStatusBar({ phase, roundNumber, seconds, showClock, onElapse
   const revote = phase === 'REVOTE';
 
   if (morning || dayTalk || voting || revote) {
-    const pill = dayTalk ? 'Day / Discussion' : voting ? phaseName.toUpperCase() : revote ? 'Day — Revote' : phaseName;
+    const pill = dayTalk ? 'Day / Discussion' : voting ? phaseName.toUpperCase() : revote ? 'Day / Revote' : phaseName;
     return (
       <div className="ww-status" data-phase={phase}>
         <div className="ww-status-pack">

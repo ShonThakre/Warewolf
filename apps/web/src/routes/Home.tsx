@@ -91,7 +91,7 @@ export function Home() {
             Infection Edition
           </p>
         </div>
-        <p className="ww-home-tag">Find the werewolves, stop the infection, and keep your village safe — before it is too late.</p>
+        <p className="ww-home-tag">Find the werewolves, stop the infection, and keep your village safe, before it is too late.</p>
         <div className="ww-home-actions">
           <Button className="ww-home-create" variant="contained" color="secondary" onClick={() => setCreateOpen(true)}>
             <GameIcon className="ww-home-icon" name="plus" size={20} />

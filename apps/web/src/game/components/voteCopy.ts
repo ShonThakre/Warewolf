@@ -95,9 +95,9 @@ export function voteButtonLabel(options: {
   return options.phase === 'REVOTE' ? 'Submit revote' : 'Submit vote';
 }
 
-/** Public card line: voting uses a bullet; revote uses an em dash. */
-export function voteSeatLabel(seatNumber: number, displayName: string, style: 'dot' | 'dash' = 'dot'): string {
-  return style === 'dash' ? `Seat ${seatNumber} — ${displayName}` : `Seat ${seatNumber} • ${displayName}`;
+/** Public card line: voting uses a bullet; revote uses a colon. */
+export function voteSeatLabel(seatNumber: number, displayName: string, style: 'dot' | 'colon' = 'dot'): string {
+  return style === 'colon' ? `Seat ${seatNumber}: ${displayName}` : `Seat ${seatNumber} • ${displayName}`;
 }
 
 /** Life word on voting cards. Revote cards keep Alive, matching day discussion. */

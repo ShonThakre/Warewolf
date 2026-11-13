@@ -1588,7 +1588,7 @@
   }
 }
 
-/* BUG-03: short landscape ballots — dense horizontal seats, compact nominee bar. */
+/* BUG-03: short landscape ballots, dense horizontal seats, compact nominee bar. */
 .ww-game-layout[data-stage='voting'][data-layout='phone-landscape'] .ww-game-status,
 .ww-game-layout[data-stage='voting'][data-layout='narrow-landscape'] .ww-game-status {
   min-height: 0;

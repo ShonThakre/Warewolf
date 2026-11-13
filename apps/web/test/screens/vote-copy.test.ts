@@ -44,7 +44,7 @@ describe('vote copy', () => {
 
   it('labels seats and life for the voting cards', () => {
     expect(voteSeatLabel(1, 'Alice')).toBe('Seat 1 • Alice');
-    expect(voteSeatLabel(3, 'Ava', 'dash')).toBe('Seat 3 — Ava');
+    expect(voteSeatLabel(3, 'Ava', 'colon')).toBe('Seat 3: Ava');
     expect(voteLifeLabel('ALIVE')).toBe('Living');
     expect(voteLifeLabel('DEAD')).toBe('Eliminated');
     expect(votePrivacyCopy()).toBe('Your vote is private.');

@@ -162,7 +162,7 @@ function Actions({ dashboard }: { dashboard: HostDashboard }) {
             {dashboard.submissions.map((row) => {
               const seat = dashboardSeat(dashboard, row.playerId);
               const name = seat?.displayName ?? 'A player';
-              const targets = row.targetPlayerIds.length === 0 ? '—' : row.targetPlayerIds.map((id) => seatName(dashboard, id)).join(', ');
+              const targets = row.targetPlayerIds.length === 0 ? 'None' : row.targetPlayerIds.map((id) => seatName(dashboard, id)).join(', ');
               return (
                 <tr key={row.actionId}>
                   <td>

@@ -385,7 +385,7 @@ function TableScreen() {
             <div className="ww-night-pick">
               <span className="ww-night-pick-label">Selected target</span>
               <p className="ww-night-pick-value" aria-live="polite">
-                {nightTarget || '—'}
+                {nightTarget || 'None selected'}
               </p>
             </div>
           ) : null}
@@ -394,7 +394,7 @@ function TableScreen() {
               <span className="ww-vote-nominee-label">Selected nominee</span>
               {voteNominee ? (
                 isRevote ? (
-                  <p className="ww-vote-nominee-name">{voteSeatLabel(voteNominee.seatNumber, voteNominee.displayName, 'dash')}</p>
+                  <p className="ww-vote-nominee-name">{voteSeatLabel(voteNominee.seatNumber, voteNominee.displayName, 'colon')}</p>
                 ) : (
                   <div className="ww-vote-nominee-card">
                     <PlayerAvatar name={voteNominee.displayName} avatarId={voteNominee.avatarId} />
@@ -408,7 +408,7 @@ function TableScreen() {
                   </div>
                 )
               ) : (
-                <p className="ww-vote-nominee-empty">{voteChoice?.kind === 'abstain' ? 'Abstain' : '—'}</p>
+                <p className="ww-vote-nominee-empty">{voteChoice?.kind === 'abstain' ? 'Abstain' : 'None selected'}</p>
               )}
               {isRevote && voteOpen ? (
                 <p className="ww-vote-privacy">

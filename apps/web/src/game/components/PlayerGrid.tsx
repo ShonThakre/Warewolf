@@ -66,7 +66,7 @@ export function PlayerGrid({
               </span>
               <span className="ww-seat-copy">
                 <span className="ww-seat-name">
-                  {ballot ? voteSeatLabel(player.seatNumber, player.displayName, revote ? 'dash' : 'dot') : `${player.seatNumber}. ${player.displayName}`}
+                  {ballot ? voteSeatLabel(player.seatNumber, player.displayName, revote ? 'colon' : 'dot') : `${player.seatNumber}. ${player.displayName}`}
                 </span>
                 <span className="ww-seat-life" data-life={player.lifeStatus}>
                   {ballot ? <span className="ww-seat-life-dot" aria-hidden="true" /> : null}
