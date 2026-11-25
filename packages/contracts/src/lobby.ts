@@ -25,12 +25,38 @@ export const gameModeSchema = z.enum(GAME_MODES);
 export const AVATAR_COUNT = 36;
 export const avatarIdSchema = z.number().int().min(1).max(AVATAR_COUNT);
 
+/**
+ * ID-01: a random secret the client keeps per device (localStorage, or
+ * Preferences in the APK). It is the guest's identity across visits: joining a
+ * room where this device already holds a seat gives that seat back instead of
+ * a new one. Sent only in request bodies. The server keeps its SHA-256.
+ */
+export const deviceKeySchema = z
+  .string()
+  .regex(/^[A-Za-z0-9_-]{32,128}$/, 'Device keys are 32 to 128 URL-safe characters.');
+
+/** ID-01: rejoin codes use the room code alphabet. 8 characters, shown as XXXX-XXXX. */
+export const REJOIN_CODE_LENGTH = 8;
+
+/** Accepts `k7p4-qx2m`, `K7P4 QX2M`, or `K7P4QX2M`; parses to `K7P4QX2M`. */
+export const rejoinCodeSchema = z
+  .string()
+  .transform((raw) => raw.replace(/[\s-]/g, '').toUpperCase())
+  .pipe(z.string().regex(new RegExp(`^[${ROOM_CODE_ALPHABET}]{${REJOIN_CODE_LENGTH}}$`), 'Rejoin codes are 8 letters and digits.'));
+
+/** `K7P4QX2M` → `K7P4-QX2M`. Display only; the dash is never required. */
+export function formatRejoinCode(code: string): string {
+  const half = REJOIN_CODE_LENGTH / 2;
+  return code.length === REJOIN_CODE_LENGTH ? `${code.slice(0, half)}-${code.slice(half)}` : code;
+}
+
 // POST /games
 export const createGameRequestSchema = z.object({
   displayName: displayNameSchema,
   mode: gameModeSchema.default('INFECTION'),
   /** Optional. Without it the server assigns avatar 1. */
   avatarId: avatarIdSchema.optional(),
+  deviceKey: deviceKeySchema.optional(),
 });
 export type CreateGameRequest = z.input<typeof createGameRequestSchema>;
 
@@ -41,6 +67,13 @@ export const seatCredentialsSchema = z.object({
   playerId: z.uuid(),
   token: z.string().min(20),
   isHost: z.boolean(),
+  /**
+   * ID-01: the code that reclaims this seat from another device. Returned at
+   * create, join, and rejoin. Optional so seats stored before ID-01 still parse.
+   */
+  rejoinCode: z.string().optional(),
+  /** ID-01: true when this response gave back a seat the player already had. */
+  resumed: z.boolean().optional(),
 });
 export type SeatCredentials = z.infer<typeof seatCredentialsSchema>;
 
@@ -50,8 +83,23 @@ export const joinGameRequestSchema = z.object({
   displayName: displayNameSchema,
   /** Optional. Without it the server assigns the lowest avatar nobody in the room has. */
   avatarId: avatarIdSchema.optional(),
+  /** ID-01: when this device already holds a seat in the room, that seat is returned (`resumed: true`). */
+  deviceKey: deviceKeySchema.optional(),
 });
 export type JoinGameRequest = z.input<typeof joinGameRequestSchema>;
+
+// POST /games/rejoin (ID-01)
+export const rejoinGameRequestSchema = z.object({
+  roomCode: roomCodeSchema,
+  rejoinCode: rejoinCodeSchema,
+  /** Binds the reclaimed seat to this device, so later visits resume without the code. */
+  deviceKey: deviceKeySchema.optional(),
+});
+export type RejoinGameRequest = z.input<typeof rejoinGameRequestSchema>;
+
+// POST /games/:gameId/me/rejoin-code (ID-01). Issues a new code; the old one stops working.
+export const rejoinCodeResponseSchema = z.object({ rejoinCode: z.string() });
+export type RejoinCodeResponse = z.infer<typeof rejoinCodeResponseSchema>;
 
 // POST /games/:gameId/leave
 export const leaveGameRequestSchema = z.object({

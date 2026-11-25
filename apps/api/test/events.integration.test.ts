@@ -127,7 +127,9 @@ describe('private result events (WW-804)', () => {
     expect(death.audience).toBe('PUBLIC');
     expect(death.payload).toMatchObject({ playerId: victim!.playerId, roleId: 'normal_villager' });
     // The night adds no public fact but the death. The phase signal (WW-1103) is public too, and names no one.
-    expect(events.filter((row) => row.audience === 'PUBLIC' && row.type !== 'PHASE_CHANGED').every((row) => row.type === 'PLAYER_ELIMINATED')).toBe(true);
+    // Lobby and presence rows (LOG-01) are public table facts written before the night.
+    const table = new Set(['PHASE_CHANGED', 'ROOM_CREATED', 'PLAYER_JOINED', 'GAME_STARTED', 'PLAYER_DISCONNECTED', 'PLAYER_RECONNECTED']);
+    expect(events.filter((row) => row.audience === 'PUBLIC' && !table.has(row.type)).every((row) => row.type === 'PLAYER_ELIMINATED')).toBe(true);
     expect(events.some((row) => row.type === 'NIGHT_PUBLISHED')).toBe(true);
 
     const before = events.length;

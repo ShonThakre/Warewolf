@@ -52,6 +52,27 @@ export class JoinRateLimiter {
   }
 }
 
+/**
+ * ID-01: rejoin attempts. Tighter than join, because a rejoin code is the only
+ * guessable secret: 20 tries per room and 60 per address each minute leave an
+ * 8-character code far out of reach.
+ */
+export const REJOIN_ROOM_LIMIT = 20;
+export const REJOIN_IP_LIMIT = 60;
+export const REJOIN_WINDOW_MS = 60_000;
+
+export class RejoinRateLimiter {
+  private readonly byRoom = new SlidingWindow(REJOIN_ROOM_LIMIT, REJOIN_WINDOW_MS);
+  private readonly byAddress = new SlidingWindow(REJOIN_IP_LIMIT, REJOIN_WINDOW_MS);
+
+  allow(address: string, roomCode: string, now = Date.now()): boolean {
+    if (!this.byAddress.fits(address, now) || !this.byRoom.fits(roomCode, now)) return false;
+    this.byAddress.allow(address, now);
+    this.byRoom.allow(roomCode, now);
+    return true;
+  }
+}
+
 /** The socket address. A forwarded header is not trusted; the proxy is not in front of version 1. */
 export function clientAddress(req: Request): string {
   return req.ip || req.socket?.remoteAddress || 'unknown';

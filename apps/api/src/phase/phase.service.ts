@@ -31,7 +31,7 @@ export const TIMED_CLOSE_RETRY_MS = 5_000;
 type TimedClose =
   | { readonly kind: 'IDLE' }
   | { readonly kind: 'EARLY'; readonly at: Date }
-  | { readonly kind: 'CLOSED'; readonly game: GameRow; readonly nightRound: number | null; readonly ballotRound: number | null; readonly published: boolean };
+  | { readonly kind: 'CLOSED'; readonly game: GameRow; readonly nightRound: number | null; readonly ballotRound: number | null; readonly dayRound: number | null; readonly published: boolean };
 
 function describeClose(step: CloseStep): PhaseClose {
   switch (step.kind) {
@@ -138,6 +138,7 @@ export class PhaseService implements OnApplicationBootstrap {
         avatarId: s.avatarId,
         isHost: s.isHost,
         lifeStatus: s.lifeStatus,
+        connectionStatus: s.connectionStatus,
       })),
       voting: { abstain: config.voting.abstain, changeUntilClose: config.voting.changeUntilClose },
       you: { playerId: you.id, isHost: you.isHost, lifeStatus: you.lifeStatus },
@@ -161,6 +162,7 @@ export class PhaseService implements OnApplicationBootstrap {
     await this.publishNight(closed.game.id, closed.nightRound);
     await this.publishResults(closed.game.id, closed.published);
     await this.publishTallies(closed.game.id, closed.ballotRound);
+    await this.publishDay(closed.game, closed.dayRound);
     await this.publishPhase(closed.game);
     return this.state(gameId, seat);
   }
@@ -186,6 +188,7 @@ export class PhaseService implements OnApplicationBootstrap {
       await this.publishNight(outcome.game.id, outcome.nightRound);
       await this.publishResults(outcome.game.id, outcome.published);
       await this.publishTallies(outcome.game.id, outcome.ballotRound);
+      await this.publishDay(outcome.game, outcome.dayRound);
       await this.publishPhase(outcome.game);
     }
   }
@@ -199,7 +202,7 @@ export class PhaseService implements OnApplicationBootstrap {
     tx: Transaction,
     game: GameRow,
     by: 'HOST' | 'TIMER',
-  ): Promise<{ game: GameRow; nightRound: number | null; ballotRound: number | null; published: boolean }> {
+  ): Promise<{ game: GameRow; nightRound: number | null; ballotRound: number | null; dayRound: number | null; published: boolean }> {
     if (!isClosable(game.phase)) throw errors.phaseConflict();
     // OD-01: host confirm ends only with a chosen target or an explicit "no kill" (WW-803).
     if (game.phase === 'NIGHT_HOST_CONFIRM' && !(await hostDecisionFor(tx, game.id, game.roundNumber))) throw errors.killTargetRequired();
@@ -224,6 +227,8 @@ export class PhaseService implements OnApplicationBootstrap {
     const nightRound = step.kind === 'RESOLVE_NIGHT' ? game.roundNumber : null;
     // A closed ballot has a public tally to publish after commit (OD-85).
     const ballotRound = step.kind === 'RESOLVE_DAY' && (step.ballot === 'FIRST' || step.ballot === 'REVOTE') ? game.roundNumber : null;
+    // LOG-01: any day resolution can kill (ballot, day shot, due poison).
+    const dayRound = step.kind === 'RESOLVE_DAY' ? game.roundNumber : null;
     const result = await this.resolve(tx, game, step);
     const next = positionAfter(game, result);
     // The machine only produces listed transitions. Reaching this is a bug, not a client error.
@@ -246,7 +251,17 @@ export class PhaseService implements OnApplicationBootstrap {
     if (!updated) throw errors.phaseConflict();
 
     this.logger.log(logLine('phase', { game: game.id, round: updated.roundNumber, from: game.phase, to: updated.phase, by }));
-    return { game: updated, nightRound, ballotRound, published };
+    return { game: updated, nightRound, ballotRound, dayRound, published };
+  }
+
+  /** LOG-01: day deaths, then the finish when the close ended the game. A failure here does not roll the close back. */
+  private async publishDay(game: GameRow, round: number | null): Promise<void> {
+    try {
+      if (round !== null) this.play.emitStored(await this.events.publishDay(game.id, round));
+      if (game.status === 'FINISHED') this.play.emitStored(await this.events.publishFinished(game.id));
+    } catch (error) {
+      this.logger.error(`day events failed game=${game.id}: ${error instanceof Error ? error.message : String(error)}`);
+    }
   }
 
   /** The public phase signal. A failure here does not roll the close back. */

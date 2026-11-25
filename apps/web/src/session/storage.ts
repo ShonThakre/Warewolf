@@ -1,29 +1,54 @@
 import { seatCredentialsSchema, type SeatCredentials } from '@warewolf/contracts';
 
 /**
- * Where the seat token lives between reloads. Web uses sessionStorage, so a
- * token stays in its tab. The APK uses Capacitor Preferences behind the same
- * interface (WW-1603), chosen in `nativeStorage.ts`.
+ * Where the seat token lives between visits. ID-01: the web keeps it in
+ * localStorage, so closing the tab or the browser no longer loses the seat;
+ * every tab of the browser shares it and follows changes from the others.
+ * The APK uses Capacitor Preferences behind the same interface (WW-1603),
+ * chosen in `nativeStorage.ts`.
  *
  * The server is the source of truth: a stored token that no longer works is
- * discarded on the first 401.
+ * discarded on the first 401, unless another tab already stored a newer one.
  */
 export interface SessionStorageAdapter {
   load(): SeatCredentials | null;
   save(credentials: SeatCredentials | null): void;
+  /** Calls `listener` when another tab changes the stored seat. Returns the unsubscribe. Optional. */
+  watch?(listener: (credentials: SeatCredentials | null) => void): () => void;
 }
 
 const KEY = 'warewolf.seat';
 
-/** sessionStorage, failing safe when storage is blocked, full, or holds something unreadable. */
-export function browserSessionStorage(storage: () => Storage | undefined = () => globalThis.sessionStorage): SessionStorageAdapter {
+function parse(raw: string | null | undefined): SeatCredentials | null {
+  if (!raw) return null;
+  try {
+    const parsed = seatCredentialsSchema.safeParse(JSON.parse(raw));
+    return parsed.success ? parsed.data : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * localStorage, failing safe when storage is blocked, full, or holds
+ * something unreadable. A seat stored by the earlier sessionStorage adapter is
+ * moved over once.
+ */
+export function browserSessionStorage(
+  storage: () => Storage | undefined = () => globalThis.localStorage,
+  legacy: () => Storage | undefined = () => globalThis.sessionStorage,
+): SessionStorageAdapter {
   return {
     load() {
       try {
-        const raw = storage()?.getItem(KEY);
-        if (!raw) return null;
-        const parsed = seatCredentialsSchema.safeParse(JSON.parse(raw));
-        return parsed.success ? parsed.data : null;
+        const stored = parse(storage()?.getItem(KEY));
+        if (stored) return stored;
+        const old = parse(legacy()?.getItem(KEY));
+        if (old) {
+          storage()?.setItem(KEY, JSON.stringify(old));
+          legacy()?.removeItem(KEY);
+        }
+        return old;
       } catch {
         return null;
       }
@@ -35,6 +60,15 @@ export function browserSessionStorage(storage: () => Storage | undefined = () =>
       } catch {
         // Private mode or quota: the session simply does not survive a reload.
       }
+    },
+    watch(listener) {
+      if (typeof window === 'undefined') return () => {};
+      const onStorage = (event: StorageEvent) => {
+        if (event.key !== KEY) return;
+        listener(parse(event.newValue));
+      };
+      window.addEventListener('storage', onStorage);
+      return () => window.removeEventListener('storage', onStorage);
     },
   };
 }
@@ -88,9 +122,9 @@ export async function preferencesSessionStorage(store: KeyValueStore): Promise<S
 }
 
 /**
- * Picks the adapter for the platform: Preferences inside the APK, where
- * sessionStorage does not survive the process being killed, and
- * sessionStorage on the web, where a token belongs to its tab.
+ * Picks the adapter for the platform: Preferences inside the APK, where web
+ * storage is not guaranteed to survive the process being killed, and
+ * localStorage on the web (ID-01).
  */
 export async function platformSessionStorage(platform: {
   readonly isNative: boolean;

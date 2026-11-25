@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, randomInt } from 'node:crypto';
 import {
   type CanActivate,
   type ExecutionContext,
@@ -6,6 +6,7 @@ import {
   Injectable,
   createParamDecorator,
 } from '@nestjs/common';
+import { REJOIN_CODE_LENGTH, ROOM_CODE_ALPHABET } from '@warewolf/contracts';
 import { eq } from 'drizzle-orm';
 import type { Request } from 'express';
 import { DATABASE, type Database } from '../db/database.js';
@@ -23,6 +24,17 @@ export function newSeatToken(): string {
 
 export function hashToken(token: string): string {
   return createHash('sha256').update(token, 'utf8').digest('hex');
+}
+
+/**
+ * ID-01: 8 characters from the room code alphabet (about 40 bits). It only
+ * works together with the room code, only while the game is open, and behind
+ * the join rate limits. Stored as a SHA-256 like the token.
+ */
+export function newRejoinCode(pick: (max: number) => number = randomInt): string {
+  let code = '';
+  for (let i = 0; i < REJOIN_CODE_LENGTH; i++) code += ROOM_CODE_ALPHABET[pick(ROOM_CODE_ALPHABET.length)];
+  return code;
 }
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;

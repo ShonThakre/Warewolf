@@ -22,6 +22,8 @@ interface Session {
   refs: number;
   /** Seq of the newest stored game event delivered on this connection. */
   cursor: number;
+  /** ID-02: whether the socket is connected right now, for hooks that mount after `connect` fired. */
+  connected: boolean;
 }
 
 const sessions = new Map<string, Session>();
@@ -47,9 +49,15 @@ function listen(session: Session, event: string): Set<PlayHandler> {
 }
 
 function open(token: string, gameId: string): Session {
-  const session: Session = { client: connectPlay(token), gameId, listeners: new Map(), refs: 0, cursor: 0 };
+  const session: Session = { client: connectPlay(token), gameId, listeners: new Map(), refs: 0, cursor: 0, connected: false };
   // Registered first so the room join happens before any subscriber's own connect handler.
-  listen(session, 'connect').add(() => session.client.emit('join-session', { gameId, afterSeq: session.cursor }));
+  listen(session, 'connect').add(() => {
+    session.connected = true;
+    session.client.emit('join-session', { gameId, afterSeq: session.cursor });
+  });
+  listen(session, 'disconnect').add(() => {
+    session.connected = false;
+  });
   return session;
 }
 
@@ -89,6 +97,11 @@ export function subscribePlay(token: string, gameId: string, handlers: Readonly<
       sessions.delete(token);
     }
   };
+}
+
+/** ID-02: whether this seat's shared connection is up. False when none is open. */
+export function isPlayConnected(token: string): boolean {
+  return sessions.get(token)?.connected ?? false;
 }
 
 /** Vitest only: how many connections are open. */

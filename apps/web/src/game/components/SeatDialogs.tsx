@@ -1,9 +1,10 @@
-import { displayNameSchema, roomCodeSchema, type SeatCredentials } from '@warewolf/contracts';
+import { displayNameSchema, rejoinCodeSchema, roomCodeSchema, type SeatCredentials } from '@warewolf/contracts';
 import { Alert, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { apiErrorOf, type ApiErrorInfo } from '../../api/api';
-import { useCreateGameMutation, useJoinGameMutation } from '../../api/lobby';
+import { useCreateGameMutation, useJoinGameMutation, useRejoinGameMutation } from '../../api/lobby';
+import { loadProfile } from '../../session/device';
 import { useSeat } from '../state/lobby';
 
 function fieldMessage(error: ApiErrorInfo | null, field: string): string | undefined {
@@ -28,7 +29,7 @@ export function CreateGameDialog({ open, onClose }: { open: boolean; onClose: ()
 
   useEffect(() => {
     if (!open) return;
-    setName('');
+    setName(loadProfile()?.displayName ?? '');
     setNameError(undefined);
     setError(null);
   }, [open]);
@@ -67,7 +68,7 @@ export function CreateGameDialog({ open, onClose }: { open: boolean; onClose: ()
         <DialogContent sx={{ display: 'grid', gap: 'var(--space)' }}>
           <p className="ww-dialog-copy">You will host the room. It opens as Infection Edition for 20 players, then Game setup so you can change the mode before the game starts.</p>
           <p className="ww-dialog-copy">Other players join with the room code shown in the lobby.</p>
-          {seat ? <p className="ww-dialog-copy">Creating a game replaces the seat already stored in this tab.</p> : null}
+          {seat ? <p className="ww-dialog-copy">Creating a game replaces the seat saved on this device. Your old seat stays open with its rejoin code.</p> : null}
           {banner ? <Alert severity="error">{banner}</Alert> : null}
           <TextField
             label="Display name"
@@ -99,7 +100,7 @@ export function CreateGameDialog({ open, onClose }: { open: boolean; onClose: ()
   );
 }
 
-export function JoinGameDialog({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function JoinGameDialog({ open, onClose, onRejoin }: { open: boolean; onClose: () => void; onRejoin?: (roomCode: string) => void }) {
   const seat = useSeat();
   const navigate = useNavigate();
   const [joinGame, { isLoading }] = useJoinGameMutation();
@@ -112,7 +113,7 @@ export function JoinGameDialog({ open, onClose }: { open: boolean; onClose: () =
   useEffect(() => {
     if (!open) return;
     setCode('');
-    setName('');
+    setName(loadProfile()?.displayName ?? '');
     setCodeError(undefined);
     setNameError(undefined);
     setError(null);
@@ -155,7 +156,7 @@ export function JoinGameDialog({ open, onClose }: { open: boolean; onClose: () =
         <DialogTitle id="join-game-title">Join a game</DialogTitle>
         <DialogContent sx={{ display: 'grid', gap: 'var(--space)' }}>
           <p className="ww-dialog-copy">Ask the host for the room code on their lobby screen.</p>
-          {seat ? <p className="ww-dialog-copy">Joining replaces the seat already stored in this tab.</p> : null}
+          {seat ? <p className="ww-dialog-copy">Joining replaces the seat saved on this device. Your old seat stays open with its rejoin code.</p> : null}
           {banner ? <Alert severity="error">{banner}</Alert> : null}
           <TextField
             label="Room code"
@@ -189,8 +190,25 @@ export function JoinGameDialog({ open, onClose }: { open: boolean; onClose: () =
             disabled={isLoading}
             slotProps={{ htmlInput: { maxLength: 24, autoComplete: 'nickname' } }}
           />
+          {(error?.code === 'DISPLAY_NAME_TAKEN' || error?.code === 'GAME_STARTED') && onRejoin ? (
+            <Alert
+              severity="info"
+              action={
+                <Button color="inherit" size="small" onClick={() => onRejoin(cleanRoomCode(code))}>
+                  Rejoin
+                </Button>
+              }
+            >
+              {error.code === 'GAME_STARTED' ? 'Already playing in this game? Use your rejoin code.' : 'Is this you? Rejoin your seat with your code.'}
+            </Alert>
+          ) : null}
         </DialogContent>
         <DialogActions>
+          {onRejoin ? (
+            <Button type="button" className="mr-auto" onClick={() => onRejoin(cleanRoomCode(code))} disabled={isLoading}>
+              Have a rejoin code?
+            </Button>
+          ) : null}
           <Button type="button" onClick={onClose} disabled={isLoading}>
             Cancel
           </Button>
@@ -201,6 +219,113 @@ export function JoinGameDialog({ open, onClose }: { open: boolean; onClose: () =
       </form>
     </Dialog>
   );
+}
+
+/**
+ * ID-01: get a seat back on this device with its rejoin code. The old device
+ * loses the seat. Errors stay generic: a wrong room and a wrong code read the
+ * same, so the dialog never confirms which one exists.
+ */
+export function RejoinDialog({ open, onClose, initialRoomCode = '' }: { open: boolean; onClose: () => void; initialRoomCode?: string }) {
+  const navigate = useNavigate();
+  const [rejoin, { isLoading }] = useRejoinGameMutation();
+  const [room, setRoom] = useState('');
+  const [code, setCode] = useState('');
+  const [roomError, setRoomError] = useState<string | undefined>();
+  const [codeError, setCodeError] = useState<string | undefined>();
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    setRoom(initialRoomCode);
+    setCode('');
+    setRoomError(undefined);
+    setCodeError(undefined);
+    setError(null);
+  }, [open, initialRoomCode]);
+
+  async function submit() {
+    const parsedRoom = roomCodeSchema.safeParse(room);
+    const parsedCode = rejoinCodeSchema.safeParse(code);
+    setRoomError(parsedRoom.success ? undefined : (parsedRoom.error.issues[0]?.message ?? 'Check the room code.'));
+    setCodeError(parsedCode.success ? undefined : (parsedCode.error.issues[0]?.message ?? 'Check the rejoin code.'));
+    if (!parsedRoom.success || !parsedCode.success) return;
+    const result = await rejoin({ roomCode: parsedRoom.data, rejoinCode: parsedCode.data });
+    if ('data' in result && result.data) {
+      onClose();
+      goToLobby(result.data, navigate);
+      return;
+    }
+    const info = apiErrorOf('error' in result ? result.error : null);
+    if (info?.code === 'NOT_FOUND') setError('We could not find that seat. Check both codes. The game may also have ended.');
+    else if (info?.code === 'RATE_LIMITED') setError('Too many tries. Wait a minute, then try again.');
+    else setError(info?.message ?? 'Rejoin did not work. Try again.');
+  }
+
+  return (
+    <Dialog open={open} onClose={isLoading ? undefined : onClose} fullWidth maxWidth="xs" aria-labelledby="rejoin-title">
+      <form
+        noValidate
+        onSubmit={(event) => {
+          event.preventDefault();
+          void submit();
+        }}
+      >
+        <DialogTitle id="rejoin-title">Rejoin your seat</DialogTitle>
+        <DialogContent sx={{ display: 'grid', gap: 'var(--space)' }}>
+          <p className="ww-dialog-copy">Lost your seat, or switching devices? Enter the room code and the rejoin code you saved. Your seat opens here and closes on the other device.</p>
+          {error ? <Alert severity="error">{error}</Alert> : null}
+          <TextField
+            label="Room code"
+            name="roomCode"
+            value={room}
+            onChange={(event) => {
+              setRoom(cleanRoomCode(event.target.value));
+              setRoomError(undefined);
+              setError(null);
+            }}
+            error={Boolean(roomError)}
+            helperText={roomError ?? '6 letters or digits.'}
+            fullWidth
+            disabled={isLoading}
+            autoFocus={!initialRoomCode}
+            slotProps={{ htmlInput: { maxLength: 12, autoCapitalize: 'characters', autoComplete: 'off', spellCheck: 'false' } }}
+          />
+          <TextField
+            label="Rejoin code"
+            name="rejoinCode"
+            value={code}
+            onChange={(event) => {
+              setCode(cleanRejoinCode(event.target.value));
+              setCodeError(undefined);
+              setError(null);
+            }}
+            error={Boolean(codeError)}
+            helperText={codeError ?? '8 letters or digits, like K7P4-QX2M.'}
+            fullWidth
+            disabled={isLoading}
+            autoFocus={Boolean(initialRoomCode)}
+            placeholder="XXXX-XXXX"
+            slotProps={{ htmlInput: { maxLength: 9, autoCapitalize: 'characters', autoComplete: 'one-time-code', spellCheck: 'false' } }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button type="button" onClick={onClose} disabled={isLoading}>
+            Cancel
+          </Button>
+          <Button type="submit" variant="contained" disabled={isLoading}>
+            {isLoading ? 'Rejoining…' : 'Rejoin'}
+          </Button>
+        </DialogActions>
+      </form>
+    </Dialog>
+  );
+}
+
+/** `k7p4qx2m` → `K7P4-QX2M` as the player types. */
+export function cleanRejoinCode(value: string): string {
+  const raw = value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8);
+  return raw.length > 4 ? `${raw.slice(0, 4)}-${raw.slice(4)}` : raw;
 }
 
 /** Uppercase, with spaces and dashes from a pasted invite dropped. */

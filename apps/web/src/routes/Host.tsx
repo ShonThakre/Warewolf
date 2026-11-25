@@ -9,6 +9,9 @@ import { PhaseCloseButton } from '../game/components/PhaseCloseButton';
 import { closeConsequence, phaseActionNote } from '../game/components/phaseCopy';
 import { killPickOf, sameKillPick, type KillPick } from '../game/components/killCopy';
 import { HostCanvas } from '../game/host/HostCanvas';
+import { GameLog } from '../game/components/GameLog';
+import { useGameLog } from '../game/state/gameLog';
+import { useLiveSeat } from '../game/state/presence';
 import { HostShell } from '../game/host/HostShell';
 import type { HostSection } from '../game/host/dashboardCopy';
 import { useLayoutMode } from '../game/layout';
@@ -47,6 +50,9 @@ function HostScreen() {
   const view = useGameState();
   const dashboard = useHostDashboard(view.state?.phase, view.state?.stateVersion);
   const events = useHostEvents(Boolean(seat?.isHost && view.state && view.state.status === 'ACTIVE'));
+  // LOG-02: the host log reveals every secret live; the dashboard already shows them.
+  const hostLog = useGameLog(seat?.isHost ? seat.gameId : null, { host: true });
+  useLiveSeat();
   const close = useClosePhase(view.state);
   const kill = useKillTarget(view.state?.phase, view.state?.stateVersion);
   const setKill = useSetKillTarget();
@@ -172,6 +178,7 @@ function HostScreen() {
               dashboard={dashboard.dashboard}
               events={events.events}
               eventsError={events.error?.message ?? null}
+              log={seat ? <GameLog view={hostLog} youId={seat.playerId} variant="host" /> : null}
               transferBusy={roomBusy}
               onMakeHost={(player) => {
                 setActionError(null);

@@ -1,5 +1,6 @@
 import type { GameEvent, HostDashboard } from '@warewolf/contracts';
 import { Button } from '@mui/material';
+import type { ReactNode } from 'react';
 import { PlayerAvatar } from '../components/PlayerAvatar';
 import { PHASE_LABEL, lifeLabel } from '../components/phaseCopy';
 import { eventSentence } from '../state/hostEvents';
@@ -19,11 +20,14 @@ export function HostCanvas({
   eventsError,
   transferBusy = false,
   onMakeHost,
+  log,
 }: {
   section: HostSection;
   dashboard: HostDashboard;
   events: readonly GameEvent[];
   eventsError: string | null;
+  /** LOG-02: the host's round-by-round log. When given, it replaces the flat event list. */
+  log?: ReactNode;
   transferBusy?: boolean;
   onMakeHost?: (player: HostTransferTarget) => void;
 }) {
@@ -41,7 +45,7 @@ export function HostCanvas({
   if (section === 'votes') return <Votes dashboard={dashboard} />;
   if (section === 'eliminations') return <Eliminations dashboard={dashboard} />;
   if (section === 'victory') return <Victory dashboard={dashboard} />;
-  if (section === 'events') return <Events events={events} error={eventsError} />;
+  if (section === 'events') return log ?? <Events events={events} error={eventsError} />;
   return (
     <p className="ww-host-copy">The setup is locked for this game. It can be changed in the lobby before the next game.</p>
   );

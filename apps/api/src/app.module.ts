@@ -19,6 +19,8 @@ import { EventService } from './events/event.service.js';
 import { VoteController } from './day/vote.controller.js';
 import { VoteService } from './day/vote.service.js';
 import { LobbyController } from './lobby/lobby.controller.js';
+import { LogController } from './log/log.controller.js';
+import { LogService } from './log/log.service.js';
 import { LobbyService } from './lobby/lobby.service.js';
 import { KillTargetController, KillTargetService } from './night/kill-target.js';
 import { NightResolutionService } from './night/night-resolution.service.js';
@@ -29,6 +31,7 @@ import { PHASE_CLOCK, PHASE_SCHEDULER, TimeoutScheduler, systemClock, type Clock
 import { DashboardController } from './host/dashboard.controller.js';
 import { DashboardService } from './host/dashboard.service.js';
 import { PlayGateway } from './realtime/play.gateway.js';
+import { PresenceService } from './realtime/presence.service.js';
 import { ResultsController } from './results/results.controller.js';
 import { ResultsService } from './results/results.service.js';
 import { ReadinessController } from './system/readiness.controller.js';
@@ -63,7 +66,7 @@ export class AppModule {
     return {
       ...base,
       imports: [DatabaseModule.forUrl(config.databaseUrl)],
-      controllers: [...base.controllers, LobbyController, ConfigurationController, AssignmentController, PhaseController, ActionController, KillTargetController, VoteController, EventController, ChatController, ResultsController, DashboardController, ReadinessController, TallyController],
+      controllers: [...base.controllers, LobbyController, ConfigurationController, AssignmentController, PhaseController, ActionController, KillTargetController, VoteController, EventController, ChatController, ResultsController, DashboardController, ReadinessController, TallyController, LogController],
       providers: [
         ...base.providers,
         SeatGuard,
@@ -80,12 +83,14 @@ export class AppModule {
         DayResolutionService,
         EventService,
         PlayGateway,
+        PresenceService,
         VoteService,
         KillTargetService,
         ChatService,
         ResultsService,
         DashboardService,
         TallyService,
+        LogService,
         {
           provide: PHASE_RESOLVERS,
           inject: [NightResolutionService, DayResolutionService],

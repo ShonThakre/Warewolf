@@ -4,9 +4,11 @@ import {
   createGameRequestSchema,
   joinGameRequestSchema,
   leaveGameRequestSchema,
+  rejoinGameRequestSchema,
   transferHostRequestSchema,
   type LeaveGameResponse,
   type LobbyProjection,
+  type RejoinCodeResponse,
   type SeatCredentials,
 } from '@warewolf/contracts';
 import type { Request } from 'express';
@@ -14,24 +16,41 @@ import type { z } from 'zod';
 import { CurrentSeat, SeatGuard } from '../auth/seat.js';
 import type { GamePlayerRow } from '../db/schema.js';
 import { errors, UuidParam, ZodBody } from '../http/api-error.js';
-import { clientAddress, JoinRateLimiter } from '../http/rate-limit.js';
+import { clientAddress, JoinRateLimiter, RejoinRateLimiter } from '../http/rate-limit.js';
 import { LobbyService } from './lobby.service.js';
 
 @Controller('games')
 export class LobbyController {
   private readonly joins = new JoinRateLimiter();
+  private readonly rejoins = new RejoinRateLimiter();
 
   constructor(@Inject(LobbyService) private readonly lobby: LobbyService) {}
 
   @Post()
   create(@Body(new ZodBody(createGameRequestSchema)) body: z.infer<typeof createGameRequestSchema>): Promise<SeatCredentials> {
-    return this.lobby.create(body.displayName, body.mode, body.avatarId);
+    return this.lobby.create(body.displayName, body.mode, body.avatarId, body.deviceKey);
   }
 
   @Post('join')
   join(@Req() req: Request, @Body(new ZodBody(joinGameRequestSchema)) body: z.infer<typeof joinGameRequestSchema>): Promise<SeatCredentials> {
     if (!this.joins.allow(clientAddress(req), body.roomCode)) throw errors.rateLimited();
-    return this.lobby.join(body.roomCode, body.displayName, body.avatarId);
+    return this.lobby.join(body.roomCode, body.displayName, body.avatarId, body.deviceKey);
+  }
+
+  /** ID-01: reclaim a seat with its rejoin code, from any device. */
+  @Post('rejoin')
+  @HttpCode(200)
+  rejoin(@Req() req: Request, @Body(new ZodBody(rejoinGameRequestSchema)) body: z.infer<typeof rejoinGameRequestSchema>): Promise<SeatCredentials> {
+    if (!this.rejoins.allow(clientAddress(req), body.roomCode)) throw errors.rateLimited();
+    return this.lobby.rejoin(body.roomCode, body.rejoinCode, body.deviceKey);
+  }
+
+  /** ID-01: a new rejoin code for the caller's seat. Used when the stored seat predates rejoin codes. */
+  @Post(':gameId/me/rejoin-code')
+  @HttpCode(200)
+  @UseGuards(SeatGuard)
+  rejoinCode(@Param('gameId', new UuidParam()) gameId: string, @CurrentSeat() seat: GamePlayerRow): Promise<RejoinCodeResponse> {
+    return this.lobby.newRejoinCode(gameId, seat);
   }
 
   @Get(':gameId')

@@ -3,7 +3,7 @@ import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { App } from './App';
 import { makeStore } from './app/store';
-import { startupSessionStorage } from './session/nativeStorage';
+import { startupDeviceKey, startupSessionStorage } from './session/nativeStorage';
 import './index.css';
 
 const root = document.getElementById('root');
@@ -12,6 +12,7 @@ const container = root;
 
 // The seat is read before the first render, so a reopened APK lands back in its game (WW-1603).
 async function start() {
+  await startupDeviceKey();
   const store = makeStore({ storage: await startupSessionStorage() });
   createRoot(container).render(
     <StrictMode>

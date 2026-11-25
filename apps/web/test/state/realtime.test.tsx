@@ -93,7 +93,7 @@ describe('phase events (WW-1103)', () => {
 
     hostPlay.fire('connect', {});
     guestPlay.fire('connect', {});
-    expect([...hostPlay.registered].sort()).toEqual(['PHASE_CHANGED', 'connect']);
+    expect([...hostPlay.registered].sort()).toEqual(['PHASE_CHANGED', 'connect', 'disconnect']);
     expect(hostPlay.sent).toEqual([{ event: 'join-session', body: { gameId: GAME, afterSeq: 0 } }]);
     expect(guestPlay.sent).toEqual([{ event: 'join-session', body: { gameId: GAME, afterSeq: 0 } }]);
 

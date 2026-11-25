@@ -163,6 +163,10 @@ export const gamePlayers = pgTable(
     connectionStatus: text('connection_status').$type<ConnectionStatus>().notNull().default('DISCONNECTED'),
     /** SHA-256 of the bearer token. The raw token is returned once and never stored. */
     tokenHash: text('token_hash').notNull(),
+    /** ID-01: SHA-256 of the device key that holds this seat. A join from the same device gives the seat back. */
+    deviceKeyHash: text('device_key_hash'),
+    /** ID-01: SHA-256 of the seat's rejoin code. Reclaims the seat from another device. */
+    rejoinCodeHash: text('rejoin_code_hash'),
     diedRound: integer('died_round'),
     createdAt: timestamptz('created_at').notNull().defaultNow(),
   },
@@ -173,6 +177,8 @@ export const gamePlayers = pgTable(
     uniqueIndex('game_players_seat_uq').on(t.gameId, t.seatNumber),
     uniqueIndex('game_players_one_host_uq').on(t.gameId).where(sql.raw('is_host')),
     uniqueIndex('game_players_avatar_uq').on(t.gameId, t.avatarId),
+    index('game_players_device_idx').on(t.gameId, t.deviceKeyHash),
+    uniqueIndex('game_players_rejoin_uq').on(t.gameId, t.rejoinCodeHash),
     check('game_players_seat_ck', sql.raw('seat_number >= 1')),
     check('game_players_avatar_ck', sql.raw(`avatar_id between 1 and ${AVATAR_COUNT}`)),
     check('game_players_life_ck', sql`life_status in (${inList(LIFE_STATUSES)})`),

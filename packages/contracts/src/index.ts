@@ -13,3 +13,4 @@ export * from './chat.js';
 export * from './results.js';
 export * from './hostDashboard.js';
 export * from './tally.js';
+export * from './log.js';

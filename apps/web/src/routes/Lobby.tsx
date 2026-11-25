@@ -21,10 +21,14 @@ import { AvatarPicker } from '../game/components/AvatarPicker';
 import { GameIcon } from '../game/components/GameIcon';
 import { PackSummary } from '../game/components/PackSummary';
 import { PlayerAvatar } from '../game/components/PlayerAvatar';
+import { GameLog } from '../game/components/GameLog';
 import { PlayerCard } from '../game/components/PlayerCard';
+import { ConnectionNotice, RejoinCodeCard, RejoinCodeNotice } from '../game/components/SeatPanels';
 import { VillageScene } from '../game/components/VillageScene';
 import { explainIssue, MODE_LABEL, startSentences } from '../game/components/lobbyCopy';
+import { useGameLog } from '../game/state/gameLog';
 import { useLobby, useSeat } from '../game/state/lobby';
+import { useLiveSeat } from '../game/state/presence';
 import { gamePath } from '../game/state/role';
 import { GameLayout } from '../game/layout';
 import '../game/components/lobby-screen.css';
@@ -52,6 +56,9 @@ export function Lobby() {
 
 function LobbyScreen() {
   const { lobby, isLoading, error, refetch } = useLobby();
+  // ID-02: an open lobby is a live seat, so the room sees who is here.
+  const connection = useLiveSeat();
+  const roomLog = useGameLog(lobby?.gameId);
   const packs = useGetRolePacksQuery();
   const [tab, setTab] = useState<RoomTab>('players');
   const [copied, setCopied] = useState(false);
@@ -181,7 +188,12 @@ function LobbyScreen() {
       <GameLayout
         stage="lobby"
         scene={<VillageScene scene="lobby_campfire" />}
-        status={<p className="ww-sr">Lobby</p>}
+        status={
+          <>
+            <p className="ww-sr">Lobby</p>
+            <ConnectionNotice state={connection} />
+          </>
+        }
         foreground={
           <div className="ww-lobby-board">
             <header className="ww-lobby-head">
@@ -332,7 +344,7 @@ function LobbyScreen() {
             {error ? <Alert severity="error">{error.message}</Alert> : null}
             <Tabs value={tab} onChange={(_event, value: RoomTab) => setTab(value)} variant="scrollable" scrollButtons="auto" aria-label="Room sections">
               <Tab label="Players" value="players" />
-              <Tab label="Log" value="log" />
+              <Tab label={roomLog.unread > 0 && tab !== 'log' ? `Log (${roomLog.unread})` : 'Log'} value="log" />
               <Tab label="Room info" value="info" />
             </Tabs>
             <div className="ww-room-body" role="tabpanel">
@@ -403,18 +415,7 @@ function LobbyScreen() {
                 </ul>
                 </>
               ) : null}
-              {tab === 'log' ? (
-                <>
-                  <p className="ww-log-empty">No public events yet. The log starts once the game leaves the lobby.</p>
-                  <TextField
-                    label="Table chat"
-                    placeholder="Chat opens when the game starts."
-                    disabled
-                    fullWidth
-                    helperText="Talk at the table for now. In-game chat opens once the night begins."
-                  />
-                </>
-              ) : null}
+              {tab === 'log' ? <GameLog view={roomLog} youId={lobby.you.playerId} active /> : null}
               {tab === 'info' ? (
                 <>
                   <PackSummary
@@ -425,6 +426,7 @@ function LobbyScreen() {
                     warningCount={lobby.configuration.warningCount}
                     errorCount={lobby.configuration.errorCount}
                   />
+                  <RejoinCodeCard />
                   <RoomInfo />
                 </>
               ) : null}
@@ -433,6 +435,7 @@ function LobbyScreen() {
         }
       />
 
+      <RejoinCodeNotice />
       <AvatarPicker
         open={avatarOpen}
         onClose={() => setAvatarOpen(false)}
@@ -549,9 +552,9 @@ function PlayMark() {
 function RoomInfo() {
   return (
     <>
-      <p className="ww-info-copy">Your seat token stays in this browser tab. Closing the tab drops it, and a display name cannot get it back.</p>
-      <p className="ww-info-copy">One person can hold a seat in more than one browser. Each browser is its own seat.</p>
-      <p className="ww-info-copy">A removed player can join again with the room code.</p>
+      <p className="ww-info-copy">Your seat is saved on this device. Close the app or the browser and you land back in your seat when you return.</p>
+      <p className="ww-info-copy">On another device, use Rejoin on the home screen with the room code and your rejoin code. The seat then closes here.</p>
+      <p className="ww-info-copy">A removed player can join again with the room code while the room is in the lobby.</p>
     </>
   );
 }

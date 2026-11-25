@@ -21,6 +21,8 @@ function table(config: GameConfiguration, seed = 0) {
     lifeStatus: 'ALIVE',
     connectionStatus: 'CONNECTED',
     tokenHash: `hash-${i}`,
+    deviceKeyHash: null,
+    rejoinCodeHash: null,
     diedRound: null,
     createdAt: new Date(),
   }));

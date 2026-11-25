@@ -1,4 +1,4 @@
-import { Inject, Injectable, type OnApplicationBootstrap, type OnApplicationShutdown } from '@nestjs/common';
+import { Inject, Injectable, Optional, type OnApplicationBootstrap, type OnApplicationShutdown } from '@nestjs/common';
 import { HttpAdapterHost } from '@nestjs/core';
 import { CHAT_SOCKET_EVENTS } from '@warewolf/contracts';
 import { eq } from 'drizzle-orm';
@@ -8,6 +8,11 @@ import { APP_CONFIG, type AppConfig } from '../config.js';
 import { DATABASE, type Database } from '../db/database.js';
 import { gamePlayers } from '../db/schema.js';
 import { EventService, type StoredEvent } from '../events/event.service.js';
+import { PresenceService } from './presence.service.js';
+
+/** ID-01: sent to a seat's sockets just before the server closes them. */
+export const SEAT_REVOKED_EVENT = 'SEAT_REVOKED';
+export type SeatRevokedReason = 'SEAT_RECLAIMED' | 'KICKED';
 
 interface SeatAuth {
   readonly id: string;
@@ -30,7 +35,21 @@ export class PlayGateway implements OnApplicationBootstrap, OnApplicationShutdow
     @Inject(EventService) private readonly events: EventService,
     private readonly adapterHost: HttpAdapterHost,
     @Inject(APP_CONFIG) private readonly config: AppConfig,
+    @Optional() @Inject(PresenceService) private readonly presence?: PresenceService,
   ) {}
+
+  /**
+   * ID-01: the seat's token changed (reclaimed on another device) or the seat
+   * is gone (kicked). Its open sockets were authenticated with the old token,
+   * so they are told why and closed. A closed socket does not reconnect by itself.
+   */
+  revokeSeat(gameId: string, playerId: string, reason: SeatRevokedReason = 'SEAT_RECLAIMED'): void {
+    const play = this.io?.of('/play');
+    if (!play) return;
+    const room = `game:${gameId}:player:${playerId}`;
+    play.to(room).emit(SEAT_REVOKED_EVENT, { reason });
+    play.in(room).disconnectSockets(true);
+  }
 
   /** Emits each stored row to its audience room. A missing server is a no-op; reconnect reads the rows. */
   emitStored(events: readonly StoredEvent[]): void {
@@ -67,6 +86,7 @@ export class PlayGateway implements OnApplicationBootstrap, OnApplicationShutdow
 
   onApplicationBootstrap(): void {
     if (this.io) return;
+    this.presence?.bind((events) => this.emitStored(events));
     const httpServer = this.adapterHost.httpAdapter.getHttpServer();
     // Same origin only, unless CORS_ORIGINS lists the APK's WebView origin (WW-1602).
     const origin = this.config.corsOrigins.length > 0 ? [...this.config.corsOrigins] : false;
@@ -130,6 +150,11 @@ export class PlayGateway implements OnApplicationBootstrap, OnApplicationShutdow
           if (current.isHost) rooms.push(`game:${gameId}:host`);
           else socket.leave(`game:${gameId}:host`);
           await socket.join(rooms);
+          // ID-02: count each socket once, however often it sends join-session.
+          if (this.presence && !socket.data.present) {
+            socket.data.present = { gameId, playerId: current.id };
+            await this.presence.connected(gameId, current.id);
+          }
           return this.events.since(gameId, current, afterSeq);
         })
         .then((caughtUp) => {
@@ -137,6 +162,10 @@ export class PlayGateway implements OnApplicationBootstrap, OnApplicationShutdow
           reply(true);
         })
         .catch(() => reply(false));
+    });
+    socket.on('disconnect', () => {
+      const present = socket.data.present as { gameId: string; playerId: string } | undefined;
+      if (present) this.presence?.disconnected(present.gameId, present.playerId);
     });
   }
 }

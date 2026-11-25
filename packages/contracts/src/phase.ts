@@ -1,4 +1,4 @@
-import { GAME_PHASES, GAME_STATUSES, LIFE_STATUSES } from '@warewolf/domain';
+import { CONNECTION_STATUSES, GAME_PHASES, GAME_STATUSES, LIFE_STATUSES } from '@warewolf/domain';
 import { z } from 'zod';
 import { avatarIdSchema } from './lobby.js';
 
@@ -33,6 +33,8 @@ export const statePlayerSchema = z.object({
   avatarId: avatarIdSchema,
   isHost: z.boolean(),
   lifeStatus: z.enum(LIFE_STATUSES),
+  /** ID-02: whether the seat has a live socket (after a 20 s grace). The server always sends it. */
+  connectionStatus: z.enum(CONNECTION_STATUSES).optional(),
 });
 export type StatePlayer = z.infer<typeof statePlayerSchema>;
 
