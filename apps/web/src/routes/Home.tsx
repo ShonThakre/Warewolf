@@ -6,7 +6,7 @@ import { Link } from 'react-router';
 import { sceneArtUrl, uiArtUrl } from '../assets/art';
 import { useGetRolePacksQuery } from '../api/lobby';
 import { GameIcon } from '../game/components/GameIcon';
-import { CreateGameDialog, JoinGameDialog } from '../game/components/SeatDialogs';
+import { CreateGameDialog, JoinGameDialog, RejoinDialog } from '../game/components/SeatDialogs';
 import { MODE_LABEL, returnSeatLabel } from '../game/components/lobbyCopy';
 import { useLayoutMode } from '../game/layout';
 import { useLobby, useSeat } from '../game/state/lobby';
@@ -37,7 +37,7 @@ function seatWhere(status: LobbyProjection['status']): string {
 
 /** Real seat facts only. No sample village name. */
 function seatLine(lobby: LobbyProjection | null, loading: boolean): string {
-  if (!lobby) return loading ? 'Opening your seat…' : 'Saved in this browser.';
+  if (!lobby) return loading ? 'Opening your seat…' : 'Saved on this device.';
   return `${MODE_LABEL[lobby.mode]} · ${seatWhere(lobby.status)} · ${lobby.players.length} of ${lobby.playerCount}`;
 }
 
@@ -53,6 +53,7 @@ export function Home() {
   const layout = useLayoutMode();
   const [createOpen, setCreateOpen] = useState(false);
   const [joinOpen, setJoinOpen] = useState(false);
+  const [rejoinRoom, setRejoinRoom] = useState<string | null>(null);
   const [modesOpen, setModesOpen] = useState(false);
   const homeLayout =
     layout.mode === 'phone-landscape' || layout.mode === 'narrow-landscape'
@@ -102,6 +103,9 @@ export function Home() {
             Join Game
           </Button>
         </div>
+        <Button className="ww-home-rejoin" size="small" onClick={() => setRejoinRoom('')}>
+          Have a rejoin code? Get your seat back
+        </Button>
         <div className="ww-home-links">
           <Button onClick={() => setModesOpen(true)}>
             <GameIcon className="ww-home-icon" name="layers" size={20} />
@@ -149,7 +153,15 @@ export function Home() {
         <span className="ww-home-developer-name">Milind Somnathe</span>
       </p>
       <CreateGameDialog open={createOpen} onClose={() => setCreateOpen(false)} />
-      <JoinGameDialog open={joinOpen} onClose={() => setJoinOpen(false)} />
+      <JoinGameDialog
+        open={joinOpen}
+        onClose={() => setJoinOpen(false)}
+        onRejoin={(roomCode) => {
+          setJoinOpen(false);
+          setRejoinRoom(roomCode);
+        }}
+      />
+      <RejoinDialog open={rejoinRoom !== null} onClose={() => setRejoinRoom(null)} initialRoomCode={rejoinRoom ?? ''} />
       <Dialog open={modesOpen} onClose={() => setModesOpen(false)} fullWidth maxWidth="xs" aria-labelledby="game-modes-title">
         <DialogTitle id="game-modes-title">Game modes</DialogTitle>
         <DialogContent sx={{ display: 'grid', gap: 'var(--space)' }}>

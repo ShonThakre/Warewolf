@@ -138,7 +138,8 @@ describe('lobby endpoints', () => {
     expect(result.data).toEqual(credentials);
     expect(requests[0]?.method).toBe('POST');
     expect(requests[0]?.url).toBe(`${BASE}/games`);
-    expect(await requests[0]?.json()).toEqual({ displayName: 'Asha', mode: 'CLASSIC' });
+    // ID-01: every create carries this device's key.
+    expect(await requests[0]?.json()).toEqual({ displayName: 'Asha', mode: 'CLASSIC', deviceKey: expect.stringMatching(/^[A-Za-z0-9_-]{32,128}$/) });
     expect(selectCredentials(store.getState())).toEqual(credentials);
     expect(storage.current).toEqual(credentials);
   });

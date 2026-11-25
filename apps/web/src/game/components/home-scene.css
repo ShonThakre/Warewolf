@@ -216,6 +216,23 @@
   font-weight: 800;
 }
 
+.ww-home-rejoin.MuiButton-root {
+  justify-self: center;
+  min-height: var(--hit);
+  margin-top: 0.35rem;
+  color: var(--text-muted);
+  font-size: var(--text-label);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ww-home-rejoin.MuiButton-root:hover {
+  color: var(--text);
+  background: transparent;
+  text-decoration: underline;
+}
+
 .ww-home-create {
   background-image: linear-gradient(180deg, var(--accent), var(--accent-hover));
 }

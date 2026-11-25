@@ -1,12 +1,14 @@
 import { randomInt } from 'node:crypto';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, Optional } from '@nestjs/common';
 import type { StartGameResponse } from '@warewolf/contracts';
 import { DEFAULT_CATALOG, canStart, dealRoles, validateConfiguration, type RandomInt } from '@warewolf/domain';
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { DATABASE, type Database } from '../db/database.js';
 import { gamePlayers, games, type GamePlayerRow } from '../db/schema.js';
+import { appendEvents } from '../events/append.js';
 import { errors } from '../http/api-error.js';
 import { LobbyService } from '../lobby/lobby.service.js';
+import { PlayGateway } from '../realtime/play.gateway.js';
 import { insertDeal } from './assignment.repository.js';
 
 /**
@@ -33,6 +35,7 @@ export class StartService {
     @Inject(DATABASE) private readonly db: Database,
     @Inject(LobbyService) private readonly lobby: LobbyService,
     @Inject(DEAL_RANDOM) private readonly random: RandomInt,
+    @Optional() @Inject(PlayGateway) private readonly play?: PlayGateway,
   ) {}
 
   async start(gameId: string, seat: GamePlayerRow, acknowledgeWarnings: boolean): Promise<StartGameResponse> {
@@ -73,8 +76,13 @@ export class StartService {
         .where(and(eq(games.id, game.id), eq(games.stateVersion, game.stateVersion)))
         .returning();
       if (!updated) throw errors.phaseConflict();
-      return { game: updated, players: seats.length };
+      // LOG-01: public, so it names the mode and the seat count, never a role.
+      const events = await appendEvents(tx, game.id, [
+        { type: 'GAME_STARTED', audience: 'PUBLIC', payload: { mode: updated.mode, playerCount: seats.length }, dedupeKey: 'game:started' },
+      ]);
+      return { game: updated, players: seats.length, events };
     });
+    this.play?.emitStored(started.events);
 
     // Ids and counts only: role names stay out of logs (data-model.md, section 6).
     this.logger.log(`started game=${started.game.id} players=${started.players}`);

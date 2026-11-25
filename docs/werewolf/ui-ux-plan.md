@@ -278,7 +278,9 @@ flowchart LR
 
 Top navigation on every shell: wordmark, Play, How to Play, Roles, and the seated player's avatar once they have joined. Play returns to the active game when a session exists, and to home otherwise.
 
-Deep links restore through the bearer token in memory plus a session storage slot on web, or Capacitor Preferences in the APK. A lost token in version 1 cannot be recovered, because tokens are not re-issued from a display name. The lobby says that in the info tab of the rail.
+Deep links restore through the bearer token in memory plus a localStorage slot on web (ID-01; it was sessionStorage, which a closed tab lost), or Capacitor Preferences in the APK. Every tab of a browser shares the seat. A lost token is recovered with the device key (joining the room again from the same device returns the seat) or with the seat's rejoin code on another device (Home → "Have a rejoin code?"). The rejoin code is in the lobby's Room info tab and the table's "Your seat" dialog, and a snackbar shows it once after joining. When a seat is reclaimed elsewhere, the old device shows "Your seat moved to another device".
+
+The game log (LOG-02, `GameLog`) is the rail's Log tab in the lobby, a Chat | Log switch on the table, a "Full game log" tab on results, and the host dashboard's Event log. Newest round first; older rounds fold to a summary. Private entries say "Only you"; entries unlocked at game end say "Revealed". Filters: All, Deaths, Votes, Players, Mine.
 
 ---
 

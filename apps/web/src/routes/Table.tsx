@@ -1,9 +1,11 @@
 import type { GameState, TargetRuleDto } from '@warewolf/contracts';
-import { Button } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import type { SceneId } from '../assets/art';
 import { DiscussionPanel } from '../game/components/DiscussionPanel';
+import { GameLog } from '../game/components/GameLog';
+import { ConnectionNotice, RailTabs, RejoinCodeCard, RejoinCodeNotice } from '../game/components/SeatPanels';
 import { GameStatusBar } from '../game/components/GameStatusBar';
 import { KillTargetPanel } from '../game/components/KillTargetPanel';
 import { NightActionPanel } from '../game/components/NightActionPanel';
@@ -42,6 +44,8 @@ import { checkChatDraft, useChat, useChatModeration, usePostChat } from '../game
 import { useKillTarget, useSetKillTarget } from '../game/state/killTarget';
 import { useDayTallies } from '../game/state/tallies';
 import { useTableNotes } from '../game/state/tableNotes';
+import { useGameLog } from '../game/state/gameLog';
+import { useLiveSeat } from '../game/state/presence';
 import { useSeat } from '../game/state/lobby';
 import { useClosePhase, useGameState, useSecondsLeft } from '../game/state/phase';
 import { useMyRole } from '../game/state/role';
@@ -81,6 +85,10 @@ function TableScreen() {
   const kill = useKillTarget(view.state?.phase, view.state?.stateVersion);
   const tallies = useDayTallies(view.state?.phase, view.state?.stateVersion);
   const { notes, seenRoles } = useTableNotes(view.state?.phase, view.state?.stateVersion, view.state?.you.playerId, view.state?.players);
+  // ID-02 / LOG-02: the seat stays live here, and the rail's log follows every stored event.
+  const connection = useLiveSeat();
+  const gameLog = useGameLog(view.state?.gameId);
+  const [seatOpen, setSeatOpen] = useState(false);
   const setKill = useSetKillTarget();
   const prompts = actionPrompts(roleView.role, actionsView.actions);
   const draft = useActionDraft(prompts, view.state ? `${view.state.roundNumber}:${view.state.phase}` : '');
@@ -295,6 +303,20 @@ function TableScreen() {
           <Button component={Link} to="/how-to-play" variant="text" className="ww-howto-inline">
             How to play
           </Button>
+          <Button variant="text" onClick={() => setSeatOpen(true)}>
+            Your seat
+          </Button>
+          <ConnectionNotice state={connection} />
+          <RejoinCodeNotice />
+          <Dialog open={seatOpen} onClose={() => setSeatOpen(false)} fullWidth maxWidth="xs" aria-labelledby="your-seat-title">
+            <DialogTitle id="your-seat-title">Your seat</DialogTitle>
+            <DialogContent>
+              <RejoinCodeCard compact />
+            </DialogContent>
+            <DialogActions>
+              <Button onClick={() => setSeatOpen(false)}>Done</Button>
+            </DialogActions>
+          </Dialog>
         </>
       }
       foreground={
@@ -324,6 +346,11 @@ function TableScreen() {
         />
       }
       rail={
+        <RailTabs
+          unread={gameLog.unread}
+          onLogShown={gameLog.markSeen}
+          log={(active) => <GameLog view={gameLog} youId={state.you.playerId} active={active} />}
+          chat={
         <DiscussionPanel
           players={state.players}
           youId={state.you.playerId}
@@ -351,6 +378,8 @@ function TableScreen() {
                   onUnmute: (playerId) => void moderation.unmute(playerId),
                 }
               : null
+          }
+        />
           }
         />
       }

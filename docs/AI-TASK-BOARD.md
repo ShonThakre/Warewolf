@@ -168,7 +168,7 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 | GAP-03 | Ultimate 20 deliveries: `GHOST_HINT`, `PLAYER_RETURNED`, `SILENCED` (chat refuses the seat), `REWIND_RESULT`, `ABILITY_COPIED`, `CHAOS_EVENT`, table notes | Claude | COMPLETED | — |
 | GAP-04 | Play again clears the old seat (done). The unreachable Table play-again and cancelled stage are left for Cursor's next `Table.tsx` pass | Claude | COMPLETED | — |
 | GAP-05 | Stale copy: Lobby "Chat is not open in this version.", old Phase 11 comments | Cursor | COMPLETED | — |
-| GAP-06 | Connection indicator on the table (hook by Claude, visual by Cursor) | Claude + Cursor | READY | — |
+| GAP-06 | Connection indicator on the table (hook by Claude, visual by Cursor). Hook done in ID-02; seats show an Away word. Visual pass is Cursor's (see LOG-02) | Claude + Cursor | REVIEW | — |
 | PLAY-FIX-01 | Playtest fixes: the infected seat's role card and picture refresh without a reload; Seeker results always reach the table (socket events plus a delayed refetch after the night commit); Seeker gains a once-per-game role card (`seeker_see_role`, exclusive with the Wolf check). Files: `packages/domain/src/catalog/definitions/core.ts`, `packages/domain/test/*`, `apps/web/src/game/state/{realtime,role,tableNotes}.ts`, `apps/web/src/game/components/{actionCopy,tableNotes}.ts`, `apps/web/src/routes/Table.tsx`, web tests | Claude, then Cursor | REVIEW | — |
 | GAP-07 | Coverage: Servant `WITH_VAMPIRE` win was already tested (`victory.test.ts`); 10,000-game simulations for `classic-10`, `chaos-15`, `ultimate-20` | Claude | COMPLETED | — |
 | UX-11 | Voting matched to `09-voting.png` at 1586×992 | Cursor | COMPLETED | UX-10 |
@@ -178,6 +178,10 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 | BUG-01 | A Custom setup with no wolf could start. New validation error `NO_WOLVES` | Claude | COMPLETED | — |
 | BUG-02 | `events.integration.test.ts` was red on `main` (it predates `PHASE_CHANGED`). Assertion fixed | Claude | COMPLETED | — |
 | BUG-03 | **High.** Phone landscape 844×390: ballot seat buttons cannot be brought into view (or sit under the header), so nobody can vote by tapping a seat; End the day is cut off. See `docs/werewolf/e2e-report.md` | Cursor | COMPLETED | — |
+| ID-01 | Device identity and rejoin: device key, seat token in localStorage, rejoin code, `POST /games/rejoin`, seat reclaim with token rotation. Migration 0015 | Claude | COMPLETED | — |
+| ID-02 | Presence: `connection_status` written from sockets with a 20 s grace, `connectionStatus` on game state (hook half of GAP-06) | Claude | COMPLETED | ID-01 |
+| LOG-01 | Lobby, presence, day-death and game-end events; `GET /games/:id/log` redacted during play and fully revealed at game end | Claude | COMPLETED | ID-02 |
+| LOG-02 | Game log and rejoin UI: `GameLog` in rail, lobby and results; welcome-back card, rejoin dialog, rejoin code, Away badges. Visual polish handoff to Cursor | Claude, then Cursor | REVIEW | LOG-01 |
 | UX-R1 | Results banner: stat row and subtitle unreadable over the scene; empty ribbon (fold into UX-14) | Cursor | COMPLETED | — |
 | UX-MOBILE | Mobile-native full journey: phone session chrome (hide marketing nav), densify Home→Host for portrait + phone/narrow landscape | Cursor | COMPLETED | — |
 | UX-PHONE | Portrait phone screens matched to `*-phone.png` mockups (Phase 0 shared tokens/primitives, then Home→Results 01–12) | Claude | COMPLETED | UX-MOBILE |
@@ -1414,4 +1418,40 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
   1. `--text-input` is a new token, needed so iOS doesn't zoom on focus while `--text-body` drops to 12px on phones. Keep it at 16px or more.
   2. SETUP-LAND: at 844×390 the summary panel crowds out `.ww-setup-canvas` (17px tall). The setup controls need room in phone landscape, for example a capped or collapsible summary.
   3. `.ww-setup-number` is `max-width: calc(var(--space) * 10)`, about 84px at 844px wide, so the error text wraps one word per line. Give the helper text room (a wider field, or helper text that may extend past the input).
+
+### ID-01, ID-02, LOG-01, LOG-02 — Device identity, rejoin, presence, and the game log
+
+- **Agent:** Claude (all four). LOG-02 visual polish: Cursor.
+- **Status:** ID-01, ID-02, LOG-01 COMPLETED; LOG-02 REVIEW (25 November 2026).
+- **Description:** A player who closes the browser or the app lands back in their seat. Another device gets the seat back with a rejoin code. The server knows who is connected. Every game has a round-by-round log that hides secrets during play and reveals every role, night action, kill, save, and ballot once the game is FINISHED.
+- **Design:**
+  - Device key (32 random bytes, `warewolf.device`) is the guest identity. `POST /games/join` with a device key that already holds a seat in the room returns that seat (`resumed: true`), in the lobby or after start. Rejoin code: 8 characters from the room code alphabet; `POST /games/rejoin` (20 per room and 60 per address each minute). Device key and code are stored as SHA-256 (migration 0015). Every reclaim rotates the token and the code, writes `SEAT_RECLAIMED`, and sends `SEAT_REVOKED` before closing the old sockets. A kick sends `SEAT_REVOKED { reason: 'KICKED' }`.
+  - Seat storage on the web moved from sessionStorage to localStorage, migrating an old seat once. Tabs follow each other through the `storage` event. On a 401, a tab adopts a newer seat another tab stored instead of wiping it.
+  - Presence: `PresenceService` counts `/play` sockets per seat in memory (one API process; a multi-process deploy needs a shared adapter). The first socket sets `CONNECTED`. When the last one goes, a 20-second grace runs, then `DISCONNECTED` and `PLAYER_DISCONNECTED`; a later return writes `PLAYER_RECONNECTED`. `main.ts` resets every seat to `DISCONNECTED` at boot. The lobby now opens the socket too.
+  - Log: `appendEvents` (`apps/api/src/events/append.ts`) writes lobby, presence, day-death (`DAY_ELIMINATED`), and finish (`GAME_FINISHED`) rows. `composeLog` (`apps/api/src/log/compose.ts`, pure) builds `GameLog` from PUBLIC rows, the caller's PLAYER rows, own actions and ballots, and, when FINISHED (or for `/host/log`), the authoritative tables. Parsed through the strict `gameLogSchema`.
+- **Files:**
+  - API: `apps/api/src/{auth/seat.ts, lobby/*, assignment/start.service.ts, events/{append,event.service}.ts, log/*, phase/phase.service.ts, realtime/{play.gateway,presence.service}.ts, http/rate-limit.ts, app.module.ts, main.ts, db/schema.ts}`, `apps/api/drizzle/0015_seat_identity.sql` plus its down file and snapshot.
+  - Contracts: `packages/contracts/src/{lobby,phase,log,index}.ts`.
+  - Web: `apps/web/src/session/{device,storage,sessionSlice,nativeStorage}.ts`, `src/app/store.ts`, `src/main.tsx`, `src/api/{api,lobby,log}.ts`, `src/realtime/session.ts`, `src/game/state/{presence,gameLog}.ts`, `src/game/components/{GameLog,SeatPanels,logCopy,SeatDialogs,PlayerGrid}.tsx|ts`, `game-log.css`, `seat-panels.css`, `home-scene.css` (rejoin link), `src/routes/{Home,Lobby,Table,Results,Host}.tsx`, `src/game/host/HostCanvas.tsx`, `src/shell/AppShell.tsx`, `e2e-live/support.ts` (seat now in localStorage).
+- **Tests:**
+  - `pnpm typecheck` passes.
+  - `pnpm test`: domain 417, contracts 106, API 73 (new `log-compose.test.ts`), web 425 (new `test/session/identity.test.tsx`).
+  - `pnpm test:integration`: 27 files, 314 tests, including the new `identity.integration.test.ts` (device and code reclaim, old token 401 and socket revoked, rate limit, presence grace, log redaction during play and full reveal at the end).
+  - Browser (Chromium, 1440×900 and 390×844):
+    - lobby Log tab and Room info rejoin code
+    - Welcome back after closing the browser context
+    - rejoin from a second context with the code, returning the same seat
+    - table Chat | Log with no Revealed entries during play
+    - results Full game log with grouped ballots
+    - no horizontal overflow on the phone
+- **Handoff to Cursor (LOG-02 visual pass):**
+  1. `GameLog` (`variant: 'live' | 'recap' | 'host'`, `view` from `useGameLog`, `youId`, `active`) in `game-log.css`. Rows have `data-tone` (death, save, vote, info, table, secret), `data-visibility` (PUBLIC, PRIVATE, REVEALED), and `data-marker` for phase dividers. Revealed ballots render as one `.ww-ballots` block.
+  2. `RailTabs` (Chat | Log with an unread badge), `RejoinCodeCard`, `RejoinCodeNotice` (snackbar), `SeatRevokedDialog`, and `ConnectionNotice` live in `SeatPanels.tsx` and `seat-panels.css`.
+  3. No new tokens were added; tints use `color-mix` on existing tokens. Add tokens such as `--log-private` and `--log-revealed` if you want them named.
+  4. To polish:
+     - the phone-landscape rail (Chat | Log inside the Discussion switch)
+     - the snackbar overlapping the action bar on a phone
+     - the `.ww-seat-tag.is-away` look
+     - the Home "Have a rejoin code?" link placement
+     - Results rail width, where long sentences wrap a lot
 

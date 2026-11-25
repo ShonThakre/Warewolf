@@ -28,18 +28,18 @@ export async function createInBrowser(page: Page, hostName: string, mode?: ModeB
     await page.getByRole('button', { name: 'Save setup' }).click();
     await expect(page.getByRole('status').filter({ hasText: 'Saved' })).toBeVisible();
   }
-  const seat = await page.evaluate((key) => JSON.parse(sessionStorage.getItem(key) ?? 'null'), SEAT_KEY);
+  const seat = await page.evaluate((key) => JSON.parse(localStorage.getItem(key) ?? 'null'), SEAT_KEY);
   expect(seat, 'the browser holds its seat').toBeTruthy();
   return GameDriver.attach(newHttp(), { ...seat, displayName: hostName });
 }
 
-/** A second browser for one seat, signed in the way a reload finds it: the seat in sessionStorage. */
+/** A second browser for one seat, signed in the way a reload finds it: the seat in localStorage (ID-01). */
 export async function openSeat(browser: Browser, like: Page, seat: Seat, path: string): Promise<Page> {
   const context = await browser.newContext({ viewport: like.viewportSize() });
   const { displayName: _name, ...credentials } = seat;
   await context.addInitScript(
     ([key, value]) => {
-      sessionStorage.setItem(key, value);
+      localStorage.setItem(key, value);
     },
     [SEAT_KEY, JSON.stringify(credentials)] as const,
   );

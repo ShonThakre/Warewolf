@@ -1,7 +1,8 @@
 import type { FinishedResults } from '@warewolf/contracts';
-import { Button } from '@mui/material';
-import { useEffect } from 'react';
+import { Button, Tab, Tabs } from '@mui/material';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
+import { GameLog } from '../game/components/GameLog';
 import { ResultsRecap } from '../game/components/ResultsRecap';
 import { VillageScene } from '../game/components/VillageScene';
 import { VictoryBanner } from '../game/components/VictoryBanner';
@@ -9,12 +10,14 @@ import { bannerOutcome, cancelReasonCopy, resultsReason, resultsTitle, resultSta
 import type { SceneId } from '../assets/art';
 import { GameLayout } from '../game/layout';
 import { useAppDispatch } from '../app/hooks';
+import { useGameLog } from '../game/state/gameLog';
 import { useSeat } from '../game/state/lobby';
 import { cleared } from '../session/sessionSlice';
 import { useGameState } from '../game/state/phase';
 import { resultsHeadline, useResults } from '../game/state/results';
 import '../game/components/lobby-screen.css';
 import '../game/components/results-screen.css';
+import '../game/components/seat-panels.css';
 
 /** The end of a game. A missing seat returns home. Roles come only from the results projection. */
 export function Results() {
@@ -40,6 +43,9 @@ function ResultsScreen() {
   const results = useResults(view.state?.status);
   const navigate = useNavigate();
   const { state, isLoading, error, refetch } = view;
+  // LOG-02: once the game is over, the log reveals every role, night action, and ballot.
+  const gameLog = useGameLog(state && (state.status === 'FINISHED' || state.status === 'CANCELLED') ? state.gameId : null);
+  const [railTab, setRailTab] = useState<'recap' | 'log'>('recap');
 
   useEffect(() => {
     if (!state) return;
@@ -117,7 +123,21 @@ function ResultsScreen() {
           </div>
         )
       }
-      rail={<ResultsRecap finished={results.finished} cancelled={results.cancelled} />}
+      rail={
+        <div className="ww-rail-tabs">
+          <Tabs value={railTab} onChange={(_event, value: 'recap' | 'log') => setRailTab(value)} variant="fullWidth" aria-label="Results sections">
+            <Tab value="recap" label="Recap" id="results-recap-tab" aria-controls="results-recap-panel" />
+            <Tab value="log" label="Full game log" id="results-log-tab" aria-controls="results-log-panel" />
+          </Tabs>
+          <div className="ww-rail-panel ww-rail-panel-scroll" id={`results-${railTab}-panel`} role="tabpanel" aria-labelledby={`results-${railTab}-tab`}>
+            {railTab === 'recap' ? (
+              <ResultsRecap finished={results.finished} cancelled={results.cancelled} />
+            ) : (
+              <GameLog view={gameLog} youId={state.you.playerId} variant="recap" />
+            )}
+          </div>
+        </div>
+      }
       action={
         <div className="ww-action">
           <p className="ww-action-copy">{reason}</p>

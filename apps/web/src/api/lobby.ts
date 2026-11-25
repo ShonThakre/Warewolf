@@ -2,6 +2,7 @@ import {
   configurationResponseSchema,
   leaveGameResponseSchema,
   lobbyProjectionSchema,
+  rejoinCodeResponseSchema,
   rolePackListSchema,
   seatCredentialsSchema,
   type ChangeAvatarRequest,
@@ -11,12 +12,15 @@ import {
   type LeaveGameRequest,
   type LeaveGameResponse,
   type LobbyProjection,
+  type RejoinCodeResponse,
+  type RejoinGameRequest,
   type RolePackSummary,
   type SeatCredentials,
 } from '@warewolf/contracts';
 import type { ThunkDispatch, UnknownAction } from '@reduxjs/toolkit';
 import type { GameConfiguration } from '@warewolf/domain';
-import { cleared, hostChanged, seated } from '../session/sessionSlice';
+import { deviceKey, saveProfile } from '../session/device';
+import { cleared, hostChanged, rejoinCodeChanged, seated } from '../session/sessionSlice';
 import { api } from './api';
 
 /** Lobby polling interval while the seat is in the lobby. */
@@ -38,6 +42,9 @@ async function applyLobby(
   }
 }
 
+/** ID-01: every create, join, and rejoin carries this device's key, so the device can get its seat back later. */
+const withDevice = <T extends object>(body: T): T & { deviceKey: string } => ({ ...body, deviceKey: deviceKey() });
+
 export const lobbyApi = api.injectEndpoints({
   endpoints: (build) => ({
     getRolePacks: build.query<RolePackSummary[], void>({
@@ -46,25 +53,55 @@ export const lobbyApi = api.injectEndpoints({
     }),
 
     createGame: build.mutation<SeatCredentials, CreateGameRequest>({
-      query: (body) => ({ url: 'games', method: 'POST', body }),
+      query: (body) => ({ url: 'games', method: 'POST', body: withDevice(body) }),
       extraOptions: { schema: seatCredentialsSchema },
-      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
         try {
           dispatch(seated((await queryFulfilled).data));
+          saveProfile({ displayName: arg.displayName, ...(arg.avatarId ? { avatarId: arg.avatarId } : {}) });
         } catch {
           // Shown by the caller from the mutation's error.
         }
       },
     }),
 
+    /** ID-01: when this device already holds a seat in the room, the response is that seat with `resumed: true`. */
     joinGame: build.mutation<SeatCredentials, JoinGameRequest>({
-      query: (body) => ({ url: 'games/join', method: 'POST', body }),
+      query: (body) => ({ url: 'games/join', method: 'POST', body: withDevice(body) }),
+      extraOptions: { schema: seatCredentialsSchema },
+      async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+        try {
+          const { data } = await queryFulfilled;
+          dispatch(seated(data));
+          if (!data.resumed) saveProfile({ displayName: arg.displayName, ...(arg.avatarId ? { avatarId: arg.avatarId } : {}) });
+        } catch {
+          // Shown by the caller from the mutation's error.
+        }
+      },
+    }),
+
+    /** ID-01: reclaim a seat with its rejoin code. The old device's token stops working. */
+    rejoinGame: build.mutation<SeatCredentials, RejoinGameRequest>({
+      query: (body) => ({ url: 'games/rejoin', method: 'POST', body: withDevice(body) }),
       extraOptions: { schema: seatCredentialsSchema },
       async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
         try {
           dispatch(seated((await queryFulfilled).data));
         } catch {
-          // Shown by the caller from the mutation's error.
+          // Shown by the caller.
+        }
+      },
+    }),
+
+    /** ID-01: a new rejoin code for this seat. The previous code stops working. */
+    newRejoinCode: build.mutation<RejoinCodeResponse, { gameId: string }>({
+      query: ({ gameId }) => ({ url: `games/${gameId}/me/rejoin-code`, method: 'POST' }),
+      extraOptions: { schema: rejoinCodeResponseSchema },
+      async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+        try {
+          dispatch(rejoinCodeChanged((await queryFulfilled).data.rejoinCode));
+        } catch {
+          // Shown by the caller.
         }
       },
     }),
@@ -150,6 +187,8 @@ export const {
   useGetRolePacksQuery,
   useCreateGameMutation,
   useJoinGameMutation,
+  useRejoinGameMutation,
+  useNewRejoinCodeMutation,
   useGetLobbyQuery,
   useLeaveGameMutation,
   useKickPlayerMutation,

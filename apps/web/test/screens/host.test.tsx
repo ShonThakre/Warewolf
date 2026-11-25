@@ -25,11 +25,30 @@ function dashboardFetch(): typeof fetch {
     if (path.endsWith('/host/dashboard')) return json(200, dashboard);
     if (path.endsWith('/state')) return json(200, gameStateFixture({ phase: 'VOTING', roundNumber: 2 }));
     if (path.endsWith('/events')) return json(200, { events: [{ seq: 1, type: 'PHASE_CHANGED', audience: 'PUBLIC', payload: {} }] });
+    // LOG-02: the Event log section shows the host's round-by-round log.
+    if (path.endsWith('/host/log')) return json(200, HOST_LOG);
     return json(404, { error: { code: 'NOT_FOUND', message: 'Not found.' } });
   }) as typeof fetch;
 }
 
 afterEach(cleanup);
+
+
+const HOST_LOG = {
+  status: 'ACTIVE',
+  revealed: true,
+  lastSeq: 1,
+  lobby: [],
+  rounds: [
+    {
+      roundNumber: 2,
+      night: [],
+      day: [{ id: 'e1', seq: 1, at: '2026-11-25T12:00:00.000Z', roundNumber: 2, stage: 'DAY', kind: 'PHASE_CHANGED', visibility: 'PUBLIC', actors: [], targets: [], detail: { phase: 'VOTING' } }],
+      summary: { deaths: 0, saves: 0 },
+    },
+  ],
+  end: [],
+};
 
 describe('host dashboard screen', () => {
   it('sends an unseated visit home', async () => {
@@ -77,7 +96,8 @@ describe('host dashboard screen', () => {
     expect(screen.getByRole('region', { name: 'Open vote' }).textContent).toContain('3');
 
     fireEvent.click(screen.getByRole('button', { name: 'Event log' }));
-    expect(screen.getByText('The phase changed.')).toBeTruthy();
+    expect(await screen.findByText('Voting opens.')).toBeTruthy();
+    expect(screen.getByText(/Host view: includes secrets/)).toBeTruthy();
 
     expect(document.body.textContent).not.toMatch(/alpha_wolf|alpha_kill|WOLF_KILL|TARGET_INELIGIBLE|WOLF_PACK/);
     expect(screen.queryByRole('combobox')).toBeNull();

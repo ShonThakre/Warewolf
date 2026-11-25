@@ -17,9 +17,11 @@ import {
   type ValidationResult,
 } from '@warewolf/domain';
 import { and, asc, eq, inArray, sql } from 'drizzle-orm';
-import { hashToken, newSeatToken } from '../auth/seat.js';
+import { hashToken, newRejoinCode, newSeatToken } from '../auth/seat.js';
 import { DATABASE, isUniqueViolation, type Database, type Transaction } from '../db/database.js';
 import { gamePlayers, games, type GamePlayerRow, type GameRow } from '../db/schema.js';
+import { appendEvents, snapshot, type EventDraft } from '../events/append.js';
+import type { StoredEvent } from '../events/event.service.js';
 import { errors } from '../http/api-error.js';
 import { PlayGateway } from '../realtime/play.gateway.js';
 
@@ -70,10 +72,11 @@ export class LobbyService {
   ) {}
 
   /** POST /games. Creates the room and the host seat in one transaction. */
-  async create(displayName: string, mode: GameMode, avatarId?: number): Promise<SeatCredentials> {
+  async create(displayName: string, mode: GameMode, avatarId?: number, deviceKey?: string): Promise<SeatCredentials> {
     const pack = getPack(DEFAULT_PACK_BY_MODE[mode]);
     if (!pack) throw new Error(`No default pack for ${mode}`);
     const token = newSeatToken();
+    const rejoinCode = newRejoinCode();
 
     for (let attempt = 0; attempt < ROOM_CODE_ATTEMPTS; attempt++) {
       const ids = { gameId: randomUUID(), playerId: randomUUID(), roomCode: generateRoomCode() };
@@ -86,17 +89,24 @@ export class LobbyService {
             mode,
             configDraft: pack.config,
           });
-          await tx.insert(gamePlayers).values({
-            id: ids.playerId,
-            gameId: ids.gameId,
-            displayName,
-            seatNumber: 1,
-            avatarId: avatarId ?? 1,
-            isHost: true,
-            tokenHash: hashToken(token),
-          });
+          const [host] = await tx
+            .insert(gamePlayers)
+            .values({
+              id: ids.playerId,
+              gameId: ids.gameId,
+              displayName,
+              seatNumber: 1,
+              avatarId: avatarId ?? 1,
+              isHost: true,
+              tokenHash: hashToken(token),
+              deviceKeyHash: deviceKey ? hashToken(deviceKey) : null,
+              rejoinCodeHash: hashToken(rejoinCode),
+            })
+            .returning();
+          // The games row was inserted in this transaction, so nothing else can append to it yet.
+          if (host) await appendEvents(tx, ids.gameId, [{ type: 'ROOM_CREATED', audience: 'PUBLIC', payload: { host: snapshot(host) }, dedupeKey: 'lobby:created' }]);
         });
-        return { ...ids, token, isHost: true };
+        return { ...ids, token, isHost: true, rejoinCode, resumed: false };
       } catch (error) {
         if (isUniqueViolation(error, 'games_room_code_open_uq')) continue;
         throw error;
@@ -105,17 +115,32 @@ export class LobbyService {
     throw new Error('Could not allocate a free room code');
   }
 
-  /** POST /games/join */
-  async join(roomCode: string, displayName: string, avatarId?: number): Promise<SeatCredentials> {
+  /**
+   * POST /games/join. ID-01: when `deviceKey` matches a seat already in this
+   * room, that seat is given back (`resumed: true`) with a fresh token, in the
+   * lobby or after start (OD-65: the same person returning to their own seat).
+   * The name in the request is ignored then; the seat keeps its own.
+   */
+  async join(roomCode: string, displayName: string, avatarId?: number, deviceKey?: string): Promise<SeatCredentials> {
     const token = newSeatToken();
+    const rejoinCode = newRejoinCode();
     try {
-      return await this.db.transaction(async (tx) => {
+      const { credentials, events, reclaimed } = await this.db.transaction(async (tx) => {
         const [game] = await tx
           .select()
           .from(games)
           .where(and(eq(games.roomCode, roomCode), inArray(games.status, ['LOBBY', 'ACTIVE'])))
           .for('update');
         if (!game) throw errors.notFound();
+
+        if (deviceKey) {
+          const [mine] = await tx
+            .select()
+            .from(gamePlayers)
+            .where(and(eq(gamePlayers.gameId, game.id), eq(gamePlayers.deviceKeyHash, hashToken(deviceKey))))
+            .limit(1);
+          if (mine) return this.reclaimLocked(tx, game, mine, 'DEVICE', deviceKey);
+        }
         if (game.status !== 'LOBBY') throw errors.gameStarted();
 
         const seats = await tx.select().from(gamePlayers).where(eq(gamePlayers.gameId, game.id));
@@ -124,23 +149,104 @@ export class LobbyService {
         if (seats.some((s) => s.displayName.toLowerCase() === lower)) throw errors.nameTaken();
 
         const playerId = randomUUID();
-        await tx.insert(gamePlayers).values({
-          id: playerId,
-          gameId: game.id,
-          displayName,
-          seatNumber: lowestFree(seats.map((s) => s.seatNumber)),
-          avatarId: chooseAvatar(seats.map((s) => s.avatarId), avatarId),
-          tokenHash: hashToken(token),
-        });
+        const [joined] = await tx
+          .insert(gamePlayers)
+          .values({
+            id: playerId,
+            gameId: game.id,
+            displayName,
+            seatNumber: lowestFree(seats.map((s) => s.seatNumber)),
+            avatarId: chooseAvatar(seats.map((s) => s.avatarId), avatarId),
+            tokenHash: hashToken(token),
+            deviceKeyHash: deviceKey ? hashToken(deviceKey) : null,
+            rejoinCodeHash: hashToken(rejoinCode),
+          })
+          .returning();
         await this.bump(tx, game.id);
-        return { gameId: game.id, roomCode: game.roomCode, playerId, token, isHost: false };
+        const events = joined
+          ? await appendEvents(tx, game.id, [{ type: 'PLAYER_JOINED', audience: 'PUBLIC', payload: { player: snapshot(joined) }, dedupeKey: `lobby:join:${playerId}` }])
+          : [];
+        const credentials: SeatCredentials = { gameId: game.id, roomCode: game.roomCode, playerId, token, isHost: false, rejoinCode, resumed: false };
+        return { credentials, events, reclaimed: false };
       });
+      if (reclaimed) this.play?.revokeSeat(credentials.gameId, credentials.playerId);
+      this.play?.emitStored(events);
+      return credentials;
     } catch (error) {
       // The checks above run under the game lock; these catch anything they missed.
       if (isUniqueViolation(error, 'game_players_name_uq')) throw errors.nameTaken();
       if (isUniqueViolation(error, 'game_players_avatar_uq')) throw errors.avatarTaken();
       throw error;
     }
+  }
+
+  /**
+   * POST /games/rejoin (ID-01). The rejoin code gives its seat back in an open
+   * game, with a fresh token and a fresh code; the old token and code stop
+   * working. A wrong room or code is one generic 404.
+   */
+  async rejoin(roomCode: string, rejoinCode: string, deviceKey?: string): Promise<SeatCredentials> {
+    const { credentials, events } = await this.db.transaction(async (tx) => {
+      const [game] = await tx
+        .select()
+        .from(games)
+        .where(and(eq(games.roomCode, roomCode), inArray(games.status, ['LOBBY', 'ACTIVE'])))
+        .for('update');
+      if (!game) throw errors.notFound();
+      const [seat] = await tx
+        .select()
+        .from(gamePlayers)
+        .where(and(eq(gamePlayers.gameId, game.id), eq(gamePlayers.rejoinCodeHash, hashToken(rejoinCode))))
+        .limit(1);
+      if (!seat) throw errors.notFound();
+      return this.reclaimLocked(tx, game, seat, 'CODE', deviceKey);
+    });
+    this.play?.revokeSeat(credentials.gameId, credentials.playerId);
+    this.play?.emitStored(events);
+    return credentials;
+  }
+
+  /** POST /games/:gameId/me/rejoin-code (ID-01). A new code for the caller's seat; the previous one stops working. */
+  async newRejoinCode(gameId: string, seat: GamePlayerRow): Promise<{ rejoinCode: string }> {
+    const rejoinCode = newRejoinCode();
+    await this.db.transaction(async (tx) => {
+      const { game, you } = await this.lock(tx, gameId, seat.id);
+      if (game.status !== 'LOBBY' && game.status !== 'ACTIVE') throw errors.phaseConflict();
+      await tx.update(gamePlayers).set({ rejoinCodeHash: hashToken(rejoinCode) }).where(eq(gamePlayers.id, you.id));
+    });
+    return { rejoinCode };
+  }
+
+  /**
+   * Gives `seat` to the caller: a new token and a new rejoin code replace the
+   * old ones, and the device key (when sent) now holds the seat. The caller
+   * holds the game lock. Call `revokeSeat` after commit so sockets opened with
+   * the old token close.
+   */
+  private async reclaimLocked(
+    tx: Transaction,
+    game: GameRow,
+    seat: GamePlayerRow,
+    via: 'DEVICE' | 'CODE',
+    deviceKey: string | undefined,
+  ): Promise<{ credentials: SeatCredentials; events: StoredEvent[]; reclaimed: true }> {
+    const token = newSeatToken();
+    const rejoinCode = newRejoinCode();
+    await tx
+      .update(gamePlayers)
+      .set({
+        tokenHash: hashToken(token),
+        rejoinCodeHash: hashToken(rejoinCode),
+        ...(deviceKey ? { deviceKeyHash: hashToken(deviceKey) } : {}),
+      })
+      .where(eq(gamePlayers.id, seat.id));
+    const events = await appendEvents(tx, game.id, [{ type: 'SEAT_RECLAIMED', audience: 'PUBLIC', payload: { player: snapshot(seat), via } }]);
+    this.logger.log(`seat reclaimed game=${game.id} player=${seat.id} via=${via}`);
+    return {
+      credentials: { gameId: game.id, roomCode: game.roomCode, playerId: seat.id, token, isHost: seat.isHost, rejoinCode, resumed: true },
+      events,
+      reclaimed: true,
+    };
   }
 
   /** PUT /games/:gameId/me/avatar. Lobby only. Choosing your current avatar changes nothing. */
@@ -182,47 +288,60 @@ export class LobbyService {
       if (game.status !== 'LOBBY') throw errors.gameStarted();
 
       if (you.isHost && !hostPlayerId) {
-        await this.cancelLocked(tx, game.id, 'HOST');
-        return { gameCancelled: true };
+        const events = await this.cancelLocked(tx, game.id, 'HOST', you);
+        return { gameCancelled: true, movedHost: null, events };
       }
+      const drafts: EventDraft[] = [];
       if (you.isHost && hostPlayerId) {
-        await this.transferLocked(tx, game.id, you, hostPlayerId, 'hostPlayerId');
+        const to = await this.transferLocked(tx, game.id, you, hostPlayerId, 'hostPlayerId');
+        drafts.push({ type: 'HOST_CHANGED', audience: 'PUBLIC', payload: { from: snapshot(you), to: snapshot(to) } });
       }
       await tx.delete(gamePlayers).where(eq(gamePlayers.id, you.id));
       await this.bump(tx, game.id);
-      return { gameCancelled: false, movedHost: you.isHost && hostPlayerId ? hostPlayerId : null };
-    }).then(({ movedHost, ...result }) => {
+      drafts.push({ type: 'PLAYER_LEFT', audience: 'PUBLIC', payload: { player: snapshot(you) }, dedupeKey: `lobby:leave:${you.id}` });
+      const events = await appendEvents(tx, game.id, drafts);
+      return { gameCancelled: false, movedHost: you.isHost && hostPlayerId ? hostPlayerId : null, events };
+    }).then(({ movedHost, events, ...result }) => {
       if (movedHost) this.play?.moveHost(gameId, seat.id, movedHost);
+      this.play?.emitStored(events);
       return result;
     });
   }
 
   /** POST /games/:gameId/players/:playerId/kick. Lobby only. The kicked player may rejoin (OD-65). */
   async kick(gameId: string, seat: GamePlayerRow, playerId: string): Promise<LobbyProjection> {
-    await this.db.transaction(async (tx) => {
+    const events = await this.db.transaction(async (tx) => {
       const { game, you } = await this.lock(tx, gameId, seat.id);
       if (!you.isHost) throw errors.notHost();
       if (game.status !== 'LOBBY') throw errors.gameStarted();
       if (playerId === you.id) throw errors.invalid([{ path: 'playerId', message: 'The host cannot remove their own seat. Use leave instead.' }]);
-      const removed = await tx
+      const [removed] = await tx
         .delete(gamePlayers)
         .where(and(eq(gamePlayers.id, playerId), eq(gamePlayers.gameId, game.id)))
-        .returning({ id: gamePlayers.id });
-      if (removed.length === 0) throw errors.notFound();
+        .returning();
+      if (!removed) throw errors.notFound();
       await this.bump(tx, game.id);
+      return appendEvents(tx, game.id, [
+        { type: 'PLAYER_KICKED', audience: 'PUBLIC', payload: { player: snapshot(removed), by: snapshot(you) }, dedupeKey: `lobby:kick:${removed.id}` },
+      ]);
     });
+    // The removed seat's sockets would otherwise stay in the public room.
+    this.play?.revokeSeat(gameId, playerId, 'KICKED');
+    this.play?.emitStored(events);
     return this.projection(gameId, seat.id);
   }
 
   /** POST /games/:gameId/host/transfer. Lobby or active. */
   async transfer(gameId: string, seat: GamePlayerRow, playerId: string): Promise<LobbyProjection> {
-    await this.db.transaction(async (tx) => {
+    const events = await this.db.transaction(async (tx) => {
       const { game, you } = await this.lock(tx, gameId, seat.id);
       if (!you.isHost) throw errors.notHost();
       if (game.status !== 'LOBBY' && game.status !== 'ACTIVE') throw errors.phaseConflict();
-      await this.transferLocked(tx, game.id, you, playerId, 'playerId');
+      const to = await this.transferLocked(tx, game.id, you, playerId, 'playerId');
       await this.bump(tx, game.id);
+      return appendEvents(tx, game.id, [{ type: 'HOST_CHANGED', audience: 'PUBLIC', payload: { from: snapshot(you), to: snapshot(to) } }]);
     });
+    this.play?.emitStored(events);
     // After commit: the old host's live sockets leave the host room and the new host's join it (WW-1303).
     this.play?.moveHost(gameId, seat.id, playerId);
     return this.projection(gameId, seat.id);
@@ -230,12 +349,13 @@ export class LobbyService {
 
   /** POST /games/:gameId/host/cancel */
   async cancel(gameId: string, seat: GamePlayerRow): Promise<LobbyProjection> {
-    await this.db.transaction(async (tx) => {
+    const events = await this.db.transaction(async (tx) => {
       const { game, you } = await this.lock(tx, gameId, seat.id);
       if (!you.isHost) throw errors.notHost();
       if (game.status !== 'LOBBY' && game.status !== 'ACTIVE') throw errors.phaseConflict();
-      await this.cancelLocked(tx, game.id, 'HOST');
+      return this.cancelLocked(tx, game.id, 'HOST', you);
     });
+    this.play?.emitStored(events);
     return this.projection(gameId, seat.id);
   }
 
@@ -259,7 +379,7 @@ export class LobbyService {
     return parseGameConfiguration(game.configDraft);
   }
 
-  private async transferLocked(tx: Transaction, gameId: string, from: GamePlayerRow, toId: string, field: string): Promise<void> {
+  private async transferLocked(tx: Transaction, gameId: string, from: GamePlayerRow, toId: string, field: string): Promise<GamePlayerRow> {
     if (toId === from.id) throw errors.invalid([{ path: field, message: 'Choose another player.' }]);
     const [to] = await tx.select().from(gamePlayers).where(and(eq(gamePlayers.id, toId), eq(gamePlayers.gameId, gameId)));
     if (!to) throw errors.invalid([{ path: field, message: 'That player is not in this game.' }]);
@@ -268,15 +388,17 @@ export class LobbyService {
     await tx.update(gamePlayers).set({ isHost: true }).where(eq(gamePlayers.id, to.id));
     await tx.update(games).set({ hostPlayerId: to.id }).where(eq(games.id, gameId));
     this.logger.log(`host transfer game=${gameId} from=${from.id} to=${to.id}`);
+    return to;
   }
 
-  private async cancelLocked(tx: Transaction, gameId: string, reason: 'HOST' | 'SURRENDER'): Promise<void> {
+  private async cancelLocked(tx: Transaction, gameId: string, reason: 'HOST' | 'SURRENDER', by: GamePlayerRow): Promise<StoredEvent[]> {
     await tx
       .update(games)
       .set({ status: 'CANCELLED', phase: 'CANCELLED', cancelReason: reason, phaseStartedAt: new Date(), phaseEndsAt: null })
       .where(eq(games.id, gameId));
     await this.bump(tx, gameId);
     this.logger.log(`cancelled game=${gameId} reason=${reason}`);
+    return appendEvents(tx, gameId, [{ type: 'GAME_CANCELLED', audience: 'PUBLIC', payload: { reason, by: snapshot(by) }, dedupeKey: 'game:cancelled' }]);
   }
 
   private project(game: GameRow, seats: readonly GamePlayerRow[], you: GamePlayerRow): LobbyProjection {

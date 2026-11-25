@@ -1,0 +1,116 @@
+/* ID-01 / LOG-02: rejoin code, connection notice, and the rail's Chat | Log switch. Tokens only. */
+
+.ww-rejoin-card {
+  display: grid;
+  gap: calc(var(--space) / 2);
+  padding: var(--space);
+  border: 1px solid color-mix(in srgb, var(--primary) 40%, var(--border));
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+}
+
+.ww-rejoin-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: 800;
+}
+
+.ww-rejoin-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--space) / 2);
+}
+
+.ww-rejoin-code {
+  padding: 4px 12px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 60%, var(--border));
+  border-radius: calc(var(--radius) / 2);
+  background: var(--surface-raised);
+  color: var(--accent);
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: var(--text-title);
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  user-select: all;
+}
+
+.ww-rejoin-card[data-compact] .ww-rejoin-code {
+  font-size: var(--text-nav);
+}
+
+.ww-rejoin-help {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: var(--text-label);
+}
+
+.ww-connection:empty {
+  display: none;
+}
+
+.ww-connection {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 2px 12px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-label);
+  font-weight: 800;
+}
+
+.ww-connection[data-state='down'] {
+  background: color-mix(in srgb, var(--danger) 22%, var(--surface));
+  color: var(--text);
+}
+
+.ww-connection[data-state='back'] {
+  background: color-mix(in srgb, var(--village) 22%, var(--surface));
+  color: var(--text);
+}
+
+.ww-rail-tabs {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  height: 100%;
+}
+
+.ww-rail-panel {
+  min-height: 0;
+  overflow: hidden;
+  padding-top: calc(var(--space) / 2);
+}
+
+.ww-rail-panel > * {
+  height: 100%;
+}
+
+.ww-rail-tab-label {
+  padding-right: 10px;
+}
+
+.ww-rejoin-link {
+  justify-self: center;
+}
+
+/* ID-02: a seat with no live connection. The "Away" word carries the meaning; the dim is a second cue. */
+.ww-seat[data-away] .ww-target-avatar {
+  opacity: 0.55;
+}
+
+.ww-seat-tag.is-away {
+  background: color-mix(in srgb, var(--text-muted) 22%, transparent);
+  color: var(--text);
+}
+
+.ww-rail-panel.ww-rail-panel-scroll {
+  overflow-y: auto;
+}
+
+.ww-rail-panel.ww-rail-panel-scroll > * {
+  height: auto;
+}

@@ -54,7 +54,13 @@ export function PlayerGrid({
         const pressed = order !== -1;
         const enabled = legal && (pressed || !capped);
         return (
-          <li key={player.playerId} className="ww-seat" data-life={player.lifeStatus} data-legal={picking ? legal : undefined}>
+          <li
+            key={player.playerId}
+            className="ww-seat"
+            data-life={player.lifeStatus}
+            data-legal={picking ? legal : undefined}
+            data-away={player.connectionStatus === 'DISCONNECTED' && player.playerId !== youId ? 'true' : undefined}
+          >
             <Button className="ww-target" variant="outlined" aria-pressed={pressed} disabled={!enabled} onClick={() => onToggle(player.playerId)}>
               <span className="ww-target-avatar">
                 <PlayerAvatar name={player.displayName} avatarId={player.avatarId} dead={player.lifeStatus === 'DEAD'} />
@@ -76,6 +82,8 @@ export function PlayerGrid({
               {ballot ? null : pressed ? <span className="ww-seat-picked">Selected</span> : null}
               {ballot ? null : player.isHost ? <span className="ww-seat-tag">Host</span> : null}
               {ballot ? null : player.playerId === youId ? <span className="ww-seat-tag is-you">You</span> : null}
+              {/* ID-02: presence is a word, never colour alone. Your own seat is plainly here. */}
+              {ballot || player.playerId === youId || player.connectionStatus !== 'DISCONNECTED' ? null : <span className="ww-seat-tag is-away">Away</span>}
             </Button>
           </li>
         );

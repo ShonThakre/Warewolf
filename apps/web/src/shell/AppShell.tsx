@@ -3,6 +3,7 @@ import { useId, useState, type MouseEvent } from 'react';
 import { Link, NavLink, Outlet, useMatch } from 'react-router';
 import { uiArtUrl } from '../assets/art';
 import { PlayerAvatar } from '../game/components/PlayerAvatar';
+import { SeatRevokedDialog } from '../game/components/SeatPanels';
 import { isPhoneLayout, useLayoutMode } from '../game/layout';
 import { useLobby, useSeat } from '../game/state/lobby';
 import './app-shell.css';
@@ -150,6 +151,7 @@ export function AppShell() {
       </Box>
       <Box className="ww-app-main" component="main" sx={{ minWidth: 0, minHeight: 0, overflow: 'auto' }}>
         <Outlet />
+        <SeatRevokedDialog />
       </Box>
     </Box>
   );

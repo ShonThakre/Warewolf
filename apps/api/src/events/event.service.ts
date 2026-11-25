@@ -15,7 +15,9 @@ import {
   roleAssignments,
   roleConversionRecords,
   scheduledEffects,
+  victoryRecords,
 } from '../db/schema.js';
+import { appendEvents, snapshot, type EventDraft } from './append.js';
 import { publishedResultPayload } from '../day/publications.js';
 import { toDayTally } from '../day/tallies.js';
 import { isVampireTeamRole } from '@warewolf/domain';
@@ -150,6 +152,59 @@ export class EventService {
     const fresh: StoredEvent[] = [];
     for (const { gameId } of games_) fresh.push(...(await this.publishTallies(gameId)));
     return fresh;
+  }
+
+  /**
+   * LOG-01: one PUBLIC `DAY_ELIMINATED` row per day death of `round` (vote,
+   * day shot, due poison). Written after the day close commits. It says
+   * whether the ballot did it, and names the role only when the death
+   * revealed it publicly; the other causes stay host-only until game end.
+   */
+  async publishDay(gameId: string, round: number): Promise<StoredEvent[]> {
+    return this.db.transaction(async (tx) => {
+      const [game] = await tx.select({ id: games.id }).from(games).where(eq(games.id, gameId)).for('update');
+      if (!game) return [];
+      const rows = await tx
+        .select({ record: eliminationRecords, seat: gamePlayers })
+        .from(eliminationRecords)
+        .innerJoin(gamePlayers, eq(gamePlayers.id, eliminationRecords.playerId))
+        .where(and(eq(eliminationRecords.gameId, gameId), eq(eliminationRecords.roundNumber, round), eq(eliminationRecords.phaseKind, 'DAY')))
+        .orderBy(asc(eliminationRecords.createdAt), asc(eliminationRecords.playerId));
+      const drafts: EventDraft[] = rows.map(({ record, seat }) => ({
+        type: 'DAY_ELIMINATED',
+        audience: 'PUBLIC',
+        payload: {
+          roundNumber: round,
+          player: snapshot(seat),
+          byVote: record.causes.some((cause) => cause.type === 'DAY_VOTE'),
+          roleId: record.revealedPublicly ? record.roleAtDeath : null,
+        },
+        dedupeKey: `day:${round}:eliminated:${record.playerId}`,
+      }));
+      return appendEvents(tx, gameId, drafts);
+    });
+  }
+
+  /** LOG-01: the PUBLIC `GAME_FINISHED` row, from the stored victory. Every role is public at the end. */
+  async publishFinished(gameId: string): Promise<StoredEvent[]> {
+    return this.db.transaction(async (tx) => {
+      const [game] = await tx.select({ id: games.id, status: games.status, roundNumber: games.roundNumber }).from(games).where(eq(games.id, gameId)).for('update');
+      if (!game || game.status !== 'FINISHED') return [];
+      const rows = await tx
+        .select({ record: victoryRecords, seat: gamePlayers })
+        .from(victoryRecords)
+        .leftJoin(gamePlayers, eq(gamePlayers.id, victoryRecords.playerId))
+        .where(eq(victoryRecords.gameId, gameId))
+        .orderBy(asc(victoryRecords.createdAt));
+      const outcomes = rows.map(({ record, seat }) => ({
+        scope: record.scope,
+        outcome: record.outcome,
+        faction: record.faction,
+        roleId: record.roleId,
+        player: seat ? snapshot(seat) : null,
+      }));
+      return appendEvents(tx, gameId, [{ type: 'GAME_FINISHED', audience: 'PUBLIC', payload: { roundNumber: game.roundNumber, outcomes }, dedupeKey: 'game:finished' }]);
+    });
   }
 
   /**

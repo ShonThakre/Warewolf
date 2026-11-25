@@ -608,6 +608,8 @@ No role art exists in the repository. The reveal screen should reserve an image 
 
 **Decided 12 November 2026: accepted as built.** Guest seats only in version 1; one person can hold several seats.
 
+**Amended 25 November 2026 (ID-01).** Still no accounts. Each device keeps a random device key (localStorage, or Preferences in the APK) that acts as the guest's identity: a join from a device that already holds a seat in the room returns that seat. Each seat also has a rejoin code (8 characters, shown as `XXXX-XXXX`) that reclaims it from another device. Both are stored as SHA-256 hashes. A reclaim issues a new token and a new code and closes the old device's sockets.
+
 **Recommendation.** Version 1 uses guest seat tokens. One human with several browsers can hold several seats. Full prevention needs accounts, and accounts are out of scope for the first Infection ship. Document the limitation in the host UI. Rate-limit room creation and joins.
 
 ### OD-64 Spectator and mid-game join
@@ -621,6 +623,8 @@ No role art exists in the repository. The reveal screen should reserve an image 
 **Decided 12 November 2026: accepted as built.**
 
 **Recommendation.** Before start, the host may remove a seat and that person may rejoin if the room is open. After start, a seat cannot be replaced by a new person. The same token can reconnect.
+
+**Amended 25 November 2026 (ID-01).** "The same person" also means the seat's own device key or its rejoin code: either gets the seat back, in the lobby or after start (`POST /games/join` with `deviceKey`, `POST /games/rejoin`). Nobody else can take a started seat.
 
 ### OD-66 Display names
 
