@@ -1,8 +1,9 @@
 import type { GameConfiguration, GameMode } from '@warewolf/domain';
 import { GAME_MODES, MODE_BOUNDS, getPack } from '@warewolf/domain';
-import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
 import { useState } from 'react';
 import { MODE_LABEL } from '../components/lobbyCopy';
+import { NumberField } from './NumberField';
 import { editedCardTitle, lockedModeCopy, PACK_STATUS_LABEL, replaceDialogCopy } from './setupCopy';
 import { applyMode, applyPack, hasHandEdits, modeLocked, packsForMode, roleSummary, setPlayerCount } from './setupDraft';
 
@@ -63,15 +64,14 @@ export function SetupMode({
           </Button>
         ))}
       </div>
-      <TextField
-        className="ww-setup-number"
+      <NumberField
         label="Players"
-        type="number"
         value={draft.playerCount}
+        min={bounds.min}
+        max={bounds.max}
         disabled={!editable || locked}
         helperText={locked ? `${MODE_LABEL[draft.mode]} uses ${bounds.min} players.` : `From ${bounds.min} to ${bounds.max}.`}
-        onChange={(event) => onDraft(setPlayerCount(draft, Number(event.target.value)))}
-        slotProps={{ htmlInput: { min: bounds.min, max: bounds.max, 'aria-label': 'Players' } }}
+        onCommit={(count) => onDraft(setPlayerCount(draft, count))}
       />
       <div className="ww-setup-grid" aria-label="Role packs">
         {edited ? (

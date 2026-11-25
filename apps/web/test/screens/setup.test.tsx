@@ -87,7 +87,7 @@ describe('configuration browser', () => {
     expect(strip?.textContent).toContain('Infection cap');
     expect(strip?.textContent).toContain('4');
     expect(screen.getByText(/Infection Edition is locked at 20 players/)).toBeTruthy();
-    expect((screen.getByRole('spinbutton', { name: 'Players' }) as HTMLInputElement).disabled).toBe(true);
+    expect((screen.getByRole('textbox', { name: 'Players' }) as HTMLInputElement).disabled).toBe(true);
     const steps = screen.getByRole('navigation', { name: 'Setup steps' });
     fireEvent.click(within(steps).getByRole('button', { name: '2. Roles' }));
     expect((screen.getByRole('button', { name: 'Add one Villager' }) as HTMLButtonElement).disabled).toBe(true);
@@ -123,7 +123,7 @@ describe('configuration browser', () => {
     expect(document.querySelector('.ww-setup-strip')?.textContent).toContain('Village roles');
     expect(screen.queryByRole('button', { name: 'Save setup' })).toBeNull();
     expect(screen.queryByRole('button', { name: 'Start game' })).toBeNull();
-    expect((screen.getByRole('spinbutton', { name: 'Players' }) as HTMLInputElement).disabled).toBe(true);
+    expect((screen.getByRole('textbox', { name: 'Players' }) as HTMLInputElement).disabled).toBe(true);
   });
 
   it('saves a mode change', async () => {
@@ -185,7 +185,7 @@ describe('configuration browser', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
     expect(await screen.findByText('Custom, based on Classic')).toBeTruthy();
     expect(screen.getByText('2 Pack Wolf · 1 Seeker · 1 Doctor · 6 Villager')).toBeTruthy();
-    expect((screen.getByRole('spinbutton', { name: 'Players' }) as HTMLInputElement).value).toBe('10');
+    expect((screen.getByRole('textbox', { name: 'Players' }) as HTMLInputElement).value).toBe('10');
   });
 
   it('turns Infection on without an OD-03 error and offers an Alpha Wolf', async () => {
@@ -206,5 +206,61 @@ describe('configuration browser', () => {
     await waitFor(() => expect(screen.queryByRole('button', { name: /Add an Alpha Wolf/ })).toBeNull());
     expect(screen.queryByText(/no Alpha Wolf is seated/)).toBeNull();
     expect(screen.queryByText(/OD-03/)).toBeNull();
+  });
+
+  it('lets the host type a Custom player count freely and checks it on blur', async () => {
+    setViewport(390, 844);
+    let savedCount = 0;
+    renderApp(`/lobby/${GAME}/setup`, { seat: hostSeat, fetchFn: fetchSetup('classic-10', true, (body) => (savedCount = body.playerCount)) });
+    expect(await screen.findByRole('navigation', { name: 'Setup steps' })).toBeTruthy();
+    fireEvent.click(within(screen.getByRole('group', { name: 'Game mode' })).getByRole('button', { name: 'Custom' }));
+    const players = screen.getByRole('textbox', { name: 'Players' }) as HTMLInputElement;
+    expect(players.type).toBe('text');
+    expect(players.inputMode).toBe('numeric');
+
+    // Partial entries stay as typed: nothing is clamped while typing.
+    fireEvent.focus(players);
+    fireEvent.change(players, { target: { value: '' } });
+    expect(players.value).toBe('');
+    fireEvent.change(players, { target: { value: '1' } });
+    expect(players.value).toBe('1');
+    fireEvent.change(players, { target: { value: '12a' } });
+    expect(players.value).toBe('12');
+    expect(screen.queryByText('Enter a number from 6 to 30.')).toBeNull();
+
+    fireEvent.blur(players);
+    expect(players.value).toBe('12');
+    fireEvent.click(screen.getByRole('button', { name: 'Save setup' }));
+    await waitFor(() => expect(savedCount).toBe(12));
+  });
+
+  it('shows an error for an out-of-range player count and keeps the last valid one', async () => {
+    setViewport(1024, 768);
+    let savedCount = 0;
+    renderApp(`/lobby/${GAME}/setup`, { seat: hostSeat, fetchFn: fetchSetup('classic-10', true, (body) => (savedCount = body.playerCount)) });
+    expect(await screen.findByRole('navigation', { name: 'Setup steps' })).toBeTruthy();
+    fireEvent.click(within(screen.getByRole('group', { name: 'Game mode' })).getByRole('button', { name: 'Custom' }));
+    const players = screen.getByRole('textbox', { name: 'Players' }) as HTMLInputElement;
+
+    fireEvent.focus(players);
+    fireEvent.change(players, { target: { value: '40' } });
+    fireEvent.keyDown(players, { key: 'Enter' });
+    expect(screen.getByText('Enter a number from 6 to 30.')).toBeTruthy();
+    expect(players.value).toBe('40');
+    expect(players.getAttribute('aria-invalid')).toBe('true');
+
+    fireEvent.focus(players);
+    fireEvent.change(players, { target: { value: '' } });
+    fireEvent.blur(players);
+    expect(screen.getByText('Enter a number.')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Save setup' }));
+    await waitFor(() => expect(savedCount).toBe(10));
+
+    fireEvent.focus(players);
+    fireEvent.change(players, { target: { value: '8' } });
+    fireEvent.keyDown(players, { key: 'Enter' });
+    expect(screen.queryByText('Enter a number.')).toBeNull();
+    expect(players.value).toBe('8');
   });
 });

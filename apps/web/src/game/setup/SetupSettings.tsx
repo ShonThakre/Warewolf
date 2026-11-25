@@ -1,6 +1,7 @@
 import type { GameConfiguration } from '@warewolf/domain';
 import { BLOCKING_DECISIONS, DEFAULT_CATALOG, KILL_AGGREGATIONS, requiredAcknowledgments } from '@warewolf/domain';
 import { Button, FormControlLabel, MenuItem, Radio, RadioGroup, Switch, TextField } from '@mui/material';
+import { NumberField } from './NumberField';
 import { ACK_LABEL, alphaWolfHint, INLINE_DECISIONS, KILL_LABEL, lockedModeCopy, NIGHT_TOGGLE_LABEL, SURVIVAL_CHOICES, SURVIVAL_QUESTION } from './setupCopy';
 import {
   modeLocked,
@@ -47,15 +48,16 @@ export function SetupSettings({
       </TextField>
       {draft.pacing === 'TIMED' && draft.timers ? (
         <>
-          <TimerField label="Night seconds" value={draft.timers.nightSeconds} disabled={disabled} onChange={(value) => onDraft(setTimer(draft, 'nightSeconds', value))} />
-          <TimerField label="Day seconds" value={draft.timers.daySeconds} disabled={disabled} onChange={(value) => onDraft(setTimer(draft, 'daySeconds', value))} />
-          <TimerField label="Vote seconds" value={draft.timers.voteSeconds} disabled={disabled} onChange={(value) => onDraft(setTimer(draft, 'voteSeconds', value))} />
+          <TimerField label="Night seconds" value={draft.timers.nightSeconds} max={3600} disabled={disabled} onChange={(value) => onDraft(setTimer(draft, 'nightSeconds', value))} />
+          <TimerField label="Day seconds" value={draft.timers.daySeconds} max={3600} disabled={disabled} onChange={(value) => onDraft(setTimer(draft, 'daySeconds', value))} />
+          <TimerField label="Vote seconds" value={draft.timers.voteSeconds} max={3600} disabled={disabled} onChange={(value) => onDraft(setTimer(draft, 'voteSeconds', value))} />
         </>
       ) : null}
-      <TimerField label="Round limit" value={draft.roundCap} disabled={disabled} onChange={(value) => onDraft(setRoundCap(draft, value))} />
+      <TimerField label="Round limit" value={draft.roundCap} min={1} max={100} disabled={disabled} onChange={(value) => onDraft(setRoundCap(draft, value))} />
       <TimerField
         label="Wolf cap"
         value={draft.teams.wolfCap}
+        max={30}
         disabled={disabled}
         helper="At least the number of wolves dealt at the start. A higher cap leaves room for a later conversion."
         onChange={(value) => onDraft(setWolfCap(draft, value))}
@@ -88,7 +90,7 @@ export function SetupSettings({
             <MenuItem value="SILENT">Silent. Only the converted player learns it</MenuItem>
             <MenuItem value="PUBLIC">The table is told</MenuItem>
           </TextField>
-          <TimerField label="Infection successes" value={draft.infection.maxSuccesses} disabled={disabled} onChange={(value) => onDraft(setInfectionSuccesses(draft, value))} />
+          <TimerField label="Infection successes" value={draft.infection.maxSuccesses} max={30} disabled={disabled} onChange={(value) => onDraft(setInfectionSuccesses(draft, value))} />
           <fieldset className="ww-setup-choice">
             <legend className="ww-setup-choice-title">{SURVIVAL_QUESTION}</legend>
             <RadioGroup
@@ -183,26 +185,19 @@ function Flag({ label, checked, disabled, onChange }: { label: string; checked: 
 function TimerField({
   label,
   value,
+  min = 0,
+  max,
   disabled,
   helper,
   onChange,
 }: {
   label: string;
   value: number;
+  min?: number;
+  max?: number;
   disabled: boolean;
   helper?: string;
   onChange: (value: number) => void;
 }) {
-  return (
-    <TextField
-      className="ww-setup-number"
-      label={label}
-      type="number"
-      value={value}
-      disabled={disabled}
-      helperText={helper}
-      onChange={(event) => onChange(Number(event.target.value))}
-      slotProps={{ htmlInput: { min: 0 } }}
-    />
-  );
+  return <NumberField label={label} value={value} min={min} max={max} disabled={disabled} helperText={helper} onCommit={onChange} />;
 }

@@ -183,6 +183,8 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 | UX-PHONE | Portrait phone screens matched to `*-phone.png` mockups (Phase 0 shared tokens/primitives, then Home→Results 01–12) | Claude | COMPLETED | UX-MOBILE |
 | SETUP-MODE | Setup: confirm before a mode or preset replaces edited roles, Custom starts from the current roles, edited-preset card with reset | Claude | COMPLETED | — |
 | SETUP-INFECTION | Setup: turning Infection on settles OD-03 inline, offers to seat an Alpha Wolf, and the summary shows each issue once in plain words | Claude | COMPLETED | SETUP-MODE |
+| SETUP-NUMBER | Setup number fields (Players, timers, caps, ability uses) type freely and validate on blur or Enter, no steppers, phone keypad. Files: `apps/web/src/game/setup/{NumberField,SetupMode,SetupSettings,SetupRoles}.tsx`, `apps/web/src/theme/{tokens,theme}.ts`, `apps/web/test/screens/setup.test.tsx` | Claude | COMPLETED | SETUP-MODE |
+| SETUP-LAND | **High.** Phone landscape 844×390: the Setup summary panel takes 206px and leaves the controls area (`.ww-setup-canvas`) 17px tall, so Players, presets, and settings are nearly unreachable. Also, the error under a `.ww-setup-number` field wraps into a column about 56px wide at that size. See the SETUP-NUMBER handoff | Cursor | READY | SETUP-NUMBER |
 | HOME-DEV | Home screen developer tag: Milind Somnathe | Cursor | COMPLETED | — |
 | PLAY-FIX-02 | Playtest fixes: Vampire mark converts the same night, Witch save cancels Vampire and Sniper kills, selected ability highlighted | Claude | REVIEW | PLAY-FIX-01 |
 
@@ -1399,4 +1401,17 @@ Last updated: 12 November 2026. Every open decision is settled (DEC-ROLES, DEC-A
 - **Policies:** `random-legal` (uniform among legal sets, including skip and abstain), `infection-priority` (same night choices, votes do not abstain), `vote-random` (no night actions, random living vote).
 - **Report:** `finish` (`VILLAGE`, `WOLF_PACK`, `draw`, `other`), `individuals`, `rounds.mean` and `median`, `deaths.nightMean` and `dayMean`, `infectionSuccesses`, `survivalByStartingRole`, `abilityUseRate`, `doctorNegatedFraction`.
 - **Handoff to Claude (WW-1402):** Call `simulate({ presetId: 'infection-core', games: 10_000, seed, policyId })` once OD-02 picks the Doctor mode. Publish that JSON under docs. Do not treat the frequencies as a human win rate. The CLI stays outside `src/` so the domain package stays free of Node imports.
+
+### SETUP-NUMBER — Setup number fields validate on submit
+
+- **Agent:** Claude
+- **Status:** COMPLETED
+- **Description:** Setup number fields were controlled `type="number"` inputs that went through the draft setters on every keystroke, so `setPlayerCount` clamped partial entries. Clearing Players gave 6, and typing "63" gave 30. They are now plain text fields that accept digits only. The value is checked when the field loses focus or on Enter (Done on a phone). An invalid entry shows an error and leaves the draft unchanged.
+- **Files:** new `apps/web/src/game/setup/NumberField.tsx`; `SetupMode.tsx` (Players), `SetupSettings.tsx` (`TimerField` wraps `NumberField`), `SetupRoles.tsx` (uses, rest nights, numeric ability config); `apps/web/src/theme/tokens.ts` (`--text-input: 1rem`); `apps/web/src/theme/theme.ts` (`MuiInputBase` input font size); `apps/web/test/screens/setup.test.tsx`.
+- **Interface:** `NumberField({ label, value, onCommit(n), min?, max?, disabled?, helperText?, className = 'ww-setup-number' })`. Bounds match the setters: Players `MODE_BOUNDS`, seconds 0–3600, round limit 1–100, wolf cap and infection successes 0–30, ability fields at least 0. The input has `inputMode="numeric"`, `pattern="[0-9]*"`, and `enterKeyHint="done"`, and its accessible role is `textbox` (no longer `spinbutton`).
+- **Acceptance (met):** `pnpm typecheck`; web tests 45 files and 414 tests, plus 2 new tests in `setup.test.tsx`. A temporary Playwright check (mobile, touch, Chrome) at 390×844 and 844×390: typing "1" then "12" stays as typed, Enter commits, "45" shows "Enter a number from 6 to 30.", Save sends 12, input font size is at least 16px (no iOS focus zoom), and there's no horizontal overflow.
+- **Handoff to Cursor:**
+  1. `--text-input` is a new token, needed so iOS doesn't zoom on focus while `--text-body` drops to 12px on phones. Keep it at 16px or more.
+  2. SETUP-LAND: at 844×390 the summary panel crowds out `.ww-setup-canvas` (17px tall). The setup controls need room in phone landscape, for example a capped or collapsible summary.
+  3. `.ww-setup-number` is `max-width: calc(var(--space) * 10)`, about 84px at 844px wide, so the error text wraps one word per line. Give the helper text room (a wider field, or helper text that may extend past the input).
 

@@ -6,6 +6,7 @@ import { teamWord } from '../components/lobbyCopy';
 import { capabilityTitle, roleAvailability } from '../components/roleCopy';
 import { filterRoles, TEAM_FILTERS, type TeamFilter } from '../components/roleFilters';
 import { RoleDetails, RoleTile } from '../components/RoleTile';
+import { NumberField } from './NumberField';
 import { configLabel, lockedModeCopy } from './setupCopy';
 import { modeLocked, roleCount, setAbilityCharge, setAbilityConfig, setAbilityCooldown, setAbilityProfile, setRoleCount, setRoleFaction } from './setupDraft';
 
@@ -210,22 +211,18 @@ function AbilityEditor({
             </label>
           ) : null}
           {usesPerGame !== null ? (
-            <TextField
-              className="ww-setup-number"
+            <NumberField
               label="Uses each game"
-              type="number"
               value={usesPerGame}
-              onChange={(event) => onDraft(setAbilityCharge(draft, roleId, ability.id, Number(event.target.value)))}
-              slotProps={{ htmlInput: { min: 0 } }}
+              min={0}
+              onCommit={(uses) => onDraft(setAbilityCharge(draft, roleId, ability.id, uses))}
             />
           ) : null}
-          <TextField
-            className="ww-setup-number"
+          <NumberField
             label="Nights of rest after a use"
-            type="number"
             value={cooldown}
-            onChange={(event) => onDraft(setAbilityCooldown(draft, roleId, ability.id, Number(event.target.value)))}
-            slotProps={{ htmlInput: { min: 0 } }}
+            min={0}
+            onCommit={(nights) => onDraft(setAbilityCooldown(draft, roleId, ability.id, nights))}
           />
         </>
       ) : null}
@@ -241,13 +238,12 @@ function AbilityEditor({
         }
         if (typeof base === 'number' && typeof value === 'number' && editable) {
           return (
-            <TextField
+            <NumberField
               key={key}
-              className="ww-setup-number"
               label={configLabel(key)}
-              type="number"
               value={value}
-              onChange={(event) => onDraft(setAbilityConfig(draft, roleId, ability.id, key, Number(event.target.value)))}
+              min={0}
+              onCommit={(next) => onDraft(setAbilityConfig(draft, roleId, ability.id, key, next))}
             />
           );
         }

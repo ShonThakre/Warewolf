@@ -89,6 +89,11 @@ export const theme = createTheme({
         },
       },
     },
+    MuiInputBase: {
+      styleOverrides: {
+        input: { fontSize: 'var(--text-input)' },
+      },
+    },
     MuiOutlinedInput: {
       styleOverrides: {
         root: {

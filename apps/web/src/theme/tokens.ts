@@ -40,6 +40,8 @@ export const tokens = {
   '--text-nav': 'clamp(1rem, 0.3vw + 0.9rem, 1.35rem)',
   '--text-body': 'clamp(0.75rem, 0.2vw + 0.7rem, 1rem)',
   '--text-label': 'clamp(0.7rem, 0.15vw + 0.65rem, 0.85rem)',
+  /** Text typed into a field. At least 16px, so iOS Safari does not zoom the page when a field gets focus. */
+  '--text-input': '1rem',
   '--font-display': '"Nunito", system-ui, -apple-system, "Segoe UI", sans-serif',
   /** Large fantasy headings only. Body copy and the home hero stay on `--font-display`. */
   '--font-fantasy': '"Playfair Display", Palatino, "Palatino Linotype", "Book Antiqua", serif',
